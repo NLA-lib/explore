@@ -9,3 +9,7 @@
 #
 # Prefer putting the mathematics in the docstring, where it is reviewed with the Lean; use
 # `latex` only when the docstring cannot carry it.
+
+[davis-kahan]
+title = "The Davis–Kahan sin Θ theorem"
+aliases = ["Davis-Kahan", "sin theta theorem", "eigenvector perturbation"]
