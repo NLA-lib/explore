@@ -296,7 +296,10 @@
     'there this to with any every all each where which when its their than').split(' '));
   const stem = w => w.length > 4 && w.endsWith('ies') ? w.slice(0, -3) + 'y'
     : w.length > 3 && w.endsWith('s') && !w.endsWith('ss') ? w.slice(0, -1) : w;
+  // LaTeX formatting commands are not words (`\mathbf{A}` is `A`); \lambda, \sigma, \det, … stay
+  const LATEX_FORMAT = /\\(?:mathbf|mathsf|mathbb|mathrm|mathcal|boldsymbol|operatorname|text|left|right|big|Big|bigg|Bigg|begin|end|lvert|rvert|lVert|rVert|langle|rangle|quad|qquad|cdot|cdots|ldots|dots|le|ge|leq|geq|preceq|succeq|in|to|mapsto|frac|sqrt|sum|prod|int|limits|displaystyle)(?![a-zA-Z])|\{(?:b|p|v)?matrix\}/g;
   const tokenize = text => (text || '')
+    .replace(LATEX_FORMAT, ' ')
     .replace(/([a-z])([A-Z])/g, '$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
     .toLowerCase().split(/[^\p{L}\p{N}]+/u)
     .filter(w => w && !STOP.has(w)).map(stem);
@@ -621,7 +624,7 @@
       const b = D.bib[key];
       // a label already contained in another (`§0.8.7` in `§0.8.1 and §0.8.7`) is dropped
       const labels = [...r.labels].filter(l => ![...r.labels].some(o => o !== l && o.includes(l))).join('; ');
-      return `<li><strong>${esc(key)}</strong>${labels ? ', ' + esc(labels) : ''}.` +
+      return `<li><strong>${esc(key)}</strong>${labels ? ', ' + md(labels, { inline: true }) : ''}.` +
         (b ? ` ${esc(b.text)}${b.url ? ` <a href="${esc(b.url)}" target="_blank" rel="noopener">link</a>` : ''}` : '') +
         [...r.notes].map(n => `<div class="refnote">${n}</div>`).join('') + '</li>';
     });

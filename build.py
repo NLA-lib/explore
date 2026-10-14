@@ -121,6 +121,26 @@ def strip_result_line(doc):
     return RESULT_LINE.sub('', doc).rstrip() if doc else doc
 
 
+DISPLAY = re.compile(r'\$\$(.+?)\$\$((?:\s*[.,;:])*)', re.S)
+
+
+def tidy_displays(text):
+    """Punctuation after a displayed formula goes inside it, or it is left alone on the next line;
+    marks left over once citations are removed (`$$ … .$$; .`) are dropped. In an `aligned`
+    display the mark goes at the end of its last line."""
+    def fix(m):
+        body, after = m.group(1), re.sub(r'\s+', '', m.group(2))
+        if not after or re.search(r'[.,;:]\s*(\\end\{aligned\})?\s*$', body):
+            return f'$${body}$$'
+        mark = after[-1] if after[-1] == '.' else after[0]
+        if re.search(r'\\end\{aligned\}\s*$', body):
+            body = re.sub(r'\s*\\end\{aligned\}\s*$', lambda e: f'\\,{mark} \\end{{aligned}}', body)
+        else:
+            body = body.rstrip() + f'\\,{mark}'
+        return f'$${body}$$'
+    return DISPLAY.sub(fix, text)
+
+
 def sentences(text):
     """Split prose into sentences at '. ' (or ': ' before a capital is not a split), never inside
     backticks, dollars or brackets."""
@@ -275,6 +295,9 @@ def split_doc(doc, decl_names):
     parts['stmt'] = ' '.join(stmt) or (parts['name'] + '.' if parts['name'] else '') or (
         parts['rel'].pop(0) if parts['rel'] else '')
     parts['stmt'] = re.sub(r'^[a-z]', lambda c: c.group(0).upper(), parts['stmt'])
+    parts['stmt'] = tidy_displays(parts['stmt'])
+    parts['rel'] = [tidy_displays(t) for t in parts['rel']]
+    parts['notes'] = [tidy_displays(t) for t in parts['notes']]
     # letters the prose introduces as matrices or vectors ("a standard Gaussian matrix `G : N × n`")
     parts['bold'] = sorted(set(re.findall(r'(?:matrix|matrices|vector|vectors|(?:entries|columns|rows) of)\s+`([A-Za-z])(?=[\s`:,])', text)))
     return parts
