@@ -1,0 +1,54 @@
+# Build the explorer from NLAlib's latest extracted data and deploy it to GitHub Pages.
+#
+# NLAlib's `explore` workflow publishes explore-data.json on its rolling `explore-data` release
+# after every push, then sends a `nlalib-updated` repository_dispatch here (when the
+# EXPLORE_DISPATCH_TOKEN secret is set in NLAlib). The daily schedule is a fallback in case a
+# dispatch is missed.
+name: Deploy the explorer
+
+on:
+  push:
+    branches: [main]
+  repository_dispatch:
+    types: [nlalib-updated]
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch the library data
+        run: |
+          mkdir -p data
+          curl -fsSL -o data/explore-data.json \
+            https://github.com/NLA-lib/NLAlib/releases/download/explore-data/explore-data.json
+          sha=$(python3 -c "import json; print(json.load(open('data/explore-data.json'))['commit'] or 'scaffold')")
+          echo "NLAlib commit: $sha"
+          curl -fsSL -o data/references.bib \
+            "https://raw.githubusercontent.com/NLA-lib/NLAlib/$sha/docs/references.bib" || true
+      - name: Build
+        run: python3 build.py --data data/explore-data.json --bib data/references.bib --out site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

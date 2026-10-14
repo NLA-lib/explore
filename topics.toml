@@ -1,0 +1,68 @@
+# Titles, order and one-line blurbs for the directories of NLAlib, used by build.py.
+# A topic is a directory under NLAlib/ (a layer), a subtopic a directory one level below it.
+# Every key is optional: a directory without an entry is shown with a title made from its name
+# (`SubGaussianVector` -> "Sub-Gaussian vector") and sorted alphabetically after the listed ones.
+# Files directly under a layer go to the subtopic named in that layer's `assign` table, or to
+# `General`. Keep this file in step with the layer design notes in NLAlib's docs/design/.
+
+order = ["Matrix", "Polynomial", "Probability", "Krylov", "RandomMatrix", "Sketching",
+         "LowRank", "Estimation", "Solvers", "ForMathlib"]
+
+[Matrix]
+title = "Matrix analysis"
+blurb = "Deterministic matrix analysis: norms, spectra, the pseudoinverse, subspaces, perturbation theory, inequalities, matrix functions and factorizations."
+order = ["Basic", "Norms", "Spectral", "Pseudoinverse", "Majorization", "Subspaces", "Perturbation", "Inequalities", "Functions", "Factorizations", "Structured"]
+Basic.title = "Foundations"
+Norms.title = "Norms"
+Spectral.title = "Spectral theory"
+Pseudoinverse.title = "Pseudoinverse and least squares"
+Majorization.title = "Majorization"
+Subspaces.title = "Subspaces and principal angles"
+Perturbation.title = "Perturbation theory"
+Inequalities.title = "Matrix inequalities"
+Functions.title = "Matrix functions"
+Factorizations.title = "Factorizations"
+Structured.title = "Structured matrices"
+
+[Probability]
+title = "Probability and concentration"
+blurb = "Scalar, vector and matrix-valued random variables, their tails, and concentration inequalities."
+order = ["Tails", "Distributions", "SubGaussian", "SubExponential", "SubGaussianVector", "RandomVectors", "QuadraticForm", "Entropy", "MatrixValued", "MatrixConcentration", "Measurability"]
+Tails.title = "Tails, moments and Orlicz conditions"
+Distributions.title = "Gaussian and chi-square distributions"
+SubGaussian.title = "Sub-Gaussian variables"
+SubExponential.title = "Sub-exponential variables"
+SubGaussianVector.title = "Sub-Gaussian vectors"
+RandomVectors.title = "Random vectors and their laws"
+QuadraticForm.title = "Quadratic forms"
+Entropy.title = "The entropy method"
+MatrixValued.title = "Matrix-valued random variables"
+MatrixConcentration.title = "Matrix concentration"
+Measurability.title = "Measurability"
+
+[Probability.assign]
+Tail = "Tails"
+Orlicz = "Tails"
+Law = "RandomVectors"
+Isotropic = "RandomVectors"
+Entropy = "Entropy"
+EntropyTensorization = "Entropy"
+LogSobolev = "Entropy"
+BoundedDifferences = "Entropy"
+MatrixIntegral = "MatrixValued"
+MatrixConditionalExpectation = "MatrixValued"
+
+[RandomMatrix]
+title = "Random matrices"
+blurb = "Gaussian, sub-Gaussian and Haar random matrices: invariance, moments, inverse moments and extreme singular values."
+order = ["Gaussian", "SubGaussian", "Haar"]
+Gaussian.title = "Gaussian matrices"
+SubGaussian.title = "Sub-Gaussian matrices"
+Haar.title = "Haar measure and unitary invariance"
+
+[RandomMatrix.assign]
+UnitaryInvariance = "Haar"
+
+[ForMathlib]
+title = "Supplements to Mathlib"
+blurb = "General facts with no NLAlib vocabulary in their statements, declared in Mathlib's namespaces and headed upstream."

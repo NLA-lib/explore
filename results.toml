@@ -1,0 +1,11 @@
+# Optional per-result additions, keyed by the `Result:` id in NLAlib docstrings.
+# Everything here is optional; without an entry a result's title is the bold name in its first
+# docstring (or the id), and its statement is that docstring.
+#
+#   [weyl-inequality]
+#   title = "Weyl's inequality"
+#   aliases = ["Weyl's eigenvalue inequality"]          # extra names for the search
+#   latex = "For Hermitian $A, B$: $$\\lambda_{i+j}(A+B) \\le \\lambda_i(A) + \\lambda_j(B).$$"
+#
+# Prefer putting the mathematics in the docstring, where it is reviewed with the Lean; use
+# `latex` only when the docstring cannot carry it.

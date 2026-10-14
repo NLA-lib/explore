@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>NLA-lib Explorer</title>
+  <meta name="description" content="Browse the definitions and theorems of NLA-lib, a Lean 4 library for numerical linear algebra.">
+  <link rel="icon" href="data:,">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script defer src="math.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+<div id="main">
+<div id="contentContainer">
+  <h1>NLA-lib Explorer</h1>
+  <div class="byline" id="byline">Loading the library&hellip;</div>
+
+  <div id="searchbar">
+    <input id="q" type="search" autocomplete="off" spellcheck="false"
+           placeholder="Search, e.g. eigenvalues of a sum, pseudoinverse perturbation"
+           aria-label="Search theorems and definitions">
+  </div>
+
+  <div id="content"></div>
+</div>
+</div>
+
+<aside id="panel" aria-label="Details" hidden>
+  <div id="panelbar">
+    <button id="back" type="button" title="Back (Alt+←)">&larr;</button>
+    <span id="crumbs"></span>
+    <button id="close" type="button" title="Close (Esc)">&times;</button>
+  </div>
+  <div id="panelbody"></div>
+</aside>
+</body>
+</html>
