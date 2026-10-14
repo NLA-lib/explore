@@ -357,7 +357,16 @@ def bold_letters(sig, texts, prose_bold):
     e_prob = bool(re.search(r'\bMeasure\b|MeasureSpace|∫|∂|Ω|\bHasLaw\b|IndepFun', sig or ''))
     auto = {c for c in caps if c not in other and c not in NOT_BOLD and not (c == 'P' and p_prob)
             and not (c == 'E' and e_prob)}
-    return sorted((mat | set(prose_bold) | auto | used) - (other - mat))
+    # lowercase letters used as vectors: next to a matrix (`A x`, `xᴴ A`) or conjugate-transposed
+    # (`xᴴ`), when the Lean does not bind them to something else
+    caps_bold = mat | auto
+    vec = set()
+    for sp in spans:
+        vec |= {m.group(2) for m in re.finditer(r'(?<![\w.])([A-Z])(?:ᴴ|ᵀ|⁻¹)?\s+([buvwxyz])(?![\w.(])', sp)
+                if m.group(1) in caps_bold}
+        vec |= set(re.findall(r'(?<![\w.])([buvwxyz])[ᴴᵀ]', sp))
+    vec -= other
+    return sorted((mat | set(prose_bold) | auto | used | vec) - (other - mat))
 
 
 def first_sentence(doc):

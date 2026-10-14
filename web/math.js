@@ -141,7 +141,8 @@
       const plain = !isBold && /[a-eA-Z]|[m-z]/.test(v) && /[a-z]/.test(v) && !'fgh'.includes(v) &&
         ix.length === 1 && INDEX.test(ix[0]);
       if (!(isBold || plain) || ix.some(i => bold && bold.has(i.replace(/[₀-₉']+$/, '')))) return m;
-      if (isBold && ix.some(i => !/^(?:[a-z][₀-₉']*|\d+)$/.test(i))) return m;
+      // a matrix's or vector's indices are index letters or numerals: `A x` is a product, not A_x
+      if (isBold && ix.some(i => !/^(?:[ijklmnpqrst][₀-₉']*|\d+)$/.test(i))) return m;
       const sub = ix.map(i => i.replace(/[₀-₉]/g, c => '_{' + SUB[c] + '}')).join(',');
       const sup = post === 'ᴴ' ? '^{\\mathsf{H}}' : post === 'ᵀ' ? '^{\\mathsf{T}}' : post === '⁻¹' ? '^{-1}'
         : post ? `^{${SUP[post]}}` : '';
