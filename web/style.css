@@ -93,7 +93,8 @@ h3 {
     margin: 1.4em 0 0.3em;
 }
 
-/* the site menu under the title, as on nla-lib.org: plain links, italic on hover */
+/* the site menu under the title, as on nla-lib.org: plain links that invert on hover like every
+   link (a change of style on hover would change their width and shift the menu) */
 .menu {
     display: flex;
     flex-wrap: wrap;
@@ -103,10 +104,6 @@ h3 {
 
 .menu a {
     text-decoration: none;
-}
-
-.menu a:hover {
-    font-style: italic;
 }
 
 .menu a.here {
