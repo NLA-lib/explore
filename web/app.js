@@ -9,9 +9,15 @@
     c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const h = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; };
 
+  // the Books page is this app one directory down (books/index.html, written by build.py)
+  const PAGE = document.body.dataset.page || 'main';
+  const BASE = document.body.dataset.base || '';
+
+  $(`.menu a[data-page="${PAGE}"]`)?.classList.add('here');
+
   let D;
   try {
-    D = await (await fetch('data.json')).json();
+    D = await (await fetch(BASE + 'data.json')).json();
   } catch (e) {
     $('#byline').textContent = 'The library data could not be loaded.';
     return;
@@ -50,8 +56,18 @@
   });
 
   const resultTitle = rid => D.results[rid]?.title ?? rid;
+  // a graph box is SVG text, so a title's maths is written out plainly: `$\chi^2$` is χ²
+  const GREEK = { alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', epsilon: 'ε', varepsilon: 'ε',
+    theta: 'θ', Theta: 'Θ', kappa: 'κ', lambda: 'λ', mu: 'μ', sigma: 'σ', Sigma: 'Σ', chi: 'χ',
+    psi: 'ψ', phi: 'φ', pi: 'π', omega: 'ω', sin: 'sin ', cos: 'cos ', log: 'log ', det: 'det ', tr: 'tr ' };
+  const SUP = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', '+': '⁺', '-': '⁻', '*': '*', T: 'ᵀ', H: 'ᴴ' };
+  const plainTex = t => t.replace(/\$([^$]*)\$/g, (_, m) => m
+    .replace(/\\(?:mathbf|mathsf|mathrm|operatorname|boldsymbol)\{([^{}]*)\}/g, '$1')
+    .replace(/\\\|/g, '‖').replace(/\\([a-zA-Z]+)\s*/g, (c, w) => GREEK[w] ?? '')
+    .replace(/\^\{?([0-9+\-*TH])\}?/g, (c, x) => SUP[x]).replace(/_\{?([^{}\s]+)\}?/g, (c, x) => x.replace(/\d/g, n => '₀₁₂₃₄₅₆₇₈₉'[n]))
+    .replace(/[{}]/g, '').replace(/\s+/g, ' ').trim());
   const nodeLabel = key => {
-    if (key.startsWith('r:')) return resultTitle(key.slice(2)).replace(/`/g, '');
+    if (key.startsWith('r:')) return plainTex(resultTitle(key.slice(2))).replace(/`/g, '');
     if (key.startsWith('d:')) return short(key.slice(2));
     return short(decls[+key.slice(2)].n);
   };
@@ -278,6 +294,7 @@
     ev.preventDefault();
     if ($('#q').value) { $('#q').value = ''; runSearch(); }
     const target = document.getElementById(a.dataset.scroll);
+    if (!target) { location.href = BASE || './'; return; }
     for (let d = target; d; d = d.parentElement?.closest('details')) d.open = true;
     if (window.matchMedia('(max-width: 1000px)').matches) closePanel();
     target?.scrollIntoView({ behavior: 'smooth' });
@@ -286,9 +303,55 @@
   const nResults = Object.keys(D.results).length;
   const nDefs = decls.filter(isDef).length;
   const commit = D.commit ? `<a href="${D.repo}/tree/${D.commit}"><code>${D.commit.slice(0, 7)}</code></a>` : 'a local build';
-  $('#byline').innerHTML = `${nResults} named results, ${nDefs} definitions and ${decls.length} declarations, ` +
-    `from NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
-  renderCatalogue();
+  if (PAGE === 'books') {
+    renderBooks();
+  } else {
+    $('#byline').innerHTML = `${nResults} named results, ${nDefs} definitions and ${decls.length} declarations, ` +
+      `from NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
+    renderCatalogue();
+  }
+
+  // ------------------------------------------------------------------ the Books page
+
+  // For each key book: its chapters, and in each section its numbered results with the library's
+  // results and declarations citing them (`[Tropp2015, Theorem 6.1.1]`); those not cited are faint.
+  function renderBooks() {
+    document.title = 'NLA-lib Book Explorer';
+    $('h1').textContent = 'NLA-lib Book Explorer';
+    $('#searchbar').hidden = true;
+    $('#intro').hidden = false;
+    $('#intro').textContent = 'What NLAlib has from key books: every numbered result of each book, with ' +
+      'the results of the library that cite it.';
+    $('#byline').innerHTML = `From NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
+    const link = t => t.r !== undefined
+      ? `<a href="#r/${encodeURIComponent(t.r)}">${md(resultTitle(t.r), { inline: true })}</a>`
+      : `<a href="#d/${encodeURIComponent(t.d)}"><code>${esc(short(t.d))}</code></a>`;
+    const links = refs => refs.map(link).join(', ');
+    const item = it => {
+      const has = it.refs.length > 0;
+      return `<li class="bkitem${has ? '' : ' missing'}"><span class="bkno">${esc(it.k)} ${esc(it.n)}</span>` +
+        (it.name ? ` <span class="entry-title">${esc(it.name)}</span>` : '') +
+        `<span class="desc">${has ? (it.same ? `As ${esc(it.same)}: ` : '') + links(it.refs) : 'No library result cites it.'}</span></li>`;
+    };
+    $('#content').innerHTML = D.books.map(b => {
+      const chapters = b.chapters.map(c => {
+        const items = c.sections.flatMap(x => x.items);
+        const n = items.filter(it => it.refs.length).length;
+        const body = (c.refs.length ? `<p class="sub-blurb">Citing the chapter: ${links(c.refs)}</p>` : '') +
+          c.sections.filter(x => x.items.length || x.refs.length).map(x =>
+            `<div class="module"><span class="mtitle">${esc(x.n)} ${esc(x.title)}</span></div>` +
+            '<ul class="entries">' + x.items.map(item).join('') +
+            (x.refs.length ? `<li class="bkitem"><span class="bkno">§${esc(x.n)}</span>` +
+              `<span class="desc">${links(x.refs)}</span></li>` : '') + '</ul>').join('');
+        return section(`b-${b.key}-${c.n}`, 'sub', 'h3', `${c.n}. ${c.title}`,
+          items.length ? `${n} of ${items.length}` : '', body);
+      }).join('');
+      // a book is collapsed like a topic, its count the numbered results the library cites
+      return section(`b-${b.key}`, 'topic', 'h2', b.short, `${b.covered} of ${b.items} cited`,
+        `<p class="topic-blurb">${esc(b.cite ?? b.key)}${b.url ? ` <a href="${esc(b.url)}" target="_blank" rel="noopener">link</a>` : ''}` +
+        (b.general.length ? ` Cited as a whole by ${links(b.general)}.` : '') + '</p>' + chapters);
+    }).join('');
+  }
 
   // ------------------------------------------------------------------ search
 
@@ -581,18 +644,21 @@
     return box;
   }
 
+  // One formal statement of a result: "In Lean" with the controls on the label, then the Lean.
+  // A further one (`first` false) opens with its own name, if any, and its own "Statement".
   function declSection(i, opts = {}) {
     const d = decls[i];
-    const sec = h(`<section class="decl" id="decl-${i}"></section>`);
-    // the name as a label, unless it is the title or the whole statement (`**The factor is unique.**`)
-    const label = d.nm && d.nm !== opts.title && !(d.stmt === d.nm + '.' && !opts.noDoc)
-      ? `<span class="declname">${md(d.nm, { inline: true })}</span>` : '';
-    const head = h(`<div class="declhead"><code>${esc(short(d.n))}</code>` +
-      `<span class="kind">${kindLabel(d)}</span>${wip(d)}${label}` +
-      `<span class="src"><button class="tog" title="Switch between the statement as written and as Lean elaborates it">elaborated</button> ` +
-      `<a href="${sourceUrl(i)}" target="_blank" rel="noopener">source ↗</a></span></div>`);
+    const sec = h(`<section class="decl${opts.first ? '' : ' form'}" id="decl-${i}"></section>`);
+    if (!opts.first) {
+      // the name, unless it is the title or the whole statement (`**The factor is unique.**`)
+      if (d.nm && d.nm !== opts.title && d.stmt !== d.nm + '.')
+        sec.insertAdjacentHTML('beforeend', `<h3 class="formname">${md(d.nm, { inline: true })}</h3>`);
+      if (d.stmt) sec.insertAdjacentHTML('beforeend', '<div class="label">Statement</div>' + statementHtml(null, i));
+    }
+    const head = h(`<div class="label">In Lean<span class="opts">${wip(d)}` +
+      `<button class="tog" title="Switch between the statement as written and as Lean elaborates it">elaborated</button>` +
+      `<a class="srclink" href="${sourceUrl(i)}" target="_blank" rel="noopener">source ↗</a></span></div>`);
     sec.append(head);
-    if (!opts.noDoc && d.stmt) sec.append(h(`<div class="doc"><p>${stmtHtml(i, true)}</p></div>`));
     const lean = leanBlock(i);
     sec.append(lean);
     const tog = head.querySelector('.tog');
@@ -602,6 +668,7 @@
     });
     return sec;
   }
+
 
   // Everything in the docstrings that is not the statement: pointers to other declarations,
   // proof sketches, and the sources with how their printed statements differ.
@@ -634,6 +701,13 @@
       (refItems.length ? `<div class="label">References</div><ul class="refs">${refItems.join('')}</ul>` : '');
   }
 
+  // the panel's heading: what kind of thing it is, above its name
+  const KIND_NAMES = { def: 'Definition', abbrev: 'Definition', opaque: 'Definition',
+    structure: 'Structure', class: 'Class', inductive: 'Inductive type', instance: 'Instance',
+    theorem: 'Lemma' };
+  const headHtml = (title, kind) =>
+    `<div class="panelhead"><span class="kindtag">${kind}</span><h2>${title}</h2></div>`;
+
   function statementHtml(latex, i) {
     return `<div class="statement">${latex ? md(latex) : `<p>${stmtHtml(i, true)}</p>`}</div>`;
   }
@@ -643,12 +717,12 @@
     const r = D.results[rid];
     if (!r) return showMissing();
     const body = $('#panelbody');
-    body.innerHTML = `<h2>${md(r.title, { inline: true })}</h2>` +
-      `<div class="subtitle">Result <code>${esc(rid)}</code>${r.ids.map(x => `, <code>${esc(x)}</code>`).join('')} · ${r.decls.length} formal statement${r.decls.length > 1 ? 's' : ''}` +
+    body.innerHTML = headHtml(md(r.title, { inline: true }), 'Theorem') +
+      `<div class="subtitle"><code>${esc(rid)}</code>${r.ids.map(x => `, <code>${esc(x)}</code>`).join('')} · ${r.decls.length} formal statement${r.decls.length > 1 ? 's' : ''}` +
       `${r.aliases.length ? ' · also known as ' + r.aliases.map(esc).join(', ') : ''}</div>` +
-      '<div class="label">Statement</div>' + statementHtml(r.latex, r.decls[0]) +
-      `<div class="label">In Lean</div>`;
-    r.decls.forEach((j, k) => body.append(declSection(j, { noDoc: k === 0 && !r.latex, title: r.title })));
+      '<div class="label">Statement</div>' + statementHtml(r.latex, r.decls[0]);
+    r.decls.forEach((j, k) =>
+      body.append(declSection(j, { title: r.title, first: k === 0 })));
     body.append(graphSection(['r:' + rid, 'i:' + (focusDecl ?? r.decls[0])], ['nodes', 'decls']));
     body.insertAdjacentHTML('beforeend', notesHtml(r.decls));
     openPanel(crumbs(r.module));
@@ -664,11 +738,10 @@
     if (d.r.length) return showResult(d.r[0], i);
     const body = $('#panelbody');
     const def = isDef(d);
-    body.innerHTML = `<h2><code>${esc(short(d.n))}</code></h2>` +
-      `<div class="subtitle">${def ? 'Definition' : 'Lemma'} · ${md(D.modules[d.m]?.title || d.m, { inline: true })}</div>` +
-      (d.stmt ? '<div class="label">Statement</div>' + statementHtml(null, i) : '') +
-      '<div class="label">In Lean</div>';
-    body.append(declSection(i, { noDoc: true }));
+    body.innerHTML = headHtml(`<code>${esc(short(d.n))}</code>`, KIND_NAMES[d.k] ?? d.k) +
+      `<div class="subtitle">${md(D.modules[d.m]?.title || d.m, { inline: true })}</div>` +
+      (d.stmt ? '<div class="label">Statement</div>' + statementHtml(null, i) : '');
+    body.append(declSection(i, { first: true }));
     body.append(graphSection(def ? ['d:' + d.n, 'i:' + i] : [null, 'i:' + i], def ? ['nodes', 'decls'] : ['decls']));
     body.insertAdjacentHTML('beforeend', notesHtml([i]));
     openPanel(crumbs(d.m));
@@ -684,7 +757,7 @@
     const results = inMod.filter(([d]) => d.r.length);
     const defs = inMod.filter(([d]) => !d.r.length && isDef(d));
     const lemmas = inMod.filter(([d]) => !d.r.length && !isDef(d));
-    $('#panelbody').innerHTML = `<h2>${md(mod.title, { inline: true })}</h2>` +
+    $('#panelbody').innerHTML = headHtml(md(mod.title, { inline: true }), 'File') +
       `<div class="subtitle"><code>${esc(name)}</code> · <a href="${D.repo}/blob/${D.ref}/${mod.path}" target="_blank" rel="noopener">source ↗</a></div>` +
       (mod.summary ? `<div class="doc"><p>${md(mod.summary, { inline: true })}</p></div>` : '') +
       (results.length ? `<div class="label">Results</div><ul class="declist">${results.map(item).join('')}</ul>` : '') +
@@ -717,6 +790,12 @@
   $('#back').addEventListener('click', () => history.back());
 
   function route() {
+    // a link to a book on the Books page (`books/#b-Tropp2015`) opens it
+    const book = PAGE === 'books' && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (book?.tagName === 'DETAILS') {
+      book.open = true;
+      book.scrollIntoView();
+    }
     const m = /^#([rdm])\/(.+)$/.exec(location.hash);
     if (!m) {
       $('#panel').hidden = true;

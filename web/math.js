@@ -52,6 +52,8 @@
     specNorm: [1, a => `\\|${a[0]}\\|_{2}`],
     frobNorm: [1, a => `\\|${a[0]}\\|_{\\mathsf{F}}`],
     conditionNumber: [1, a => `\\kappa(${a[0]})`],
+    // not the classical condition number on rank-deficient matrices, so written out, not \kappa
+    pseudoConditionNumber: [1, a => `\\|${a[0]}\\|_{2}\\,\\|{${a[0]}}^{+}\\|_{2}`],
     eigenvalue: [2, a => `\\lambda_{${a[1]}}(${a[0]})`],
     singularValues: [2, a => `\\sigma_{${a[1]}}(${a[0]})`],
     rangeProjector: [1, a => `\\mathbf{P}_{${a[0]}}`],

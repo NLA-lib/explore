@@ -1,0 +1,1220 @@
+# The Books page (nla-lib.org/explore/books/): for each key book, its chapters, sections and
+# numbered results, each shown with the library results whose docstrings cite it
+# (`[Tropp2015, Theorem 6.1.1]`, `[Tropp2015, §6.6]`). Only numbers and short names are listed
+# here, never statements; they were read off the book's own headings. `same` maps a result the
+# book restates to the number the library cites (Tropp states matrix Bernstein and Lieb's theorem
+# early and again where they are proved). Books are listed alphabetically by author.
+# Horn and Johnson: the 2013 second edition. Vershynin: the February 2020 online version, whose
+# numbering matches every citation of the 2018 printed book in the library.
+
+[[book]]
+key = "HornJohnson2013"
+short = "Horn and Johnson, Matrix Analysis"
+url = "https://doi.org/10.1017/CBO9781139020411"
+
+[[book.chapter]]
+n = 0
+title = "Review and Miscellanea"
+sections = [
+  ["0.0", "Introduction"],
+  ["0.1", "Vector spaces"],
+  ["0.2", "Matrices"],
+  ["0.3", "Determinants"],
+  ["0.4", "Rank"],
+  ["0.5", "Nonsingularity"],
+  ["0.6", "The Euclidean inner product and norm"],
+  ["0.7", "Partitioned sets and matrices"],
+  ["0.8", "Determinants again"],
+  ["0.9", "Special types of matrices"],
+  ["0.10", "Change of basis"],
+  ["0.11", "Equivalence relations"],
+]
+items = [
+]
+
+[[book.chapter]]
+n = 1
+title = "Eigenvalues, Eigenvectors, and Similarity"
+sections = [
+  ["1.0", "Introduction"],
+  ["1.1", "The eigenvalue–eigenvector equation"],
+  ["1.2", "The characteristic polynomial and algebraic multiplicity"],
+  ["1.3", "Similarity"],
+  ["1.4", "Left and right eigenvectors and geometric multiplicity"],
+]
+items = [
+  ["Definition", "1.1.2", ""],
+  ["Definition", "1.1.4", ""],
+  ["Theorem", "1.1.6", ""],
+  ["Observation", "1.1.7", ""],
+  ["Observation", "1.1.8", ""],
+  ["Theorem", "1.1.9", ""],
+  ["Definition", "1.2.3", ""],
+  ["Observation", "1.2.4", ""],
+  ["Definition", "1.2.5", ""],
+  ["Definition", "1.2.9", ""],
+  ["Definition", "1.2.10", ""],
+  ["Definition", "1.2.14", ""],
+  ["Theorem", "1.2.16", ""],
+  ["Theorem", "1.2.17", ""],
+  ["Theorem", "1.2.18", ""],
+  ["Definition", "1.3.1", ""],
+  ["Observation", "1.3.2", ""],
+  ["Theorem", "1.3.3", ""],
+  ["Corollary", "1.3.4", ""],
+  ["Definition", "1.3.6", ""],
+  ["Theorem", "1.3.7", ""],
+  ["Lemma", "1.3.8", ""],
+  ["Theorem", "1.3.9", ""],
+  ["Lemma", "1.3.10", ""],
+  ["Definition", "1.3.11", ""],
+  ["Theorem", "1.3.12", ""],
+  ["Observation", "1.3.18", ""],
+  ["Lemma", "1.3.19", ""],
+  ["Definition", "1.3.20", ""],
+  ["Theorem", "1.3.21", ""],
+  ["Theorem", "1.3.22", ""],
+  ["Theorem", "1.3.27", ""],
+  ["Lemma", "1.3.28", ""],
+  ["Theorem", "1.3.29", ""],
+  ["Corollary", "1.3.30", ""],
+  ["Theorem", "1.3.31", "Mirsky"],
+  ["Observation", "1.4.1", ""],
+  ["Definition", "1.4.2", ""],
+  ["Definition", "1.4.3", ""],
+  ["Definition", "1.4.6", ""],
+  ["Theorem", "1.4.7", ""],
+  ["Theorem", "1.4.9", ""],
+  ["Theorem", "1.4.10", ""],
+  ["Lemma", "1.4.11", ""],
+  ["Theorem", "1.4.12", ""],
+]
+
+[[book.chapter]]
+n = 2
+title = "Unitary Similarity and Unitary Equivalence"
+sections = [
+  ["2.0", "Introduction"],
+  ["2.1", "Unitary matrices and the QR factorization"],
+  ["2.2", "Unitary similarity"],
+  ["2.3", "Unitary and real orthogonal triangularizations"],
+  ["2.4", "Consequences of Schur's triangularization theorem"],
+  ["2.5", "Normal matrices"],
+  ["2.6", "Unitary equivalence and the singular value decomposition"],
+  ["2.7", "The CS decomposition"],
+]
+items = [
+  ["Definition", "2.1.1", ""],
+  ["Theorem", "2.1.2", ""],
+  ["Definition", "2.1.3", ""],
+  ["Theorem", "2.1.4", ""],
+  ["Definition", "2.1.5", ""],
+  ["Observation", "2.1.6", ""],
+  ["Observation", "2.1.7", ""],
+  ["Lemma", "2.1.8", ""],
+  ["Theorem", "2.1.9", ""],
+  ["Lemma", "2.1.10", ""],
+  ["Theorem", "2.1.13", ""],
+  ["Theorem", "2.1.14", " Q R factorization"],
+  ["Theorem", "2.1.18", ""],
+  ["Definition", "2.2.1", ""],
+  ["Theorem", "2.2.2", ""],
+  ["Theorem", "2.2.6", ""],
+  ["Theorem", "2.2.8", ""],
+  ["Theorem", "2.3.1", "Schur form; Schur triangularization"],
+  ["Theorem", "2.3.3", ""],
+  ["Theorem", "2.3.4", "real Schur form"],
+  ["Theorem", "2.3.6", ""],
+  ["Corollary", "2.3.7", ""],
+  ["Lemma", "2.4.3.1", ""],
+  ["Theorem", "2.4.3.2", "Cayley–Hamilton"],
+  ["Corollary", "2.4.3.4", ""],
+  ["Lemma", "2.4.4.0", ""],
+  ["Theorem", "2.4.4.1", "Sylvester"],
+  ["Corollary", "2.4.4.2", ""],
+  ["Corollary", "2.4.4.3", ""],
+  ["Theorem", "2.4.5.1", ""],
+  ["Theorem", "2.4.6.1", ""],
+  ["Theorem", "2.4.6.3", ""],
+  ["Corollary", "2.4.6.4", ""],
+  ["Theorem", "2.4.7.1", ""],
+  ["Theorem", "2.4.7.2", ""],
+  ["Theorem", "2.4.8.1", ""],
+  ["Corollary", "2.4.8.5", ""],
+  ["Theorem", "2.4.8.6", ""],
+  ["Theorem", "2.4.8.7", "McCoy"],
+  ["Lemma", "2.4.8.10", ""],
+  ["Lemma", "2.4.9.1", ""],
+  ["Theorem", "2.4.9.2", ""],
+  ["Theorem", "2.4.10.1", "A. Brauer"],
+  ["Theorem", "2.4.11.1", ""],
+  ["Definition", "2.5.1", ""],
+  ["Lemma", "2.5.2", ""],
+  ["Theorem", "2.5.3", ""],
+  ["Theorem", "2.5.4", ""],
+  ["Theorem", "2.5.5", ""],
+  ["Theorem", "2.5.6", ""],
+  ["Lemma", "2.5.7", ""],
+  ["Theorem", "2.5.8", ""],
+  ["Corollary", "2.5.11", ""],
+  ["Theorem", "2.5.15", ""],
+  ["Theorem", "2.5.16", "Fuglede–Putnam"],
+  ["Theorem", "2.5.17", ""],
+  ["Corollary", "2.5.18", ""],
+  ["Corollary", "2.5.20", ""],
+  ["Theorem", "2.5.21", ""],
+  ["Theorem", "2.6.1", ""],
+  ["Theorem", "2.6.2", ""],
+  ["Theorem", "2.6.3", "Singular value decomposition"],
+  ["Theorem", "2.6.4", ""],
+  ["Theorem", "2.6.5", "Autonne's uniqueness theorem"],
+  ["Corollary", "2.6.6", ""],
+  ["Corollary", "2.6.7", ""],
+  ["Theorem", "2.7.1", "C S decomposition"],
+]
+
+[[book.chapter]]
+n = 3
+title = "Canonical Forms for Similarity and Triangular Factorizations"
+sections = [
+  ["3.0", "Introduction"],
+  ["3.1", "The Jordan canonical form theorem"],
+  ["3.2", "Consequences of the Jordan canonical form"],
+  ["3.3", "The minimal polynomial and the companion matrix"],
+  ["3.4", "The real Jordan and Weyr canonical forms"],
+  ["3.5", "Triangular factorizations and canonical forms"],
+]
+items = [
+  ["Definition", "3.1.1", ""],
+  ["Lemma", "3.1.4", ""],
+  ["Theorem", "3.1.5", ""],
+  ["Theorem", "3.1.11", ""],
+  ["Lemma", "3.1.18", ""],
+  ["Corollary", "3.1.21", ""],
+  ["Theorem", "3.2.3.1", ""],
+  ["Theorem", "3.2.3.2", ""],
+  ["Definition", "3.2.4.1", ""],
+  ["Theorem", "3.2.4.2", ""],
+  ["Corollary", "3.2.4.4", ""],
+  ["Theorem", "3.2.5.2", ""],
+  ["Observation", "3.2.9.2", ""],
+  ["Observation", "3.2.9.3", ""],
+  ["Observation", "3.2.9.4", ""],
+  ["Theorem", "3.2.9.5", ""],
+  ["Theorem", "3.2.10.1", ""],
+  ["Corollary", "3.2.10.2", ""],
+  ["Theorem", "3.2.11.1", ""],
+  ["Definition", "3.2.12.1", ""],
+  ["Theorem", "3.2.13.1", ""],
+  ["Theorem", "3.3.1", ""],
+  ["Definition", "3.3.2", ""],
+  ["Corollary", "3.3.3", ""],
+  ["Corollary", "3.3.4", ""],
+  ["Theorem", "3.3.6", ""],
+  ["Corollary", "3.3.8", ""],
+  ["Corollary", "3.3.10", ""],
+  ["Definition", "3.3.13", ""],
+  ["Theorem", "3.3.14", ""],
+  ["Theorem", "3.3.15", ""],
+  ["Theorem", "3.4.1.5", ""],
+  ["Corollary", "3.4.1.7", ""],
+  ["Corollary", "3.4.1.8", ""],
+  ["Corollary", "3.4.1.9", ""],
+  ["Corollary", "3.4.1.10", ""],
+  ["Theorem", "3.4.2.3", ""],
+  ["Lemma", "3.4.2.4", ""],
+  ["Theorem", "3.4.2.5", "Belitskii"],
+  ["Theorem", "3.4.2.10", ""],
+  ["Theorem", "3.4.3.1", "Littlewood"],
+  ["Corollary", "3.4.3.3", ""],
+  ["Definition", "3.5.1", ""],
+  ["Lemma", "3.5.2", ""],
+  ["Theorem", "3.5.3", ""],
+  ["Corollary", "3.5.4", ""],
+  ["Corollary", "3.5.6", "L DU factorization"],
+  ["Lemma", "3.5.7", ""],
+  ["Theorem", "3.5.8", " P LU factorization"],
+  ["Theorem", "3.5.11", "L P U factorization"],
+  ["Definition", "3.5.12", ""],
+  ["Theorem", "3.5.13", ""],
+  ["Theorem", "3.5.14", "L P DU factorization"],
+]
+
+[[book.chapter]]
+n = 4
+title = "Hermitian Matrices, Symmetric Matrices, and Congruences"
+sections = [
+  ["4.0", "Introduction"],
+  ["4.1", "Properties and characterizations of Hermitian matrices"],
+  ["4.2", "Variational characterizations and subspace intersections"],
+  ["4.3", "Eigenvalue inequalities for Hermitian matrices"],
+  ["4.4", "Unitary congruence and complex symmetric matrices"],
+  ["4.5", "Congruences and diagonalizations"],
+  ["4.6", "Consimilarity and condiagonalization"],
+]
+items = [
+  ["Definition", "4.1.1", ""],
+  ["Theorem", "4.1.2", "Toeplitz decomposition"],
+  ["Theorem", "4.1.3", ""],
+  ["Theorem", "4.1.4", ""],
+  ["Theorem", "4.1.5", ""],
+  ["Theorem", "4.1.6", ""],
+  ["Theorem", "4.1.7", ""],
+  ["Theorem", "4.1.8", ""],
+  ["Definition", "4.1.9", ""],
+  ["Theorem", "4.1.10", ""],
+  ["Definition", "4.1.11", ""],
+  ["Definition", "4.1.12", ""],
+  ["Proposition", "4.1.13", ""],
+  ["Theorem", "4.2.2", "Rayleigh"],
+  ["Lemma", "4.2.3", "Subspace intersection"],
+  ["Lemma", "4.2.4", ""],
+  ["Observation", "4.2.5", ""],
+  ["Theorem", "4.2.6", "Courant–Fischer"],
+  ["Theorem", "4.2.10", ""],
+  ["Corollary", "4.2.12", ""],
+  ["Theorem", "4.3.1", "Weyl"],
+  ["Corollary", "4.3.3", ""],
+  ["Corollary", "4.3.5", ""],
+  ["Corollary", "4.3.7", ""],
+  ["Corollary", "4.3.9", ""],
+  ["Corollary", "4.3.12", ""],
+  ["Corollary", "4.3.15", ""],
+  ["Theorem", "4.3.17", "Cauchy"],
+  ["Theorem", "4.3.21", ""],
+  ["Theorem", "4.3.26", ""],
+  ["Theorem", "4.3.28", ""],
+  ["Corollary", "4.3.34", ""],
+  ["Corollary", "4.3.37", ""],
+  ["Corollary", "4.3.39", ""],
+  ["Definition", "4.3.41", ""],
+  ["Definition", "4.3.43", ""],
+  ["Theorem", "4.3.45", "Schur"],
+  ["Theorem", "4.3.47", ""],
+  ["Theorem", "4.3.48", ""],
+  ["Theorem", "4.3.49", ""],
+  ["Theorem", "4.3.50", ""],
+  ["Lemma", "4.3.51", ""],
+  ["Theorem", "4.3.53", ""],
+  ["Lemma", "4.4.2", ""],
+  ["Theorem", "4.4.3", ""],
+  ["Corollary", "4.4.4", ""],
+  ["Proposition", "4.4.5", ""],
+  ["Theorem", "4.4.9", "Youla"],
+  ["Corollary", "4.4.13", ""],
+  ["Definition", "4.4.14", ""],
+  ["Lemma", "4.4.15", ""],
+  ["Theorem", "4.4.16", ""],
+  ["Corollary", "4.4.18", ""],
+  ["Corollary", "4.4.19", ""],
+  ["Corollary", "4.4.21", ""],
+  ["Theorem", "4.4.24", ""],
+  ["Corollary", "4.4.25", ""],
+  ["Lemma", "4.4.26", ""],
+  ["Theorem", "4.4.27", ""],
+  ["Definition", "4.5.4", ""],
+  ["Theorem", "4.5.5", ""],
+  ["Definition", "4.5.6", ""],
+  ["Theorem", "4.5.7", ""],
+  ["Theorem", "4.5.8", "Sylvester"],
+  ["Theorem", "4.5.9", "Ostrowski"],
+  ["Corollary", "4.5.11", ""],
+  ["Theorem", "4.5.12", ""],
+  ["Theorem", "4.5.13", ""],
+  ["Theorem", "4.5.15", ""],
+  ["Definition", "4.5.16", ""],
+  ["Theorem", "4.5.17", ""],
+  ["Lemma", "4.5.18", ""],
+  ["Theorem", "4.5.21", ""],
+  ["Theorem", "4.5.22", ""],
+  ["Theorem", "4.5.24", ""],
+  ["Theorem", "4.5.25", ""],
+  ["Theorem", "4.5.26", ""],
+  ["Theorem", "4.5.27", ""],
+  ["Definition", "4.6.1", ""],
+  ["Definition", "4.6.2", ""],
+  ["Theorem", "4.6.3", ""],
+  ["Theorem", "4.6.4", ""],
+  ["Definition", "4.6.5", ""],
+  ["Proposition", "4.6.6", ""],
+  ["Proposition", "4.6.7", ""],
+  ["Corollary", "4.6.8", ""],
+  ["Lemma", "4.6.9", ""],
+  ["Theorem", "4.6.11", ""],
+  ["Theorem", "4.6.12", ""],
+  ["Theorem", "4.6.13", ""],
+  ["Corollary", "4.6.14", ""],
+  ["Corollary", "4.6.15", ""],
+  ["Corollary", "4.6.16", ""],
+  ["Corollary", "4.6.17", ""],
+  ["Theorem", "4.6.18", ""],
+]
+
+[[book.chapter]]
+n = 5
+title = "Norms for Vectors and Matrices"
+sections = [
+  ["5.0", "Introduction"],
+  ["5.1", "Definitions of norms and inner products"],
+  ["5.2", "Examples of norms and inner products"],
+  ["5.3", "Algebraic properties of norms"],
+  ["5.4", "Analytic properties of norms"],
+  ["5.5", "Duality and geometric properties of norms"],
+  ["5.6", "Matrix norms"],
+  ["5.7", "Vector norms on matrices"],
+  ["5.8", "Condition numbers: inverses and linear systems"],
+]
+items = [
+  ["Definition", "5.1.1", ""],
+  ["Lemma", "5.1.2", ""],
+  ["Definition", "5.1.3", ""],
+  ["Theorem", "5.1.4", "Cauchy–Schwarz inequality"],
+  ["Corollary", "5.1.7", ""],
+  ["Theorem", "5.1.8", ""],
+  ["Theorem", "5.3.1", ""],
+  ["Definition", "5.4.1", ""],
+  ["Lemma", "5.4.3", ""],
+  ["Theorem", "5.4.4", ""],
+  ["Corollary", "5.4.5", ""],
+  ["Corollary", "5.4.6", ""],
+  ["Definition", "5.4.7", ""],
+  ["Corollary", "5.4.8", ""],
+  ["Definition", "5.4.9", ""],
+  ["Theorem", "5.4.10", ""],
+  ["Definition", "5.4.11", ""],
+  ["Definition", "5.4.12", ""],
+  ["Lemma", "5.4.13", ""],
+  ["Lemma", "5.4.16", ""],
+  ["Theorem", "5.4.17", ""],
+  ["Definition", "5.4.18", ""],
+  ["Theorem", "5.4.19", ""],
+  ["Definition", "5.5.1", ""],
+  ["Definition", "5.5.2", ""],
+  ["Definition", "5.5.3", ""],
+  ["Observation", "5.5.4", ""],
+  ["Observation", "5.5.5", ""],
+  ["Observation", "5.5.6", ""],
+  ["Observation", "5.5.7", ""],
+  ["Theorem", "5.5.8", ""],
+  ["Theorem", "5.5.9", "Duality theorem"],
+  ["Corollary", "5.5.11", ""],
+  ["Definition", "5.6.1", ""],
+  ["Theorem", "5.6.2", ""],
+  ["Definition", "5.6.3", ""],
+  ["Theorem", "5.6.7", ""],
+  ["Theorem", "5.6.9", ""],
+  ["Lemma", "5.6.10", ""],
+  ["Lemma", "5.6.11", ""],
+  ["Theorem", "5.6.12", ""],
+  ["Corollary", "5.6.13", ""],
+  ["Corollary", "5.6.14", "Gelfand formula"],
+  ["Theorem", "5.6.15", ""],
+  ["Corollary", "5.6.16", ""],
+  ["Corollary", "5.6.17", ""],
+  ["Theorem", "5.6.18", ""],
+  ["Lemma", "5.6.23", ""],
+  ["Corollary", "5.6.25", ""],
+  ["Theorem", "5.6.26", ""],
+  ["Definition", "5.6.31", ""],
+  ["Theorem", "5.6.32", ""],
+  ["Theorem", "5.6.33", ""],
+  ["Theorem", "5.6.34", ""],
+  ["Theorem", "5.6.35", ""],
+  ["Theorem", "5.6.36", ""],
+  ["Definition", "5.6.38", ""],
+  ["Theorem", "5.6.39", ""],
+  ["Theorem", "5.6.40", ""],
+  ["Theorem", "5.6.41", ""],
+  ["Theorem", "5.6.42", ""],
+  ["Theorem", "5.7.8", ""],
+  ["Theorem", "5.7.10", ""],
+  ["Theorem", "5.7.11", ""],
+  ["Definition", "5.7.12", ""],
+  ["Theorem", "5.7.13", ""],
+  ["Theorem", "5.7.14", ""],
+  ["Lemma", "5.7.16", ""],
+  ["Theorem", "5.7.17", ""],
+  ["Theorem", "5.7.18", ""],
+  ["Lemma", "5.7.19", ""],
+  ["Theorem", "5.7.20", ""],
+]
+
+[[book.chapter]]
+n = 6
+title = "Location and Perturbation of Eigenvalues"
+sections = [
+  ["6.0", "Introduction"],
+  ["6.1", "Geršgorin discs"],
+  ["6.2", "Geršgorin discs – a closer look"],
+  ["6.3", "Eigenvalue perturbation theorems"],
+  ["6.4", "Other eigenvalue inclusion sets"],
+]
+items = [
+  ["Theorem", "6.1.1", "Geršgorin"],
+  ["Corollary", "6.1.3", ""],
+  ["Corollary", "6.1.5", ""],
+  ["Corollary", "6.1.6", ""],
+  ["Corollary", "6.1.8", ""],
+  ["Definition", "6.1.9", ""],
+  ["Theorem", "6.1.10", ""],
+  ["Theorem", "6.1.11", ""],
+  ["Lemma", "6.2.2", ""],
+  ["Lemma", "6.2.3", ""],
+  ["Theorem", "6.2.5", ""],
+  ["Corollary", "6.2.6", ""],
+  ["Definition", "6.2.7", ""],
+  ["Theorem", "6.2.8", "Better theorem"],
+  ["Corollary", "6.2.9", "Better corollary"],
+  ["Definition", "6.2.10", ""],
+  ["Definition", "6.2.11", ""],
+  ["Definition", "6.2.12", ""],
+  ["Definition", "6.2.13", ""],
+  ["Theorem", "6.2.14", ""],
+  ["Observation", "6.2.15", ""],
+  ["Theorem", "6.2.16", ""],
+  ["Definition", "6.2.17", ""],
+  ["Corollary", "6.2.18", ""],
+  ["Corollary", "6.2.19", ""],
+  ["Corollary", "6.2.20", ""],
+  ["Definition", "6.2.21", ""],
+  ["Definition", "6.2.22", ""],
+  ["Theorem", "6.2.23", ""],
+  ["Theorem", "6.2.24", ""],
+  ["Definition", "6.2.25", ""],
+  ["Theorem", "6.2.26", "Taussky"],
+  ["Corollary", "6.2.27", "Taussky"],
+  ["Observation", "6.3.1", ""],
+  ["Theorem", "6.3.2", "Bauer and Fike"],
+  ["Corollary", "6.3.4", ""],
+  ["Theorem", "6.3.5", "Hoffman and Wielandt"],
+  ["Corollary", "6.3.8", ""],
+  ["Lemma", "6.3.10", ""],
+  ["Theorem", "6.3.12", ""],
+  ["Theorem", "6.3.14", ""],
+  ["Theorem", "6.4.1", "Ostrowski"],
+  ["Theorem", "6.4.7", "Brauer"],
+  ["Corollary", "6.4.11", ""],
+  ["Lemma", "6.4.16", ""],
+  ["Lemma", "6.4.17", ""],
+  ["Theorem", "6.4.18", "Brualdi"],
+  ["Theorem", "6.4.26", "Brualdi"],
+  ["Corollary", "6.4.29", ""],
+  ["Theorem", "6.4.30", "Kolotilina"],
+]
+
+[[book.chapter]]
+n = 7
+title = "Positive Definite and Semidefinite Matrices"
+sections = [
+  ["7.0", "Introduction"],
+  ["7.1", "Definitions and properties"],
+  ["7.2", "Characterizations and properties"],
+  ["7.3", "The polar and singular value decompositions"],
+  ["7.4", "Consequences of the polar and singular value decompositions"],
+  ["7.5", "The Schur product theorem"],
+  ["7.6", "Simultaneous diagonalizations, products, and convexity"],
+  ["7.7", "The Loewner partial order and block matrices"],
+  ["7.8", "Inequalities involving positive definite matrices"],
+]
+items = [
+  ["Observation", "7.1.2", ""],
+  ["Observation", "7.1.3", ""],
+  ["Observation", "7.1.4", ""],
+  ["Corollary", "7.1.5", ""],
+  ["Observation", "7.1.6", ""],
+  ["Corollary", "7.1.7", ""],
+  ["Observation", "7.1.8", ""],
+  ["Observation", "7.1.9", ""],
+  ["Observation", "7.1.10", ""],
+  ["Lemma", "7.1.11", ""],
+  ["Observation", "7.1.12", ""],
+  ["Corollary", "7.1.13", ""],
+  ["Observation", "7.1.14", ""],
+  ["Theorem", "7.2.1", ""],
+  ["Corollary", "7.2.2", ""],
+  ["Corollary", "7.2.3", ""],
+  ["Corollary", "7.2.4", ""],
+  ["Theorem", "7.2.5", "Sylvester's criterion"],
+  ["Theorem", "7.2.6", ""],
+  ["Theorem", "7.2.7", ""],
+  ["Corollary", "7.2.8", ""],
+  ["Corollary", "7.2.9", "Cholesky factorization"],
+  ["Theorem", "7.2.10", ""],
+  ["Theorem", "7.3.1", "Polar decomposition"],
+  ["Theorem", "7.3.2", ""],
+  ["Theorem", "7.3.3", ""],
+  ["Corollary", "7.3.5", ""],
+  ["Corollary", "7.3.6", ""],
+  ["Theorem", "7.3.8", ""],
+  ["Theorem", "7.3.11", ""],
+  ["Theorem", "7.4.1.1", "von Neumann"],
+  ["Corollary", "7.4.1.3", ""],
+  ["Theorem", "7.4.1.4", ""],
+  ["Corollary", "7.4.1.5", ""],
+  ["Definition", "7.4.7.1", ""],
+  ["Theorem", "7.4.7.2", ""],
+  ["Theorem", "7.4.8.4", ""],
+  ["Theorem", "7.4.9.1", ""],
+  ["Corollary", "7.4.9.3", "Mirsky"],
+  ["Theorem", "7.4.10.1", ""],
+  ["Corollary", "7.4.10.2", ""],
+  ["Theorem", "7.4.11.1", ""],
+  ["Definition", "7.5.1", ""],
+  ["Lemma", "7.5.2", ""],
+  ["Theorem", "7.5.3", ""],
+  ["Theorem", "7.5.4", "Moutard"],
+  ["Theorem", "7.5.9", ""],
+  ["Theorem", "7.6.1", ""],
+  ["Corollary", "7.6.2", ""],
+  ["Theorem", "7.6.3", ""],
+  ["Theorem", "7.6.4", ""],
+  ["Theorem", "7.6.5", ""],
+  ["Theorem", "7.6.6", ""],
+  ["Corollary", "7.6.8", ""],
+  ["Theorem", "7.6.10", ""],
+  ["Definition", "7.7.1", ""],
+  ["Theorem", "7.7.2", ""],
+  ["Theorem", "7.7.3", ""],
+  ["Corollary", "7.7.4", ""],
+  ["Lemma", "7.7.6", ""],
+  ["Theorem", "7.7.7", ""],
+  ["Lemma", "7.7.8", ""],
+  ["Theorem", "7.7.9", ""],
+  ["Corollary", "7.7.10", ""],
+  ["Theorem", "7.7.11", ""],
+  ["Corollary", "7.7.12", ""],
+  ["Corollary", "7.7.13", ""],
+  ["Corollary", "7.7.14", ""],
+  ["Theorem", "7.7.15", ""],
+  ["Theorem", "7.7.16", ""],
+  ["Theorem", "7.7.17", ""],
+  ["Theorem", "7.7.18", ""],
+  ["Theorem", "7.8.1", "Hadamard's inequality"],
+  ["Corollary", "7.8.3", "Hadamard's inequality"],
+  ["Theorem", "7.8.5", "Fischer's inequality"],
+  ["Lemma", "7.8.8", ""],
+  ["Theorem", "7.8.9", "Koteljanskiı̆'s inequality"],
+  ["Theorem", "7.8.11", "Szász's inequality"],
+  ["Theorem", "7.8.16", "Oppenheim-Schur inequalities"],
+  ["Theorem", "7.8.19", "Ostrowski–Taussky inequality"],
+  ["Theorem", "7.8.21", "Minkowski's determinant inequality"],
+  ["Theorem", "7.8.24", ""],
+  ["Theorem", "7.8.27", "Fan's determinant inequality"],
+]
+
+[[book.chapter]]
+n = 8
+title = "Positive and Nonnegative Matrices"
+sections = [
+  ["8.0", "Introduction"],
+  ["8.1", "Inequalities and generalities"],
+  ["8.2", "Positive matrices"],
+  ["8.3", "Nonnegative matrices"],
+  ["8.4", "Irreducible nonnegative matrices"],
+  ["8.5", "Primitive matrices"],
+  ["8.6", "A general limit theorem"],
+  ["8.7", "Stochastic and doubly stochastic matrices"],
+]
+items = [
+  ["Proposition", "8.1.8", ""],
+  ["Theorem", "8.1.18", ""],
+  ["Corollary", "8.1.19", ""],
+  ["Corollary", "8.1.20", ""],
+  ["Lemma", "8.1.21", ""],
+  ["Theorem", "8.1.22", ""],
+  ["Corollary", "8.1.25", ""],
+  ["Theorem", "8.1.26", ""],
+  ["Corollary", "8.1.29", ""],
+  ["Corollary", "8.1.30", ""],
+  ["Corollary", "8.1.31", ""],
+  ["Corollary", "8.1.33", ""],
+  ["Lemma", "8.2.1", ""],
+  ["Theorem", "8.2.2", ""],
+  ["Lemma", "8.2.3", ""],
+  ["Theorem", "8.2.4", ""],
+  ["Theorem", "8.2.5", ""],
+  ["Corollary", "8.2.6", ""],
+  ["Theorem", "8.2.7", ""],
+  ["Theorem", "8.2.8", "Perron"],
+  ["Theorem", "8.2.9", "Fan"],
+  ["Theorem", "8.3.1", ""],
+  ["Theorem", "8.3.2", ""],
+  ["Corollary", "8.3.3", ""],
+  ["Theorem", "8.3.4", ""],
+  ["Theorem", "8.3.5", ""],
+  ["Lemma", "8.4.1", ""],
+  ["Lemma", "8.4.2", ""],
+  ["Lemma", "8.4.3", ""],
+  ["Theorem", "8.4.4", "Perron–Frobenius"],
+  ["Theorem", "8.4.5", ""],
+  ["Corollary", "8.4.6", ""],
+  ["Corollary", "8.4.7", ""],
+  ["Definition", "8.5.0", ""],
+  ["Theorem", "8.5.1", ""],
+  ["Theorem", "8.5.2", ""],
+  ["Theorem", "8.5.3", ""],
+  ["Lemma", "8.5.4", ""],
+  ["Lemma", "8.5.5", ""],
+  ["Theorem", "8.5.6", ""],
+  ["Theorem", "8.5.7", ""],
+  ["Corollary", "8.5.8", "Wielandt"],
+  ["Theorem", "8.5.9", ""],
+  ["Theorem", "8.6.1", ""],
+  ["Lemma", "8.7.1", ""],
+  ["Theorem", "8.7.2", "Birkhoff"],
+  ["Corollary", "8.7.4", ""],
+  ["Lemma", "8.7.5", ""],
+  ["Theorem", "8.7.6", "von Neumann"],
+]
+
+[[book]]
+key = "Tropp2015"
+short = "Tropp, Matrix Concentration"
+url = "https://arxiv.org/abs/1501.01571"
+same = { "1.6.2" = "6.1.1", "3.4.1" = "8.1.1" }
+
+[[book.chapter]]
+n = 1
+title = "Introduction"
+sections = [
+  ["1.1", "Historical Origins"],
+  ["1.2", "The Modern Random Matrix"],
+  ["1.3", "Random Matrices for the People"],
+  ["1.4", "Basic Questions in Random Matrix Theory"],
+  ["1.5", "Random Matrices as Independent Sums"],
+  ["1.6", "Exponential Concentration Inequalities for Matrices"],
+  ["1.7", "The Arsenal of Results"],
+  ["1.8", "About This Monograph"],
+]
+items = [
+  ["Theorem", "1.6.1", "Bernstein Inequality"],
+  ["Theorem", "1.6.2", "Matrix Bernstein"],
+]
+
+[[book.chapter]]
+n = 2
+title = "Matrix Functions & Probability with Matrices"
+sections = [
+  ["2.1", "Matrix Theory Background"],
+  ["2.2", "Probability with Matrices"],
+  ["2.3", "Notes"],
+]
+items = [
+  ["Proposition", "2.1.1", "Conjugation Rule"],
+  ["Definition", "2.1.2", "Standard Matrix Function"],
+  ["Proposition", "2.1.3", "Spectral Mapping Theorem"],
+  ["Proposition", "2.1.4", "Transfer Rule"],
+  ["Definition", "2.1.5", "Hermitian Dilation"],
+]
+
+[[book.chapter]]
+n = 3
+title = "The Matrix Laplace Transform Method"
+sections = [
+  ["3.1", "Matrix Moments and Cumulants"],
+  ["3.2", "The Matrix Laplace Transform Method"],
+  ["3.3", "The Failure of the Matrix Mgf"],
+  ["3.4", "A Theorem of Lieb"],
+  ["3.5", "Subadditivity of the Matrix Cgf"],
+  ["3.6", "Master Bounds for Sums of Independent Random Matrices"],
+  ["3.7", "Notes"],
+]
+items = [
+  ["Definition", "3.1.1", "Matrix Mgf and Cgf"],
+  ["Proposition", "3.2.1", "Tail Bounds for Eigenvalues"],
+  ["Proposition", "3.2.2", "Expectation Bounds for Eigenvalues"],
+  ["Theorem", "3.4.1", "Lieb"],
+  ["Corollary", "3.4.2", ""],
+  ["Lemma", "3.5.1", "Subadditivity of Matrix Cgfs"],
+  ["Theorem", "3.6.1", "Master Bounds for a Sum of Independent Random Matrices"],
+]
+
+[[book.chapter]]
+n = 4
+title = "Matrix Gaussian & Rademacher Series"
+sections = [
+  ["4.1", "A Norm Bound for Random Series with Matrix Coefficients"],
+  ["4.2", "Example: Some Gaussian Matrices"],
+  ["4.3", "Example: Matrices with Randomly Signed Entries"],
+  ["4.4", "Example: Gaussian Toeplitz Matrices"],
+  ["4.5", "Application: Rounding for the MaxQP Relaxation"],
+  ["4.6", "Analysis of Matrix Gaussian & Rademacher Series"],
+  ["4.7", "Notes"],
+]
+items = [
+  ["Theorem", "4.1.1", "Matrix Gaussian & Rademacher Series"],
+  ["Theorem", "4.6.1", "Matrix Gaussian & Rademacher Series: The Hermitian Case"],
+  ["Lemma", "4.6.2", "Gaussian × Matrix: Mgf and Cgf"],
+  ["Lemma", "4.6.3", "Rademacher × Matrix: Mgf and Cgf"],
+]
+
+[[book.chapter]]
+n = 5
+title = "A Sum of Random Positive-Semidefinite Matrices"
+sections = [
+  ["5.1", "The Matrix Chernoff Inequalities"],
+  ["5.2", "Example: A Random Submatrix of a Fixed Matrix"],
+  ["5.3", "Application: When is an Erdős–Rényi Graph Connected?"],
+  ["5.4", "Proof of the Matrix Chernoff Inequalities"],
+  ["5.5", "Notes"],
+]
+items = [
+  ["Theorem", "5.1.1", "Matrix Chernoff"],
+  ["Lemma", "5.4.1", "Matrix Chernoff: Mgf and Cgf Bound"],
+]
+
+[[book.chapter]]
+n = 6
+title = "A Sum of Bounded Random Matrices"
+sections = [
+  ["6.1", "A Sum of Bounded Random Matrices"],
+  ["6.2", "Example: Matrix Approximation by Random Sampling"],
+  ["6.3", "Application: Randomized Sparsification of a Matrix"],
+  ["6.4", "Application: Randomized Matrix Multiplication"],
+  ["6.5", "Application: Random Features"],
+  ["6.6", "Proof of the Matrix Bernstein Inequality"],
+  ["6.7", "Notes"],
+]
+items = [
+  ["Theorem", "6.1.1", "Matrix Bernstein"],
+  ["Corollary", "6.1.2", "Matrix Bernstein: Uncentered Summands"],
+  ["Corollary", "6.2.1", "Matrix Approximation by Random Sampling"],
+  ["Theorem", "6.6.1", "Matrix Bernstein: Hermitian Case"],
+  ["Lemma", "6.6.2", "Matrix Bernstein: Mgf and Cgf Bound"],
+]
+
+[[book.chapter]]
+n = 7
+title = "Results Involving the Intrinsic Dimension"
+sections = [
+  ["7.1", "The Intrinsic Dimension of a Matrix"],
+  ["7.2", "Matrix Chernoff with Intrinsic Dimension"],
+  ["7.3", "Matrix Bernstein with Intrinsic Dimension"],
+  ["7.4", "Revisiting the Matrix Laplace Transform Bound"],
+  ["7.5", "The Intrinsic Dimension Lemma"],
+  ["7.6", "Proof of the Intrinsic Chernoff Bound"],
+  ["7.7", "Proof of the Intrinsic Bernstein Bounds"],
+  ["7.8", "Notes"],
+]
+items = [
+  ["Definition", "7.1.1", "Intrinsic Dimension"],
+  ["Theorem", "7.2.1", "Matrix Chernoff: Intrinsic Dimension"],
+  ["Theorem", "7.3.1", "Intrinsic Matrix Bernstein"],
+  ["Corollary", "7.3.2", "Intrinsic Matrix Bernstein: Expectation Bound"],
+  ["Corollary", "7.3.3", "Matrix Approximation by Random Sampling: Intrinsic Dimension Bounds"],
+  ["Proposition", "7.4.1", "Generalized Matrix Laplace Transform Bound"],
+  ["Lemma", "7.5.1", "Intrinsic Dimension"],
+  ["Theorem", "7.7.1", "Matrix Bernstein: Hermitian Case with Intrinsic Dimension"],
+]
+
+[[book.chapter]]
+n = 8
+title = "A Proof of Lieb's Theorem"
+sections = [
+  ["8.1", "Lieb's Theorem"],
+  ["8.2", "Analysis of the Relative Entropy for Vectors"],
+  ["8.3", "Elementary Trace Inequalities"],
+  ["8.4", "The Logarithm of a Matrix"],
+  ["8.5", "The Operator Jensen Inequality"],
+  ["8.6", "The Matrix Perspective Transformation"],
+  ["8.7", "The Kronecker Product"],
+  ["8.8", "The Matrix Relative Entropy is Convex"],
+  ["8.9", "Notes"],
+]
+items = [
+  ["Theorem", "8.1.1", "Lieb"],
+  ["Definition", "8.1.2", "Matrix Relative Entropy"],
+  ["Proposition", "8.1.3", "Matrix Relative Entropy is Nonnegative"],
+  ["Theorem", "8.1.4", "The Matrix Relative Entropy is Convex"],
+  ["Fact", "8.1.5", "Partial Maximization"],
+  ["Lemma", "8.1.6", "Variational Formula for Trace"],
+  ["Definition", "8.2.1", "Relative Entropy"],
+  ["Proposition", "8.2.2", "Relative Entropy is Nonnegative"],
+  ["Definition", "8.2.3", "Perspective Transformation"],
+  ["Fact", "8.2.4", "Perspectives are Convex"],
+  ["Proposition", "8.2.5", "Relative Entropy is Convex"],
+  ["Definition", "8.3.1", "Trace function"],
+  ["Fact", "8.3.2", "Semidefinite Order implies Eigenvalue Order"],
+  ["Proposition", "8.3.3", "Monotone Trace Functions"],
+  ["Example", "8.3.4", "Trace Exponential is Monotone"],
+  ["Proposition", "8.3.5", "Generalized Klein Inequality"],
+  ["Proposition", "8.4.1", "Integral Representation of the Logarithm"],
+  ["Definition", "8.4.2", "Operator Monotone Function"],
+  ["Proposition", "8.4.3", "Negative Inverse is Operator Monotone"],
+  ["Proposition", "8.4.4", "Logarithm is Operator Monotone"],
+  ["Definition", "8.4.5", "Operator Convex Function"],
+  ["Proposition", "8.4.6", "Inverse is Operator Convex"],
+  ["Fact", "8.4.7", "Schur Complements"],
+  ["Proposition", "8.4.8", "Logarithm is Operator Concave"],
+  ["Definition", "8.5.1", "Matrix Convex Combination"],
+  ["Theorem", "8.5.2", "Operator Jensen Inequality"],
+  ["Definition", "8.6.1", "Matrix Perspective"],
+  ["Theorem", "8.6.2", "Matrix Perspective is Operator Convex"],
+  ["Definition", "8.7.1", "Kronecker Product"],
+  ["Fact", "8.7.2", "Kronecker Product Preserves Positivity"],
+  ["Fact", "8.7.3", "Logarithm of a Kronecker Product"],
+]
+
+[[book]]
+key = "Vershynin2018"
+short = "Vershynin, High-Dimensional Probability"
+url = "https://www.math.uci.edu/~rvershyn/papers/HDP-book/HDP-book.html"
+
+[[book.chapter]]
+n = 0
+title = "Appetizer: using probability to cover a geometric set"
+sections = [
+]
+items = [
+  ["Theorem", "0.0.1", "Caratheodory's theorem"],
+  ["Theorem", "0.0.2", "Approximate Caratheodory's theorem"],
+  ["Corollary", "0.0.4", "Covering polytopes by balls"],
+]
+
+[[book.chapter]]
+n = 1
+title = "Preliminaries on random variables"
+sections = [
+  ["1.1", "Basic quantities associated with random variables"],
+  ["1.2", "Some classical inequalities"],
+  ["1.3", "Limit theorems"],
+  ["1.4", "Notes"],
+]
+items = [
+  ["Lemma", "1.2.1", "Integral identity"],
+  ["Proposition", "1.2.4", "Markov's Inequality"],
+  ["Corollary", "1.2.5", "Chebyshev's inequality"],
+  ["Theorem", "1.3.1", "Strong law of large numbers"],
+  ["Theorem", "1.3.2", "Lindeberg-Lévy central limit theorem"],
+  ["Theorem", "1.3.4", "Poisson Limit Theorem"],
+]
+
+[[book.chapter]]
+n = 2
+title = "Concentration of sums of independent random variables"
+sections = [
+  ["2.1", "Why concentration inequalities?"],
+  ["2.2", "Hoeffding's inequality"],
+  ["2.3", "Chernoff's inequality"],
+  ["2.4", "Application: degrees of random graphs"],
+  ["2.5", "Sub-gaussian distributions"],
+  ["2.6", "General Hoeffding's and Khintchine's inequalities"],
+  ["2.7", "Sub-exponential distributions"],
+  ["2.8", "Bernstein's inequality"],
+  ["2.9", "Notes"],
+]
+items = [
+  ["Proposition", "2.1.2", "Tails of the normal distribution"],
+  ["Theorem", "2.1.3", "Berry-Esseen central limit theorem"],
+  ["Definition", "2.2.1", "Symmetric Bernoulli distribution"],
+  ["Theorem", "2.2.2", "Hoeffding's inequality"],
+  ["Theorem", "2.2.5", "Hoeffding's inequality, two-sided"],
+  ["Theorem", "2.2.6", "Hoeffding's inequality for general bounded random variables"],
+  ["Theorem", "2.3.1", "Chernoff's inequality"],
+  ["Proposition", "2.4.1", "Dense graphs are almost regular"],
+  ["Proposition", "2.5.2", "Sub-gaussian properties"],
+  ["Definition", "2.5.6", "Sub-gaussian random variables"],
+  ["Proposition", "2.6.1", "Sums of independent sub-gaussians"],
+  ["Theorem", "2.6.2", "General Hoeffding's inequality"],
+  ["Theorem", "2.6.3", "General Hoeffding's inequality"],
+  ["Lemma", "2.6.8", "Centering"],
+  ["Proposition", "2.7.1", "Sub-exponential properties"],
+  ["Definition", "2.7.5", "Sub-exponential random variables"],
+  ["Lemma", "2.7.6", "Sub-exponential is sub-gaussian squared"],
+  ["Lemma", "2.7.7", "Product of sub-gaussians is sub-exponential"],
+  ["Theorem", "2.8.1", "Bernstein's inequality"],
+  ["Theorem", "2.8.2", "Bernstein's inequality"],
+  ["Corollary", "2.8.3", "Bernstein's inequality"],
+  ["Theorem", "2.8.4", "Bernstein's inequality for bounded distributions"],
+  ["Theorem", "2.9.1", "Bounded differences inequality"],
+  ["Theorem", "2.9.2", "Bennett's inequality"],
+]
+
+[[book.chapter]]
+n = 3
+title = "Random vectors in high dimensions"
+sections = [
+  ["3.1", "Concentration of the norm"],
+  ["3.2", "Covariance matrices and principal component analysis"],
+  ["3.3", "Examples of high-dimensional distributions"],
+  ["3.4", "Sub-gaussian distributions in higher dimensions"],
+  ["3.5", "Application: Grothendieck's inequality and semidefinite programming"],
+  ["3.6", "Application: Maximum cut for graphs"],
+  ["3.7", "Kernel trick, and tightening of Grothendieck's inequality"],
+  ["3.8", "Notes"],
+]
+items = [
+  ["Theorem", "3.1.1", "Concentration of the norm"],
+  ["Definition", "3.2.1", "Isotropic random vectors"],
+  ["Lemma", "3.2.3", "Characterization of isotropy"],
+  ["Lemma", "3.2.4", ""],
+  ["Proposition", "3.3.2", "Rotation invariance"],
+  ["Definition", "3.3.8", ""],
+  ["Lemma", "3.3.10", "Tight frames and isotropic distributions"],
+  ["Definition", "3.4.1", "Sub-gaussian random vectors"],
+  ["Lemma", "3.4.2", "Sub-gaussian distributions with independent coordinates"],
+  ["Theorem", "3.4.6", "Uniform distribution on the sphere is sub-gaussian"],
+  ["Theorem", "3.5.1", "Grothendieck's inequality"],
+  ["Definition", "3.5.4", ""],
+  ["Theorem", "3.5.6", ""],
+  ["Definition", "3.6.1", "Maximum cut"],
+  ["Definition", "3.6.2", "Adjacency matrix"],
+  ["Proposition", "3.6.3", "0.5-approximation algorithm for maximum cut"],
+  ["Theorem", "3.6.5", "0.878-approximation algorithm for maximum cut"],
+  ["Lemma", "3.6.6", "Grothendieck's identity"],
+  ["Definition", "3.7.1", "Tensors"],
+  ["Lemma", "3.7.7", ""],
+]
+
+[[book.chapter]]
+n = 4
+title = "Random matrices"
+sections = [
+  ["4.1", "Preliminaries on matrices"],
+  ["4.2", "Nets, covering numbers and packing numbers"],
+  ["4.3", "Application: error correcting codes"],
+  ["4.4", "Upper bounds on random sub-gaussian matrices"],
+  ["4.5", "Application: community detection in networks"],
+  ["4.6", "Two-sided bounds on sub-gaussian matrices"],
+  ["4.7", "Application: covariance estimation and clustering"],
+  ["4.8", "Notes"],
+]
+items = [
+  ["Lemma", "4.1.5", "Approximate isometries"],
+  ["Definition", "4.2.1", "ε-net"],
+  ["Definition", "4.2.2", "Covering numbers"],
+  ["Definition", "4.2.4", "Packing numbers"],
+  ["Lemma", "4.2.6", "Nets from separated sets"],
+  ["Lemma", "4.2.8", "Equivalence of covering and packing numbers"],
+  ["Definition", "4.2.11", "Minkowski sum"],
+  ["Proposition", "4.2.12", "Covering numbers and volume"],
+  ["Corollary", "4.2.13", "Covering numbers of the Euclidean ball"],
+  ["Definition", "4.2.14", "Hamming cube"],
+  ["Proposition", "4.3.1", "Metric entropy and coding"],
+  ["Definition", "4.3.3", "Error correcting code"],
+  ["Lemma", "4.3.4", "Error correction and packing"],
+  ["Theorem", "4.3.5", "Guarantees for an error correcting code"],
+  ["Lemma", "4.4.1", "Computing the operator norm on a net"],
+  ["Theorem", "4.4.5", "Norm of matrices with sub-gaussian entries"],
+  ["Corollary", "4.4.8", "Norm of symmetric matrices with sub-gaussian entries"],
+  ["Definition", "4.5.1", "Stochastic block model"],
+  ["Theorem", "4.5.3", "Weyl's inequality"],
+  ["Theorem", "4.5.5", "Davis-Kahan"],
+  ["Theorem", "4.5.6", "Spectral clustering for the stochastic block model"],
+  ["Theorem", "4.6.1", "Two-sided bound on sub-gaussian matrices"],
+  ["Theorem", "4.7.1", "Covariance estimation"],
+  ["Definition", "4.7.4", "Gaussian mixture model"],
+]
+
+[[book.chapter]]
+n = 5
+title = "Concentration without independence"
+sections = [
+  ["5.1", "Concentration of Lipschitz functions on the sphere"],
+  ["5.2", "Concentration on other metric measure spaces"],
+  ["5.3", "Application: Johnson-Lindenstrauss Lemma"],
+  ["5.4", "Matrix Bernstein's inequality"],
+  ["5.5", "Application: community detection in sparse networks"],
+  ["5.6", "Application: covariance estimation for general distributions"],
+  ["5.7", "Notes"],
+]
+items = [
+  ["Definition", "5.1.1", "Lipschitz functions"],
+  ["Theorem", "5.1.5", "Isoperimetric inequality on Rn "],
+  ["Theorem", "5.1.6", "Isoperimetric inequality on the sphere"],
+  ["Lemma", "5.1.7", "Blow-up"],
+  ["Theorem", "5.2.1", "Gaussian isoperimetric inequality"],
+  ["Theorem", "5.2.2", "Gaussian concentration"],
+  ["Theorem", "5.2.5", "Concentration on the Hamming cube"],
+  ["Theorem", "5.2.6", "Concentration on the symmetric group"],
+  ["Theorem", "5.2.7", "Concentration on the special orthogonal group"],
+  ["Theorem", "5.2.9", "Concentration on the Grassmannian"],
+  ["Theorem", "5.2.10", "Concentration on the continuous cube"],
+  ["Theorem", "5.2.15", ""],
+  ["Theorem", "5.2.16", "Talagrand's concentration inequality"],
+  ["Theorem", "5.3.1", "Johnson-Lindenstrauss Lemma"],
+  ["Lemma", "5.3.2", "Random projection"],
+  ["Theorem", "5.4.1", "Matrix Bernstein's inequality"],
+  ["Definition", "5.4.2", "Functions of matrices"],
+  ["Definition", "5.4.4", "positive-semidefinite order"],
+  ["Theorem", "5.4.7", "Golden-Thompson inequality"],
+  ["Theorem", "5.4.8", "Lieb's inequality"],
+  ["Lemma", "5.4.9", "Lieb's inequality for random matrices"],
+  ["Lemma", "5.4.10", "Moment generating function"],
+  ["Theorem", "5.6.1", "General covariance estimation"],
+]
+
+[[book.chapter]]
+n = 6
+title = "Quadratic forms, symmetrization and contraction"
+sections = [
+  ["6.1", "Decoupling"],
+  ["6.2", "Hanson-Wright Inequality"],
+  ["6.3", "Concentration of anisotropic random vectors"],
+  ["6.4", "Symmetrization"],
+  ["6.5", "Random matrices with non-i.i.d. entries"],
+  ["6.6", "Application: matrix completion"],
+  ["6.7", "Contraction Principle"],
+  ["6.8", "Notes"],
+]
+items = [
+  ["Theorem", "6.3.2", ""],
+  ["Theorem", "6.1.1", "Decoupling"],
+  ["Lemma", "6.1.2", ""],
+  ["Theorem", "6.2.1", "Hanson-Wright inequality"],
+  ["Lemma", "6.2.2", "MGF of Gaussian chaos"],
+  ["Lemma", "6.2.3", "Comparison"],
+  ["Lemma", "6.4.2", "Symmetrization"],
+  ["Theorem", "6.5.1", "Norms of random matrices with non-i.i.d. entries"],
+  ["Theorem", "6.6.1", "Matrix completion"],
+  ["Theorem", "6.7.1", "Contraction principle"],
+  ["Lemma", "6.7.4", "Symmetrization with Gaussians"],
+]
+
+[[book.chapter]]
+n = 7
+title = "Random processes"
+sections = [
+  ["7.1", "Basic concepts and examples"],
+  ["7.2", "Slepian's inequality"],
+  ["7.3", "Sharp bounds on Gaussian matrices"],
+  ["7.4", "Sudakov's minoration inequality"],
+  ["7.5", "Gaussian width"],
+  ["7.6", "Stable dimension, stable rank, and Gaussian complexity"],
+  ["7.7", "Random projections of sets"],
+  ["7.8", "Notes"],
+]
+items = [
+  ["Definition", "7.1.1", "Random process"],
+  ["Definition", "7.1.10", "Gaussian process"],
+  ["Lemma", "7.1.12", "Gaussian random vectors"],
+  ["Theorem", "7.2.1", "Slepian's inequality"],
+  ["Lemma", "7.2.3", "Gaussian integration by parts"],
+  ["Lemma", "7.2.5", "Multivariate Gaussian integration by parts"],
+  ["Lemma", "7.2.7", "Gaussian interpolation"],
+  ["Lemma", "7.2.8", "Slepian's inequality, functional form"],
+  ["Theorem", "7.2.9", "Slepian's inequality"],
+  ["Theorem", "7.2.11", "Sudakov-Fernique's inequality"],
+  ["Theorem", "7.3.1", "Norms of Gaussian random matrices"],
+  ["Corollary", "7.3.3", "Norms of Gaussian random matrices: tails"],
+  ["Theorem", "7.4.1", "Sudakov's minoration inequality"],
+  ["Corollary", "7.4.3", "Sudakov's minoration inequality in Rn "],
+  ["Corollary", "7.4.4", "Covering numbers of polytopes"],
+  ["Definition", "7.5.1", ""],
+  ["Proposition", "7.5.2", "Gaussian width"],
+  ["Definition", "7.5.5", "Spherical width"],
+  ["Lemma", "7.5.6", "Gaussian vs. spherical widths"],
+  ["Definition", "7.6.2", "Stable dimension"],
+  ["Lemma", "7.6.3", ""],
+  ["Definition", "7.6.7", "Stable rank"],
+  ["Definition", "7.6.8", ""],
+  ["Theorem", "7.7.1", "Sizes of random projections of sets"],
+]
+
+[[book.chapter]]
+n = 8
+title = "Chaining"
+sections = [
+  ["8.1", "Dudley's inequality"],
+  ["8.2", "Application: empirical processes"],
+  ["8.3", "VC dimension"],
+  ["8.4", "Application: statistical learning theory"],
+  ["8.5", "Generic chaining"],
+  ["8.6", "Talagrand's majorizing measure and comparison theorems"],
+  ["8.7", "Chevet's inequality"],
+  ["8.8", "Notes"],
+]
+items = [
+  ["Definition", "8.1.1", "Sub-gaussian increments"],
+  ["Theorem", "8.1.3", "Dudley's integral inequality"],
+  ["Theorem", "8.1.4", "Discrete Dudley's inequality"],
+  ["Theorem", "8.1.6", "Dudley's integral inequality: tail bound"],
+  ["Theorem", "8.1.10", "Dudley's inequality for sets in Rn "],
+  ["Theorem", "8.1.13", "Two-sided Sudakov's inequality"],
+  ["Theorem", "8.2.3", "Uniform law of large numbers"],
+  ["Definition", "8.2.5", ""],
+  ["Definition", "8.3.1", "VC dimension"],
+  ["Lemma", "8.3.13", "Pajor's Lemma"],
+  ["Theorem", "8.3.16", "Sauer-Shelah Lemma"],
+  ["Theorem", "8.3.18", "Covering numbers via VC dimension"],
+  ["Lemma", "8.3.19", "Dimension reduction"],
+  ["Theorem", "8.3.23", "Empirical processes via VC dimension"],
+  ["Theorem", "8.3.26", "Glivenko-Cantelli Theorem11 "],
+  ["Definition", "8.4.3", ""],
+  ["Theorem", "8.4.4", "Excess risk via VC dimension"],
+  ["Lemma", "8.4.5", "Excess risk via uniform deviations"],
+  ["Definition", "8.5.1", "Talagrand's γ2 functional"],
+  ["Theorem", "8.5.3", "Generic chaining bound"],
+  ["Theorem", "8.5.5", "Generic chaining: tail bound"],
+  ["Theorem", "8.6.1", "Talagrand's majorizing measure theorem"],
+  ["Corollary", "8.6.2", "Talagrand's comparison inequality"],
+  ["Corollary", "8.6.3", "Talagrand's comparison inequality: geometric form"],
+  ["Theorem", "8.7.1", "Sub-gaussian Chevet's inequality"],
+]
+
+[[book.chapter]]
+n = 9
+title = "Deviations of random matrices and geometric consequences"
+sections = [
+  ["9.1", "Matrix deviation inequality"],
+  ["9.2", "Random matrices, random projections and covariance estimation"],
+  ["9.3", "Johnson-Lindenstrauss Lemma for infinite sets"],
+  ["9.4", "Random sections: M ∗ bound and Escape Theorem"],
+  ["9.5", "Notes"],
+]
+items = [
+  ["Theorem", "9.1.1", "Matrix deviation inequality"],
+  ["Theorem", "9.1.3", "Sub-gaussian increments"],
+  ["Lemma", "9.1.4", ""],
+  ["Lemma", "9.1.6", "Unit y, original process"],
+  ["Proposition", "9.2.1", "Sizes of random projections of sets"],
+  ["Theorem", "9.2.4", "Covariance estimation for lower-dimensional distributions"],
+  ["Proposition", "9.3.2", "Additive Johnson-Lindenstrauss Lemma"],
+  ["Theorem", "9.4.2", "M ∗ bound"],
+  ["Theorem", "9.4.7", "Escape theorem"],
+]
+
+[[book.chapter]]
+n = 10
+title = "Sparse Recovery"
+sections = [
+  ["10.1", "High-dimensional signal recovery problems"],
+  ["10.2", "Signal recovery based on M ∗ bound"],
+  ["10.3", "Recovery of sparse signals"],
+  ["10.4", "Low-rank matrix recovery"],
+  ["10.5", "Exact recovery and the restricted isometry property"],
+  ["10.6", "Lasso algorithm for sparse regression"],
+  ["10.7", "Notes"],
+]
+items = [
+  ["Theorem", "10.2.1", ""],
+  ["Corollary", "10.3.4", "Sparse recovery: guarantees"],
+  ["Theorem", "10.5.1", "Exact sparse recovery"],
+  ["Lemma", "10.5.2", ""],
+  ["Lemma", "10.5.3", ""],
+  ["Definition", "10.5.8", "RIP"],
+  ["Theorem", "10.5.10", "RIP implies exact recovery"],
+  ["Theorem", "10.5.11", "Random matrices satisfy RIP"],
+  ["Theorem", "10.6.1", "Performance of Lasso"],
+  ["Lemma", "10.6.5", "Upper bound on kAhk2 "],
+  ["Lemma", "10.6.6", "Lower bound on kAhk2 "],
+  ["Lemma", "10.6.7", ""],
+]
+
+[[book.chapter]]
+n = 11
+title = "Dvoretzky-Milman's Theorem"
+sections = [
+  ["11.1", "Deviations of random matrices with respect to general norms"],
+  ["11.2", "Johnson-Lindenstrauss embeddings and sharper Chevet inequality"],
+  ["11.3", "Dvoretzky-Milman's Theorem"],
+  ["11.4", "Notes"],
+]
+items = [
+  ["Definition", "11.1.1", ""],
+  ["Theorem", "11.1.5", "General matrix deviation inequality"],
+  ["Theorem", "11.1.6", "Sub-gaussian increments"],
+  ["Theorem", "11.2.4", "General Chevet's inequality"],
+  ["Theorem", "11.3.1", "Random projections of sets"],
+  ["Theorem", "11.3.3", "Dvoretzky-Milman's theorem: Gaussian form"],
+]

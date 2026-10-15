@@ -93,10 +93,39 @@ h3 {
     margin: 1.4em 0 0.3em;
 }
 
+/* the site menu under the title, as on nla-lib.org: plain links, italic on hover */
+.menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2em 1.2em;
+    margin: 0.4rem 0 1.4rem;
+}
+
+.menu a {
+    text-decoration: none;
+}
+
+.menu a:hover {
+    font-style: italic;
+}
+
+.menu a.here {
+    font-weight: 600;
+}
+
+.intro {
+    font-size: 85%;
+    margin: -0.6rem 0 1.4rem;
+}
+
+/* the library's counts and commit, at the foot of the page */
 .byline {
-    margin: 0.35rem 0 1.6rem;
+    margin: 3rem 0 0;
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--rule);
     font-size: 70%;
     line-height: 1.35;
+    color: var(--faint);
 }
 
 a {
@@ -233,6 +262,7 @@ summary:hover h2, summary:hover h3 {
 }
 
 summary .n {
+    white-space: nowrap;
     font-size: 60%;
     font-style: normal;
     font-weight: 400;
@@ -322,6 +352,22 @@ ul.entries > li {
     color: var(--faint);
 }
 
+/* ---------- the Books page ---------- */
+
+.bkno {
+    font-size: 85%;
+    margin-right: 0.2em;
+    white-space: nowrap;
+}
+
+.bkitem.missing {
+    color: var(--faint);
+}
+
+.bkitem.missing .desc {
+    font-style: italic;
+}
+
 /* ---------- the panel ---------- */
 
 #panel {
@@ -385,6 +431,26 @@ body.panel-open #main {
     font-size: 28px;
 }
 
+/* what kind of thing it is, above the name */
+.panelhead {
+    padding-top: 1.2em;
+}
+
+#panelbody .panelhead h2 {
+    padding-top: 0.25em;
+    margin-top: 0;
+}
+
+.kindtag {
+    display: inline-block;
+    font-size: 70%;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1.5px solid var(--ink);
+    padding: 0.1em 0.5em;
+}
+
 .subtitle {
     font-size: 75%;
     color: var(--faint);
@@ -416,8 +482,9 @@ body.panel-open #main {
 }
 
 .statement {
-    border-left: 3px solid var(--ink);
-    padding: 0.1em 0 0.1em 1em;
+    background: #f6f6f4;
+    border: 1px solid var(--rule);
+    padding: 0.6em 0.9em;
     line-height: 1.5;
 }
 
@@ -460,22 +527,26 @@ body.panel-open #main {
     margin: 1.2em 0;
 }
 
-.declhead {
-    display: flex;
-    flex-wrap: wrap;
+/* a further formal statement of the same result, set off by a rule */
+.decl.form {
+    border-top: 1px solid var(--rule);
+    margin-top: 1.6em;
+    padding-top: 0.2em;
+}
+
+.formname {
+    font-style: italic;
+    font-weight: 400;
+    font-size: 85%;
+    margin: 0.9em 0 -0.8em;
+}
+
+.label .opts {
     align-items: baseline;
-    gap: 0.2em 0.6em;
-    font-size: 85%;
 }
 
-.declhead code {
-    font-weight: 600;
-    font-size: 90%;
-}
-
-.declhead .src {
-    margin-left: auto;
-    font-size: 85%;
+.opts .srclink {
+    margin-left: 0.3em;
     white-space: nowrap;
 }
 
@@ -487,6 +558,7 @@ body.panel-open #main {
 .doc p {
     margin: 0.4em 0;
 }
+
 
 pre.lean {
     margin: 0.5em 0;
@@ -650,4 +722,9 @@ ul.declist li {
     #panelbody {
         padding: 0 1em 4em;
     }
+}
+
+/* links that are Lean names keep their underscores clear of the underline */
+.bkitem a code, .declist a code {
+    text-underline-offset: 4px;
 }

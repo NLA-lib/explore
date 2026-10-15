@@ -16,7 +16,13 @@
 <div id="main">
 <div id="contentContainer">
   <h1>NLA-lib Explorer</h1>
-  <div class="byline" id="byline">Loading the library&hellip;</div>
+  <nav class="menu" aria-label="Site">
+    <a href="https://nla-lib.org/">Home</a>
+    <a href="./" data-page="main">Explorer</a>
+    <a href="books/" data-page="books">Books</a>
+    <a href="https://github.com/NLA-lib/nlalib">GitHub</a>
+  </nav>
+  <p class="intro" id="intro" hidden></p>
 
   <div id="searchbar">
     <input id="q" type="search" autocomplete="off" spellcheck="false"
@@ -25,6 +31,7 @@
   </div>
 
   <div id="content"></div>
+  <div class="byline" id="byline">Loading the library&hellip;</div>
 </div>
 </div>
 

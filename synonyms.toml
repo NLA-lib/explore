@@ -8,7 +8,7 @@
 "operator norm" = ["specNorm"]
 "2-norm" = ["specNorm"]
 "frobenius" = ["frobNorm"]
-"condition number" = ["conditionNumber"]
+"condition number" = ["pseudoConditionNumber", "conditionNumber"]
 "hermitian" = ["IsHermitian"]
 "symmetric" = ["IsHermitian"]
 "positive semidefinite" = ["PosSemidef"]

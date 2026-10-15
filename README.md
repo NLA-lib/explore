@@ -39,13 +39,17 @@ Everything shown is generated from the library. Nothing here needs editing when 
   $\mathbb{E}$ and `P(…)` the probability $\mathbb{P}$; `‖·‖_F` is written $\|\cdot\|_{\mathsf F}$.
   Lean constructions with a standard notation are typeset as such: `fromBlocks A B C D` as a
   2×2 block matrix, `fromCols`/`fromRows` as a row/column of blocks, `pinv A` as $A^+$,
-  `diagonal`, `specNorm`, `frobNorm`, `conditionNumber`, `eigenvalue A k`, `singularValues A k`
+  `diagonal`, `specNorm`, `frobNorm`, `pseudoConditionNumber`, `eigenvalue A k`, `singularValues A k`
   (`CONSTRUCTS` in `web/math.js`; an unapplied name stays a name).
   `results.toml` can supply a statement for a result whose docstrings have none.
 - **Docstrings are split** (`build.py`, `split_doc`) along CONTRIBUTING §6: the bold name becomes
   the declaration's label, citations and the remarks on how the source differs go to
   References, sentences pointing at other declarations go to Related, a `Proof:` paragraph goes
   to Proof sketch, port provenance is dropped, and what remains is the statement.
+- **Books** (`books/`): for each book in `books.toml`, every numbered result, with the library
+  results and declarations whose docstrings cite it (`[Tropp2015, Theorem 6.1.1]`; a citation
+  of a section, `§6.6`, or an equation, `(2.1.28)`, is listed under its section). A numbered
+  result no docstring cites is shown faint, so a wrong or missing citation shows up here too.
 - **Dependencies** are the library declarations used in a declaration's statement or proof. The
   graph shows results and definitions, collapsing the helper lemmas between them; a toggle shows
   the raw declaration-level graph.
@@ -59,6 +63,7 @@ Everything shown is generated from the library. Nothing here needs editing when 
 | `topics.toml` | titles, order and blurbs of topics and subtopics; where loose files go |
 | `results.toml` | optional title, aliases and LaTeX statement per result id |
 | `synonyms.toml` | search synonyms (`pseudoinverse` → `pinv`) |
+| `books.toml` | key books for the Books page: chapters, sections, numbered results (numbers and short names only) |
 
 ## Local build
 

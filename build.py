@@ -11,6 +11,7 @@ Inputs:
                           directory: a directory without an entry gets a title from its name)
   results.toml            per `Result:` id overrides: title, aliases, latex (all optional)
   synonyms.toml           search synonyms, mathematical words to library names
+  books.toml              key books: chapters, sections and numbered results, for the Books page
 
 Output: <out>/index.html, <out>/data.json and the static assets in web/.
 
@@ -143,14 +144,24 @@ def tidy_displays(text):
 
 def sentences(text):
     """Split prose into sentences at '. ' (or ': ' before a capital is not a split), never inside
-    backticks, dollars or brackets."""
-    out, start, tick, dollar, depth = [], 0, False, False, 0
+    backticks, dollars or brackets; a display ending in a full stop (`… c_i\\,.$$`) ends one too."""
+    out, start, tick, dollar, display, depth = [], 0, False, False, False, 0
+    skip = False
     for i, ch in enumerate(text):
-        if ch == '`':
+        if skip:
+            skip = False
+            continue
+        if ch == '`' and not (dollar or display):
             tick = not tick
-        elif ch == '$' and not tick:
+        elif ch == '$' and not tick and text[i + 1:i + 2] == '$' and not dollar:
+            skip = True
+            display = not display
+            if not display and re.search(r'\.\s*$', text[start:i]) and text[i + 2:i + 3] in ('', ' '):
+                out.append(text[start:i + 2].strip())
+                start = i + 2
+        elif ch == '$' and not tick and not display:
             dollar = not dollar
-        elif tick or dollar:
+        elif tick or dollar or display:
             continue
         elif ch in '([':
             depth += 1
@@ -459,6 +470,68 @@ def topic_of(module, topics_cfg):
     return top, f'{top}/{parts[1]}'
 
 
+# a numbered result, `6.1.1`, or with Horn and Johnson's fourth level, `7.4.1.3`
+ITEM_NO = re.compile(r'(?<![§(\d.])(\d+)\.(\d+)\.\d+(?:\.\d+)?(?![\d)]|\.\d)')
+
+
+def book_refs(label, items, same):
+    """What a citation label (`Theorem 6.1.1`, `§8.3 and §8.8`, `(2.1.28)`, `Problem 7.3.P7`,
+    `chapter 4`) points at in a book: numbered results (`i`), sections (`s`) and chapters (`c`)."""
+    refs = set()
+    for m in re.finditer(r'§\s*(\d+)\.(\d+)', label):
+        refs.add(('s', f'{m[1]}.{m[2]}'))
+    for m in re.finditer(r'\((\d+)\.(\d+)\.\d+(?:\.\d+)?\)', label):   # an equation number
+        refs.add(('s', f'{m[1]}.{m[2]}'))
+    for m in re.finditer(r'\b(\d+)\.(\d+)\.P\d+', label):           # a problem, `Problem 7.3.P7`
+        refs.add(('s', f'{m[1]}.{m[2]}'))
+    for m in re.finditer(r'\b[Cc]hapters?\s+(\d+)', label):
+        refs.add(('c', m[1]))
+    for m in re.finditer(r'\b[Ss]ections?\s+(\d+)\.(\d+)', label):
+        refs.add(('s', f'{m[1]}.{m[2]}'))
+    for m in ITEM_NO.finditer(label):
+        n = same.get(m[0], m[0])
+        refs.add(('i', n) if n in items else ('s', f'{m[1]}.{m[2]}'))
+    return refs
+
+
+def books_page(cfg, bib, decls):
+    """The Books page: for each book of books.toml, its chapters, sections and numbered results,
+    each with the results and declarations of the library that cite it."""
+    out = []
+    for book in cfg.get('book', []):
+        key, same = book['key'], book.get('same', {})
+        items = {n for ch in book['chapter'] for _, n, _ in ch.get('items', [])}
+        cites = defaultdict(list)                    # ('i' | 's' | 'c', number) -> targets
+        for d in decls:
+            target = {'r': d['r'][0]} if d['r'] else {'d': d['n']}
+            for k, label in d['ci']:
+                if k != key:
+                    continue
+                for ref in book_refs(label, items, same) or {('b', '')}:
+                    if target not in cites[ref]:
+                        cites[ref].append(target)
+        chapters = []
+        for ch in book['chapter']:
+            secs = [{'n': n, 'title': t, 'refs': cites.get(('s', n), []), 'items': []}
+                    for n, t in ch.get('sections', [])]
+            for kind, n, name in ch.get('items', []):
+                sec = next((x for x in secs if n.startswith(x['n'] + '.')), None)
+                item = {'k': kind, 'n': n, 'name': name, 'refs': cites.get(('i', same.get(n, n)), []),
+                        'same': same.get(n)}
+                if sec:
+                    sec['items'].append(item)
+                else:
+                    secs.append({'n': n, 'title': '', 'refs': [], 'items': [item]})
+            chapters.append({'n': ch['n'], 'title': ch['title'], 'refs': cites.get(('c', str(ch['n'])), []),
+                             'sections': secs})
+        n_items = sum(len(x['items']) for c in chapters for x in c['sections'])
+        n_cov = sum(1 for c in chapters for x in c['sections'] for it in x['items'] if it['refs'])
+        out.append({'key': key, 'short': book.get('short', key), 'url': book.get('url'),
+                    'cite': bib.get(key, {}).get('text'), 'chapters': chapters,
+                    'general': cites.get(('b', ''), []), 'items': n_items, 'covered': n_cov})
+    return out
+
+
 def build(data, bib, out):
     topics_cfg = load_toml('topics.toml')
     results_cfg = load_toml('results.toml')
@@ -634,6 +707,7 @@ def build(data, bib, out):
         'resultAlias': alias,
         'nodes': nodes, 'bib': {k: v for k, v in bib.items() if k in cited},
         'synonyms': synonyms,
+        'books': books_page(load_toml('books.toml'), bib, out_decls),
     }
 
     out = Path(out)
@@ -641,6 +715,13 @@ def build(data, bib, out):
         shutil.rmtree(out)
     shutil.copytree(ROOT / 'web', out)
     (out / 'data.json').write_text(json.dumps(site, ensure_ascii=False, separators=(',', ':')))
+    # the Books page is the same app one directory down, at books/
+    page = (ROOT / 'web' / 'index.html').read_text()
+    page = re.sub(r'(href|src)="(?!data:|https?:|#)([^"]+)"', r'\1="../\2"', page)
+    page = page.replace('".././"', '"../"')
+    page = page.replace('<body>', '<body data-page="books" data-base="../">')
+    (out / 'books').mkdir()
+    (out / 'books' / 'index.html').write_text(page)
     n_def = sum(1 for d in decls if d['kind'] in DEF_KINDS)
     print(f'{len(modules)} modules, {len(decls)} declarations, {len(out_results)} results, '
           f'{n_def} definitions -> {out}/ ({(out / "data.json").stat().st_size // 1024} KB data)')
