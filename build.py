@@ -617,27 +617,12 @@ def build(data, bib, out):
     for rid, r in results.items():
         cfg = results_cfg.get(rid, {})
         title = cfg.get('title') or result_title(r['bold'], rid, r['phrase'])
-        # The declaration named exactly by the title comes first: its statement is the result's.
-        # Without one, the declarations named "<title>, <qualifier>" (`…, Gaussian series` and
-        # `…, Rademacher series`) are parallel forms, none above the others: they come first, in
-        # source order, and `parallel` counts them. Either way the rest follow as further forms.
-        # `main = "<declaration>"` in results.toml puts that declaration first instead.
-        def rank(j):
-            if cfg.get('main'):
-                return 0 if decls[j]['name'] == cfg['main'] else 2
-            name = (decls[j].get('_name') or '').strip()
-            return 0 if name == title else 1 if name.startswith(title + ', ') else 2
-        if cfg.get('main') and cfg['main'] not in [decls[j]['name'] for j in r['decls']]:
-            raise SystemExit(f"results.toml: [{rid}] main = {cfg['main']!r} is not one of its declarations")
-        r['decls'].sort(key=rank)
-        top = [j for j in r['decls'] if rank(j) == rank(r['decls'][0])]
-        parallel = len(top) if rank(r['decls'][0]) == 1 and len(top) > 1 else 0
+        # the declaration the title names comes first: its statement is the result's
+        named = lambda j: (decls[j].get('_name') or '').split(',')[0].strip() == title.split(',')[0].strip()
+        r['decls'].sort(key=lambda j: not named(j))
         primary = r['decls'][0]
         out_results[rid] = {'title': title, 'aliases': cfg.get('aliases', []), 'latex': cfg.get('latex'),
-                            'ids': r.get('ids', []), 'parallel': parallel,
-                            # marked 💥 in the lists, panels and Books page; for now every result
-                            # is, until results.toml says which are key (`key = false` unmarks one)
-                            'key': cfg.get('key', True),
+                            'ids': r.get('ids', []),
                             'decls': r['decls'], 'module': decls[primary]['module']}
 
     # --- graph nodes: a result (all its declarations together) or a documented definition.

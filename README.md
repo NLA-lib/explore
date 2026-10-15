@@ -42,12 +42,6 @@ Everything shown is generated from the library. Nothing here needs editing when 
   `diagonal`, `specNorm`, `frobNorm`, `pseudoConditionNumber`, `eigenvalue A k`, `singularValues A k`
   (`CONSTRUCTS` in `web/math.js`; an unapplied name stays a name).
   `results.toml` can supply a statement for a result whose docstrings have none.
-- **Several statements of one result**: the declaration whose bold name is exactly the title
-  leads and the rest follow as further forms; without one, those named "<title>, <qualifier>" are
-  parallel forms, shown as equals under their qualifiers (`main` in `results.toml` overrides).
-- **Key results** are marked 💥: in place of the dash in the topic lists and search results, in
-  the panel's kind tag, and on the Books page beside each book item a key result cites. For now
-  every named result is key (`key = false` in `results.toml` unmarks one).
 - **Docstrings are split** (`build.py`, `split_doc`) along CONTRIBUTING §6: the bold name becomes
   the declaration's label, citations and the remarks on how the source differs go to
   References, sentences pointing at other declarations go to Related, a `Proof:` paragraph goes
@@ -67,7 +61,7 @@ Everything shown is generated from the library. Nothing here needs editing when 
 | `build.py` | `data/explore-data.json` (+ `references.bib`) → `site/` |
 | `web/` | the page: `index.html`, `app.js`, `style.css`, fonts, KaTeX 0.16.22 (MIT) |
 | `topics.toml` | titles, order and blurbs of topics and subtopics; where loose files go |
-| `results.toml` | optional title, aliases, LaTeX statement, leading declaration and key-result flag per result id |
+| `results.toml` | optional title, aliases and LaTeX statement per result id |
 | `synonyms.toml` | search synonyms (`pseudoinverse` → `pinv`) |
 | `books.toml` | key books for the Books page: chapters, sections, numbered results (numbers and short names only) |
 

@@ -6,12 +6,6 @@
 #   title = "Weyl's inequality"
 #   aliases = ["Weyl's eigenvalue inequality"]          # extra names for the search
 #   latex = "For Hermitian $A, B$: $$\\lambda_{i+j}(A+B) \\le \\lambda_i(A) + \\lambda_j(B).$$"
-#   main = "NLAlib.eigenvalue_add_le"     # the declaration whose statement leads (see below)
-#   key = false                           # not marked 💥 as a key result (for now all are)
-#
-# Which statement leads: the declaration whose bold name is exactly the title. Without one, the
-# declarations named "<title>, <qualifier>" are parallel forms shown side by side as equals
-# (Khintchine's "Gaussian series" and "Rademacher series"). `main` overrides both.
 #
 # Prefer putting the mathematics in the docstring, where it is reviewed with the Lean; use
 # `latex` only when the docstring cannot carry it.
