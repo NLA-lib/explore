@@ -166,6 +166,19 @@ ul > li::before {
     padding-right: 0.3em;
 }
 
+/* a key result: 💥 in place of the dash, in the list's indent */
+ul > li.key::before {
+    content: "💥";
+    font-size: 80%;
+    line-height: 1.9;
+}
+
+.keymark {
+    font-size: 85%;
+    letter-spacing: 0;
+    margin-right: 0.3em;
+}
+
 button {
     font: inherit;
     color: inherit;
@@ -529,6 +542,14 @@ body.panel-open #main {
     border-top: 1px solid var(--rule);
     margin-top: 1.6em;
     padding-top: 0.2em;
+}
+
+/* one of a result's parallel forms (Gaussian series, Rademacher series): its qualifier heads it */
+.peername {
+    font-style: italic;
+    font-weight: 400;
+    font-size: 100%;
+    margin: 0.9em 0 0.1em;
 }
 
 .formname {

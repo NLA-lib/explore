@@ -236,14 +236,29 @@
       const r = D.results[e.rid];
       const first = decls[r.decls[0]];
       const anyWip = r.decls.some(j => decls[j].s);
-      return `<li><a class="entry-title" href="#r/${encodeURIComponent(e.rid)}">${md(r.title, { inline: true })}</a>` +
+      return `<li${r.key ? ' class="key"' : ''}><a class="entry-title" href="#r/${encodeURIComponent(e.rid)}">${md(r.title, { inline: true })}</a>` +
         (anyWip ? '<span class="wip">proof in progress</span>' : '') +
-        `<span class="desc">${descHtml(r.decls[0])}</span></li>`;
+        `<span class="desc">${resultDesc(r)}</span></li>`;
     }
     const d = decls[e.i];
     return `<li><a class="entry-title" href="${declRoute(e.i)}"><code>${esc(short(d.n))}</code></a>` +
       `<span class="kind">${kindLabel(d)}</span>${wip(d)}` +
       (d.fs ? `<span class="desc">${descHtml(e.i)}</span>` : '') + '</li>';
+  }
+
+  // A result in parallel forms (Gaussian and Rademacher series) is described by its forms, so that
+  // none is put above the others; any other result by its first statement.
+  const NUMBER = ['', 'one', 'two', 'three', 'four', 'five', 'six'];
+  // a form's qualifier (`Gaussian series`, `max–min form`), capitalised when it is a heading
+  const formLabel = (r, j, heading = true) => {
+    const nm = decls[j].nm || '', q = nm.startsWith(r.title + ', ') ? nm.slice(r.title.length + 2) : nm;
+    return heading ? q.charAt(0).toUpperCase() + q.slice(1) : q;
+  };
+  function resultDesc(r) {
+    if (!r.parallel) return descHtml(r.decls[0]);
+    const labels = r.decls.slice(0, r.parallel).map(j => md(formLabel(r, j, false), { inline: true }));
+    const n = NUMBER[r.parallel] ?? r.parallel;
+    return `In ${n} forms: ${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}.`;
   }
 
   // Topics and subtopics are <details>, closed at first; which are open survives a search.
@@ -287,6 +302,14 @@
     if (d.tagName === 'DETAILS' && d.id) d.open ? openSections.add(d.id) : openSections.delete(d.id);
   }, true);
 
+  // links to one of a result's forms, in the panel's subtitle
+  document.addEventListener('click', ev => {
+    const a = ev.target.closest('[data-jump]');
+    if (!a) return;
+    ev.preventDefault();
+    document.getElementById(a.dataset.jump)?.scrollIntoView({ behavior: 'smooth' });
+  });
+
   // links to a topic or subtopic (in the panel's breadcrumbs) open it and its parent, then scroll
   document.addEventListener('click', ev => {
     const a = ev.target.closest('[data-scroll]');
@@ -327,9 +350,11 @@
       ? `<a href="#r/${encodeURIComponent(t.r)}">${md(resultTitle(t.r), { inline: true })}</a>`
       : `<a href="#d/${encodeURIComponent(t.d)}"><code>${esc(short(t.d))}</code></a>`;
     const links = refs => refs.map(link).join(', ');
+    // an item cited by a key result is marked 💥 in place of its dash
+    const key = refs => refs.some(t => t.r !== undefined && D.results[t.r]?.key);
     const item = it => {
       const has = it.refs.length > 0;
-      return `<li class="bkitem${has ? '' : ' missing'}"><span class="bkno">${esc(it.k)} ${esc(it.n)}</span>` +
+      return `<li class="bkitem${has ? '' : ' missing'}${key(it.refs) ? ' key' : ''}"><span class="bkno">${esc(it.k)} ${esc(it.n)}</span>` +
         (it.name ? ` <span class="entry-title">${esc(it.name)}</span>` : '') +
         `<span class="desc">${has ? (it.same ? `As ${esc(it.same)}: ` : '') + links(it.refs) : 'No library result cites it.'}</span></li>`;
     };
@@ -341,7 +366,7 @@
           c.sections.filter(x => x.items.length || x.refs.length).map(x =>
             `<div class="module"><span class="mtitle">${esc(x.n)} ${esc(x.title)}</span></div>` +
             '<ul class="entries">' + x.items.map(item).join('') +
-            (x.refs.length ? `<li class="bkitem"><span class="bkno">§${esc(x.n)}</span>` +
+            (x.refs.length ? `<li class="bkitem${key(x.refs) ? ' key' : ''}"><span class="bkno">§${esc(x.n)}</span>` +
               `<span class="desc">${links(x.refs)}</span></li>` : '') + '</ul>').join('');
         return section(`b-${b.key}-${c.n}`, 'sub', 'h3', `${c.n}. ${c.title}`,
           items.length ? `${n} of ${items.length}` : '', body);
@@ -445,8 +470,8 @@
   function hitHtml(it) {
     if (it.type === 'r') {
       const r = D.results[it.key];
-      return `<li><a class="entry-title" href="#r/${encodeURIComponent(it.key)}">${md(r.title, { inline: true })}</a>` +
-        `<span class="kind">result</span><span class="desc">${descHtml(r.decls[0])}` +
+      return `<li${r.key ? ' class="key"' : ''}><a class="entry-title" href="#r/${encodeURIComponent(it.key)}">${md(r.title, { inline: true })}</a>` +
+        `<span class="kind">result</span><span class="desc">${resultDesc(r)}` +
         ` <em>${md(D.modules[r.module]?.title || '', { inline: true })}</em></span></li>`;
     }
     if (it.type === 'm') {
@@ -649,7 +674,12 @@
   function declSection(i, opts = {}) {
     const d = decls[i];
     const sec = h(`<section class="decl${opts.first ? '' : ' form'}" id="decl-${i}"></section>`);
-    if (!opts.first) {
+    if (opts.label) {
+      // one of parallel forms: its qualifier as its heading, then its own statement
+      sec.classList.add('peer');
+      sec.insertAdjacentHTML('beforeend', `<h3 class="peername">${md(opts.label, { inline: true })}</h3>`);
+      if (d.stmt) sec.insertAdjacentHTML('beforeend', '<div class="label">Statement</div>' + statementHtml(null, i));
+    } else if (!opts.first) {
       // the name, unless it is the title or the whole statement (`**The factor is unique.**`)
       if (d.nm && d.nm !== opts.title && d.stmt !== d.nm + '.')
         sec.insertAdjacentHTML('beforeend', `<h3 class="formname">${md(d.nm, { inline: true })}</h3>`);
@@ -705,8 +735,9 @@
   const KIND_NAMES = { def: 'Definition', abbrev: 'Definition', opaque: 'Definition',
     structure: 'Structure', class: 'Class', inductive: 'Inductive type', instance: 'Instance',
     theorem: 'Lemma' };
-  const headHtml = (title, kind) =>
-    `<div class="panelhead"><span class="kindtag">${kind}</span><h2>${title}</h2></div>`;
+  const headHtml = (title, kind, key) =>
+    `<div class="panelhead"><span class="kindtag">${key ? '<span class="keymark">💥</span>' : ''}${kind}</span>` +
+    `<h2>${title}</h2></div>`;
 
   function statementHtml(latex, i) {
     return `<div class="statement">${latex ? md(latex) : `<p>${stmtHtml(i, true)}</p>`}</div>`;
@@ -717,12 +748,19 @@
     const r = D.results[rid];
     if (!r) return showMissing();
     const body = $('#panelbody');
-    body.innerHTML = headHtml(md(r.title, { inline: true }), 'Theorem') +
-      `<div class="subtitle"><code>${esc(rid)}</code>${r.ids.map(x => `, <code>${esc(x)}</code>`).join('')} · ${r.decls.length} formal statement${r.decls.length > 1 ? 's' : ''}` +
+    const P = r.parallel;
+    const forms = P ? ' · in ' + (NUMBER[P] ?? P) + ' forms: ' + r.decls.slice(0, P).map(j =>
+      `<a href="#" data-jump="decl-${j}">${md(formLabel(r, j, false), { inline: true })}</a>`).join(', ') : '';
+    const more = r.decls.length - P;
+    body.innerHTML = headHtml(md(r.title, { inline: true }), 'Theorem', r.key) +
+      `<div class="subtitle"><code>${esc(rid)}</code>${r.ids.map(x => `, <code>${esc(x)}</code>`).join('')}` +
+      (P ? forms + (more ? ` · ${more} further statement${more > 1 ? 's' : ''}` : '')
+        : ` · ${r.decls.length} formal statement${r.decls.length > 1 ? 's' : ''}`) +
       `${r.aliases.length ? ' · also known as ' + r.aliases.map(esc).join(', ') : ''}</div>` +
-      '<div class="label">Statement</div>' + statementHtml(r.latex, r.decls[0]);
+      (P ? '' : '<div class="label">Statement</div>' + statementHtml(r.latex, r.decls[0]));
     r.decls.forEach((j, k) =>
-      body.append(declSection(j, { title: r.title, first: k === 0 })));
+      body.append(declSection(j, { title: r.title, first: k === 0,
+        label: k < P ? formLabel(r, j) : null })));
     body.append(graphSection(['r:' + rid, 'i:' + (focusDecl ?? r.decls[0])], ['nodes', 'decls']));
     body.insertAdjacentHTML('beforeend', notesHtml(r.decls));
     openPanel(crumbs(r.module));
