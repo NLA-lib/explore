@@ -727,15 +727,41 @@ def build(data, bib, out):
           f'{n_def} definitions -> {out}/ ({(out / "data.json").stat().st_size // 1024} KB data)')
 
 
+def whole_definitions(decls, src):
+    """The data's `statement` stops at `:=`, which for a theorem leaves out only the proof; for a
+    definition it leaves out the definition itself. Take a definition's whole text from the
+    library source (its lines `line`..`endLine`, from where its statement starts), wherever the
+    source agrees with the statement; elsewhere the statement stays as it is."""
+    files, n = {}, 0
+    for d in decls:
+        if d['kind'] not in DEF_KINDS or not d.get('statement') or not d.get('line'):
+            continue
+        path = Path(src) / (d['module'].replace('.', '/') + '.lean')
+        if path not in files:
+            files[path] = path.read_text().split('\n') if path.exists() else None
+        if not files[path]:
+            continue
+        text = '\n'.join(files[path][d['line'] - 1:d['endLine']]).rstrip()
+        k = text.find(d['statement'].split('\n')[0].strip())
+        if k >= 0 and text[k:].startswith(d['statement'].strip()[:40]) and len(text) - k > len(d['statement']):
+            d['statement'] = text[k:]
+            n += 1
+    return n
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--data', default=ROOT / 'data' / 'explore-data.json')
     ap.add_argument('--bib', default=None, help="NLAlib's docs/references.bib")
     ap.add_argument('--out', default=ROOT / 'site')
+    ap.add_argument('--src', default=None,
+                    help="an NLAlib checkout at the data's commit, for the bodies of definitions")
     a = ap.parse_args()
     data = json.loads(Path(a.data).read_text())
     if data.get('schema') != 1:
         raise SystemExit(f"unsupported data schema {data.get('schema')!r}")
+    if a.src:
+        print(f"{whole_definitions(data['decls'], a.src)} definitions given whole from {a.src}")
     build(data, parse_bib(a.bib), a.out)
 
 

@@ -42,6 +42,10 @@ Everything shown is generated from the library. Nothing here needs editing when 
   `diagonal`, `specNorm`, `frobNorm`, `pseudoConditionNumber`, `eigenvalue A k`, `singularValues A k`
   (`CONSTRUCTS` in `web/math.js`; an unapplied name stays a name).
   `results.toml` can supply a statement for a result whose docstrings have none.
+- **Definitions are shown whole.** The data's statement of a declaration stops at `:=`, which
+  hides only a theorem's proof but a definition's whole content; with `--src` (an NLAlib checkout
+  at the data's commit, which the deploy downloads) a definition, structure or class is shown with
+  its body or fields, read from its source lines.
 - **Docstrings are split** (`build.py`, `split_doc`) along CONTRIBUTING §6: the bold name becomes
   the declaration's label, citations and the remarks on how the source differs go to
   References, sentences pointing at other declarations go to Related, a `Proof:` paragraph goes
@@ -71,7 +75,7 @@ Everything shown is generated from the library. Nothing here needs editing when 
 # in NLAlib, after LEAN_NUM_THREADS=4 lake build NLAlib
 EXPLORE_OUT=../explore/data/explore-data.json lake env lean -M 8000 scripts/Explore.lean
 # here
-python3 build.py --bib ../nlalib/docs/references.bib
+python3 build.py --bib ../nlalib/docs/references.bib --src ../nlalib
 python3 -m http.server -d site 8000     # http://localhost:8000
 ```
 

@@ -44,8 +44,12 @@ jobs:
           echo "NLAlib commit: $sha"
           curl -fsSL -o data/references.bib \
             "https://raw.githubusercontent.com/NLA-lib/NLAlib/$sha/docs/references.bib" || true
+          # the library source at that commit, for the bodies of definitions
+          mkdir -p data/src
+          curl -fsSL "https://codeload.github.com/NLA-lib/NLAlib/tar.gz/$sha" |
+            tar xz -C data/src --strip-components=1 --wildcards '*/NLAlib/*' || true
       - name: Build
-        run: python3 build.py --data data/explore-data.json --bib data/references.bib --out site
+        run: python3 build.py --data data/explore-data.json --bib data/references.bib --src data/src --out site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
