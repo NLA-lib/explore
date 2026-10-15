@@ -101,8 +101,9 @@
     }
   };
 
-  // A backticked span: a library name is a link; informal mathematics is typeset (math.js). In a
-  // statement (`lenient`) everything is typeset, Lean names upright; elsewhere Lean stays code.
+  // A backticked span: a library name is a link, in code type even in a statement; informal
+  // mathematics is typeset (math.js). In a statement (`lenient`) other Lean is typeset too, its
+  // names upright; elsewhere Lean stays code.
   function codeSpan(text, lenient, bold) {
     const t = text.trim();
     const file = /^(NLAlib\/\S+)\.lean$/.exec(t);
@@ -114,8 +115,7 @@
     }
     const i = byName.get(t) ?? byName.get('NLAlib.' + t);
     if (i !== undefined) {
-      const inner = lenient && typeset(codeToTex(t, true, bold) ?? '') || `<code>${esc(t)}</code>`;
-      return `<a href="${declRoute(i)}">${inner}</a>`;
+      return `<a href="${declRoute(i)}"><code>${esc(t)}</code></a>`;
     }
     const src = codeToTex(text, lenient, bold);
     return (src !== null && typeset(src)) || `<code>${esc(text)}</code>`;
@@ -128,7 +128,7 @@
     let s = src.replace(/(`+)([\s\S]*?[^`])\1(?!`)|\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g,
       (m, ticks, code, display, math) =>
         code !== undefined ? keep(codeSpan(code, lenient, bold), code.length) :
-        display !== undefined ? keep(tex(display, true)) : keep(tex(math, false)));
+        display !== undefined ? keep(tex(display, true)) : keep(tex(math, false), math.length));
     s = esc(s)
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/(^|[^*\w])\*([^*\s](?:[^*]*[^*\s])?)\*(?!\*)/g, '$1<em>$2</em>')

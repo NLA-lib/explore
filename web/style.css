@@ -493,15 +493,20 @@ body.panel-open #main {
     margin-bottom: 0;
 }
 
-/* a statement, and the docstring of each declaration under it, is set entirely in KaTeX's font
-   (Computer Modern), so words and maths match; the maths is not enlarged as it is next to sans */
-.statement > p, .statement > ul, .decl .doc, .declname {
-    font-family: KaTeX_Main, 'Times New Roman', serif;
-    font-size: 110%;
+/* Maths is scaled so that its x-height matches the text's: KaTeX's own 1.21em suits a Times-like
+   text face, but Source Sans 3's x-height (0.486em) is 1.13 times KaTeX_Main's (0.431em) */
+.katex {
+    font-size: 1.13em;
 }
 
-.statement .katex, .decl .doc .katex, .declname .katex {
-    font-size: 1em;
+/* A statement is set to the size of the Lean under it: same x-height as the code at 72% (its
+   x-height is 0.547em, Source Sans 3's 0.5em), and code in it exactly as large as the Lean's */
+.statement > p, .statement > ul, .decl .doc, .declname {
+    font-size: 79%;
+}
+
+.statement code, .decl .doc code, .declname code {
+    font-size: 91.1%;
 }
 
 .statement .note {

@@ -31,6 +31,7 @@ ROOT = Path(__file__).resolve().parent
 REPO = 'https://github.com/NLA-lib/NLAlib'
 
 DEF_KINDS = {'def', 'abbrev', 'opaque', 'structure', 'class', 'inductive'}
+HTML_COMMENT = re.compile(r'<!--.*?-->', re.S)
 RESULT_LINE = re.compile(r'^\s*Result:\s*(.+?)\s*$', re.M)
 BOLD_NAME = re.compile(r'^\s*\*\*(.+?)\*\*')
 
@@ -539,6 +540,11 @@ def build(data, bib, out):
 
     decls = data['decls']
     index = {d['name']: i for i, d in enumerate(decls)}
+    # HTML comments in docstrings (NLAlib's value markers, `<!-- value NAME ... -->`) are invisible
+    # in doc-gen4's Markdown; the explorer escapes HTML, so they are removed here
+    for item in decls + data['modules']:
+        if item.get('doc'):
+            item['doc'] = HTML_COMMENT.sub('', item['doc'])
 
     # --- modules and the topic tree
     modules = {}
