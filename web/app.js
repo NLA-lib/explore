@@ -248,6 +248,8 @@
       (d.fs ? `<span class="desc">${descHtml(e.i)}</span>` : '') + '</li>';
   }
 
+  const rateFilters = {};
+
   // Topics and subtopics are <details>, closed at first; which are open survives a search.
   const openSections = new Set();
 
@@ -274,13 +276,18 @@
   function renderCatalogue() {
     $('#content').innerHTML = D.topics.map(t => {
       const flat = t.subs.length === 1 && t.subs[0].title === t.title;
-      const body = (t.blurb ? `<p class="topic-blurb">${md(t.blurb, { inline: true })}</p>` : '') +
+      const collection = (D.collections || []).find(c => c.topic === t.id);
+      const sourceBody = t.subs.map(s => section(`s-${s.id}`, 'sub', 'h3', s.title, counts(s.modules), s.modules.map(moduleHtml).join(''))).join('');
+      const collectionBody = collection ? (collection.description ? `<p class="topic-blurb">${md(collection.description, { inline: true })}</p>` : '') + collection.groups.map(g => section(`collection-${collection.id}-${g.id}`, 'sub', 'h3', g.title, '', `<ul class="entries">${g.entries.filter(e => e.type === 'r' ? D.results[e.rid] : decls[e.i]).map(entryHtml).join('')}</ul>`)).join('') + `<details class="source-modules" id="source-modules-${esc(collection.id)}"${openSections.has(`source-modules-${collection.id}`) ? ' open' : ''}><summary>Browse source modules</summary>${sourceBody}</details>` : '';
+      const body = collection ? collectionBody : (t.blurb ? `<p class="topic-blurb">${md(t.blurb, { inline: true })}</p>` : '') +
         t.subs.map(s => {
           const inner = (s.blurb ? `<p class="sub-blurb">${md(s.blurb, { inline: true })}</p>` : '') +
             s.modules.map(moduleHtml).join('');
           return flat ? inner : section(`s-${s.id}`, 'sub', 'h3', s.title, counts(s.modules), inner);
         }).join('');
-      return section(`t-${t.id}`, 'topic', 'h2', t.title, counts(t.subs.flatMap(s => s.modules)), body);
+      const unique = collection && new Set(collection.groups.flatMap(g => g.entries.map(e => e.type === 'r' ? 'r:' + e.rid : 'd:' + e.i)));
+      const total = unique ? `${unique.size} entries` : counts(t.subs.flatMap(s => s.modules));
+      return section(`t-${t.id}`, 'topic', 'h2', t.title, total, body);
     }).join('');
   }
 
@@ -305,12 +312,101 @@
   const nResults = Object.keys(D.results).length;
   const nDefs = decls.filter(isDef).length;
   const commit = D.commit ? `<a href="${D.repo}/tree/${D.commit}"><code>${D.commit.slice(0, 7)}</code></a>` : 'a local build';
-  if (PAGE === 'books') {
+  if (PAGE === 'rates') {
+    initRates();
+  } else if (PAGE === 'books') {
     renderBooks();
   } else {
     $('#byline').innerHTML = `${nResults} named results, ${nDefs} definitions and ${decls.length} declarations, ` +
       `from NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
     renderCatalogue();
+  }
+
+  // ------------------------------------------------------------------ Rates comparisons
+
+  function initRates() {
+    document.title = 'NLA-lib Rates';
+    $('h1').textContent = 'NLA-lib Rates';
+    $('#intro').hidden = false;
+    $('#intro').textContent = 'Compare guarantees and sample requirements. Expand a row for its precise theorem and hypotheses.';
+    $('#q').placeholder = 'Search rates, algorithms, sketches and guarantees';
+    $('#q').setAttribute('aria-label', 'Search rates');
+    $('#byline').innerHTML = `From NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
+    const fields = [['family', 'Family'], ['algorithm', 'Method / property'], ['sketch', 'Sketch'], ['norm', 'Norm'], ['mode', 'Guarantee mode']];
+    const filters = h('<div class="rate-filters" aria-label="Filter rates"></div>');
+    for (const [key, title] of fields) {
+      const values = [...new Set((D.rates?.entries || []).map(e => e[key]).filter(Boolean))];
+      const label = h(`<label>${title}<select aria-label="${title}"><option value="">All</option>${values.map(v => {
+        const name = key === 'family' ? D.rates.families.find(f => f.id === v)?.title || v : v;
+        return `<option value="${esc(v)}">${esc(name)}</option>`;
+      }).join('')}</select></label>`);
+      $('select', label).addEventListener('change', ev => { rateFilters[key] = ev.target.value; renderRates(); });
+      filters.append(label);
+    }
+    $('#searchbar').append(filters);
+    renderRates();
+  }
+
+  function rateSearchWords(text) {
+    return String(text || '').replace(/\\(?:varepsilon|epsilon)\b/g, ' epsilon ')
+      .replace(/[εϵ]/g, ' epsilon ').replace(/[δ]/g, ' delta ')
+      .replace(/\\(?:mathbf|mathsf|mathrm|mathbb|operatorname|text|left|right|frac|sqrt)\b/g, ' ')
+      .toLowerCase().match(/[\p{L}\p{N}]+/gu) || [];
+  }
+
+  function resetRates() {
+    $('#q').value = '';
+    for (const k of Object.keys(rateFilters)) rateFilters[k] = '';
+    document.querySelectorAll('.rate-filters select').forEach(s => { s.value = ''; });
+    renderRates();
+  }
+
+  function renderRates() {
+    const query = rateSearchWords($('#q').value);
+    const entries = (D.rates?.entries || []).filter(e => {
+      if (!Object.entries(rateFilters).every(([k, v]) => !v || e[k] === v)) return false;
+      const family = D.rates.families.find(f => f.id === e.family);
+      const words = rateSearchWords([e.algorithm, e.variant, e.sketch, e.norm, e.mode, e.guarantee,
+        ...e.resources.flatMap(r => [r.label, r.bound]), ...(Array.isArray(e.notes) ? e.notes : [e.notes]), family?.title].join(' '));
+      return query.every(q => words.some(w => w.includes(q)));
+    });
+    const families = D.rates?.families || [];
+    $('#content').innerHTML = entries.length ? `<p class="searchnote">${entries.length} rate${entries.length === 1 ? '' : 's'}. Resources and parameter caveats are stated per row.</p>` + families.map(f => {
+      const rows = entries.filter(e => e.family === f.id);
+      const subject = esc(f.subject_label || 'Method / sketch');
+      if (!rows.length) return '';
+      const notationId = `rate-notation-${f.id}`;
+      return `<section class="rate-family"><h2>${esc(f.title)}</h2>${f.description ? `<p class="topic-blurb">${md(f.description, { inline: true })}</p>` : ''}` +
+        (f.notation ? `<details class="rate-notation" id="${esc(notationId)}"${openSections.has(notationId) ? ' open' : ''}><summary>Notation and assumptions</summary>${md(f.notation)}</details>` : '') +
+        `<table class="rates-table"><thead><tr><th scope="col">${subject}</th><th scope="col">Guarantee</th><th scope="col">Resources</th></tr></thead><tbody>` + rows.map(e => {
+          const notes = Array.isArray(e.notes) ? e.notes.join(' ') : e.notes;
+          return `<tr id="rate-row-${esc(e.id)}"><td data-label="${subject}"><strong>${esc(e.algorithm)}</strong>${e.variant ? `<span class="rate-meta">${md(e.variant, { inline: true })}</span>` : ''}<span class="rate-meta">${esc(e.sketch)}</span></td>` +
+            `<td data-label="Guarantee"><span class="rate-meta">${esc(e.norm)} · ${esc(e.mode)}</span>${md(e.guarantee, { inline: true })}</td>` +
+            `<td data-label="Resources">${e.resources.map(r => `<div class="rate-resource"><strong>${esc(r.label)}:</strong> ${md(r.bound, { inline: true })}</div>`).join('')}${notes ? `<p class="rate-caveat"><strong>Parameters:</strong> ${md(notes, { inline: true })}</p>` : ''}</td>` +
+            `</tr><tr class="rate-theorem"><td colspan="3"><a class="rate-permalink" href="#rate/${encodeURIComponent(e.id)}" aria-label="Link to this rate">Link</a><details class="rate-detail" data-rate="${esc(e.id)}"><summary>View theorem</summary><div class="rate-expanded"></div></details></td></tr>`;
+        }).join('') + '</tbody></table></section>';
+    }).join('') : '<p class="empty">No rates match these filters.</p><button type="button" id="reset-rates">Reset filters and search</button>';
+    $('#reset-rates')?.addEventListener('click', resetRates);
+    for (const detail of document.querySelectorAll('.rate-detail')) {
+      const e = entries.find(e => e.id === detail.dataset.rate);
+      let explicit = false;
+      const draw = () => {
+        const i = explicit ? e.explicit : e.overview;
+        $('.rate-expanded', detail).innerHTML = (e.explicit !== e.overview ? `<button type="button" class="rate-explicit${explicit ? ' on' : ''}" aria-pressed="${explicit}">Explicit bound</button>` : '') +
+          statementHtml(null, i) + `<p class="rate-links"><a href="${BASE}${declRoute(e.overview)}">Asymptotic theorem</a> · <a href="${BASE}${declRoute(e.explicit)}">Explicit theorem</a> · <a href="${sourceUrl(i)}" target="_blank" rel="noopener">Source ↗</a></p>`;
+        $('.rate-explicit', detail)?.addEventListener('click', () => { explicit = !explicit; draw(); });
+      };
+      detail.addEventListener('toggle', () => { if (detail.open && !$('.rate-expanded', detail).childNodes.length) draw(); });
+    }
+  }
+
+  function focusRate(id) {
+    let detail = [...document.querySelectorAll('.rate-detail')].find(d => d.dataset.rate === id);
+    if (!detail && (D.rates?.entries || []).some(e => e.id === id)) {
+      resetRates();
+      detail = [...document.querySelectorAll('.rate-detail')].find(d => d.dataset.rate === id);
+    }
+    if (detail) { detail.open = true; document.getElementById('rate-row-' + id).scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   }
 
   // ------------------------------------------------------------------ the Books page
@@ -464,6 +560,7 @@
 
   let lastHits = [];
   function runSearch() {
+    if (PAGE === 'rates') { renderRates(); return; }
     const q = $('#q').value.trim();
     if (!q) {
       renderCatalogue();
@@ -825,6 +922,12 @@
   $('#back').addEventListener('click', () => history.back());
 
   function route() {
+    if (PAGE === 'rates' && location.hash.startsWith('#rate/')) {
+      $('#panel').hidden = true;
+      document.body.classList.remove('panel-open');
+      focusRate(decodeURIComponent(location.hash.slice(6)));
+      return;
+    }
     // a link to a book on the Books page (`books/#b-Tropp2015`) opens it
     const book = PAGE === 'books' && document.getElementById(decodeURIComponent(location.hash.slice(1)));
     if (book?.tagName === 'DETAILS') {

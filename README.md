@@ -5,7 +5,8 @@ results of [NLAlib](https://github.com/NLA-lib/NLAlib) by topic, a search box, a
 result its statement, its Lean declarations with links to the source, and its dependencies
 within the library.
 
-Everything shown is generated from the library. Nothing here needs editing when NLAlib changes.
+Statements and source links are generated from the library. Explorer collections and the Rates
+comparison summaries are curated here and checked against the extracted declarations.
 
 ## How it updates
 
@@ -17,6 +18,41 @@ Everything shown is generated from the library. Nothing here needs editing when 
 2. It then sends a `nlalib-updated` dispatch to this repository (needs the secret below), whose
    `deploy` workflow downloads the data and `references.bib`, runs `build.py`, and deploys
    `site/` to GitHub Pages. A daily scheduled run catches anything missed.
+
+## Rates and algorithm browsing
+
+The [Rates page](https://nla-lib.org/explore/rates/) compares sufficient asymptotic requirements
+by family, method, sketch, norm and probability mode. Its initial families are **Embeddings and
+sketch properties** and **One- and two-pass low-rank approximation**. Families are configuration,
+so iterative low-rank methods, regression or other future families need no new page template.
+A row is one exact theorem, not a whole Result group. Expand it for the theorem's own assumptions,
+its explicit bound and links to the declaration and source. Expectations of squared norms remain
+distinct from expected norms; JL, embedding and injection guarantees remain distinct.
+
+`rates.toml` supplies family order and comparison rows. Each row names an asymptotic declaration,
+uses its `Asymptotic:` target for the explicit view, and records a reviewed `statement_hash`.
+The hash is SHA-256 of the extracted signature, a newline, and its full docstring, after removing
+HTML comments from both. Changed wording or hypotheses fail the build until a reviewer checks the
+summary against the updated theorem and records its hash. This is a change detector, not a proof
+that the handwritten summary is correct. Proof-body changes alone do not require new metadata.
+The source snapshot is the rolling release JSON, not a checkout with unfinished Lean work.
+
+To add a rate, choose or add a family, then record `id`, `theorem`, `family`, `algorithm`, `variant`,
+`sketch`, `norm`, `mode`, `guarantee`, a nonempty `resources` list of `{label, bound}`, optional
+`notes`, and `statement_hash`. Keep restrictions visible in the row or its family notation;
+full statements come from Lean. Resource lists can describe rows, columns, samples or iterations;
+the display does not assume every family uses a pair of sketch sizes. No runtime or pass-count
+claim is inferred from a theorem name. Only paired proved declarations can supply Rates entries.
+
+`collections.toml` organizes the Explorer independently of Lean import paths. Low-rank results
+are grouped under RSVD, generalized Nyström, PSD Nyström and shared theory. Each group references
+existing result IDs and definition names, retaining canonical URLs. Newly extracted results in
+a configured topic appear in an automatic additional group until classified. Source modules
+remain available in a collapsed browser. A result may appear in more than one group.
+
+`results.toml` can set `primary` to an exact explicit declaration belonging to that result.
+Its asymptotic counterpart becomes the overview. This makes headline choice independent of
+source order; the conditional completion identity no longer titles early-truncated GN.
 
 ## What the explorer reads from NLAlib
 
@@ -82,13 +118,17 @@ Everything shown is generated from the library. Nothing here needs editing when 
 | `topics.toml` | titles, order and blurbs of topics and subtopics; where loose files go |
 | `results.toml` | optional title, aliases and LaTeX statement per result id |
 | `synonyms.toml` | search synonyms (`pseudoinverse` → `pinv`) |
+| `rates.toml` | families and reviewed theorem-specific rate summaries |
+| `collections.toml` | result and definition groupings independent of source modules |
 | `books.toml` | key books for the Books page: chapters, sections, numbered results (numbers and short names only) |
 
 ## Local build
 
 When introducing the role and asymptotic metadata support, merge the corresponding NLAlib
-docstring and extraction changes first. The new builder rejects malformed tags that older
-extractions could contain; the last successfully deployed site remains available meanwhile.
+docstring and extraction changes first, and wait for its Explore data publication to finish.
+The new builder rejects malformed tags that older extractions could contain; the last
+successfully deployed site remains available meanwhile. Rates metadata must match the published
+snapshot; publish theorem updates before deploying their corresponding metadata changes.
 
 ```sh
 # in NLAlib, after LEAN_NUM_THREADS=2 lake build NLAlib

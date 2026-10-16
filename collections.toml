@@ -1,0 +1,31 @@
+# Presentation groups independent of Lean import paths. Entries retain their canonical links.
+# New results from this topic appear automatically in an additional group until classified.
+[[collections]]
+id = "low-rank-one-two-pass"
+topic = "LowRank"
+title = "One- and two-pass low-rank approximation"
+description = "Browse by method: randomized SVD, generalized Nyström and PSD Nyström, with their early- and late-truncated variants. Compare sample requirements on the [Rates page](rates/)."
+
+[[collections.groups]]
+id = "rsvd"
+title = "Randomized SVD / range finder"
+definitions = ["NLAlib.rsvd", "NLAlib.earlyTruncatedRSVD"]
+results = ["randomized-svd-expected-error", "randomized-svd-average-spectral-error", "randomized-svd-tail", "randomized-svd-deviation-bound", "etrsvd", "range-finder-structural-bound", "truncated-range-finder-structural-bound"]
+
+[[collections.groups]]
+id = "gn"
+title = "Generalized Nyström"
+definitions = ["NLAlib.generalizedNystrom", "NLAlib.earlyTruncatedGeneralizedNystrom"]
+results = ["generalized-nystrom-expected-error", "tgn-expected-error", "etgn"]
+
+[[collections.groups]]
+id = "nystrom"
+title = "PSD Nyström"
+definitions = ["NLAlib.nystrom"]
+results = ["randomized-nystrom-expected-error", "randomized-nystrom-tail", "nystrom-structural-bound", "nystrom-two-eigenvalue-instance"]
+
+[[collections.groups]]
+id = "shared"
+title = "Shared approximation theory"
+definitions = ["NLAlib.obliqueProjector", "NLAlib.IsProjectionCostPreserving"]
+results = ["early-truncation-structural-bound", "early-truncation-pcp-bound", "truncation-lemma", "truncated-gram-correspondence", "perturbed-truncation", "reverse-eckart-young", "gaussian-haar-range-transfer"]
