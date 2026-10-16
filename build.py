@@ -559,11 +559,21 @@ def rates_page(cfg, decls, index, targets):
     family_ids = unique_ids(families, 'rate family')
     reserved_filters = {'id', 'ids', 'theorem', 'family', 'statement_hash', 'hash', 'resources',
                         'overview', 'explicit', 'result', 'guarantee', 'notes',
-                        'doc', 'signature', 'statement', 'source', 'title', 'description', 'filters'}
+                        'doc', 'signature', 'statement', 'source', 'title', 'description', 'filters',
+                        'algorithm_definition', 'sketch_definition', 'algorithm_definition_index',
+                        'sketch_definition_index'}
     family_filters = {}
+    family_subjects = {}
     out_families = []
     for family in families:
         required_text(family, ['title', 'description'], 'rate family')
+        for label in ('subject_label', 'definition_label', 'notation'):
+            if label in family:
+                required_text(family, [label], f'rate family {family["id"]}')
+        subject = family.get('subject_field', 'algorithm')
+        if not isinstance(subject, str) or not re.fullmatch(r'[a-z][a-z0-9_]*', subject) or subject in reserved_filters:
+            raise ValueError(f'rate family {family["id"]}: unsafe or reserved subject_field')
+        family_subjects[family['id']] = subject
         filters = family.get('filters', [])
         if not isinstance(filters, list):
             raise ValueError(f'rate family {family["id"]}: filters must be a list')
@@ -585,7 +595,29 @@ def rates_page(cfg, decls, index, targets):
                 raise ValueError(f'rate family {family["id"]}: duplicate filter field {field}')
             seen.add(field)
         family_filters[family['id']] = filters
-        out_families.append({**family, 'filters': filters})
+        out_families.append({**family, 'filters': filters, 'subject_field': subject})
+    guarantees = cfg.get('guarantees', [])
+    guarantee_ids = unique_ids(guarantees, 'rate guarantee')
+    out_guarantees = []
+    guarantee_family = {}
+    for guarantee in guarantees:
+        required_text(guarantee, ['family', 'title', 'description'], 'rate guarantee')
+        if guarantee['family'] not in family_ids:
+            raise ValueError(f'rate guarantee {guarantee["id"]}: unknown family')
+        links = guarantee.get('definitions', [])
+        if not isinstance(links, list):
+            raise ValueError(f'rate guarantee {guarantee["id"]}: invalid definitions')
+        resolved_links = []
+        for link in links:
+            if not isinstance(link, dict):
+                raise ValueError(f'rate guarantee {guarantee["id"]}: invalid definition link')
+            required_text(link, ['label', 'declaration'], 'rate guarantee definition')
+            i = index.get(link['declaration'])
+            if i is None or decls[i]['kind'] not in DEF_KINDS:
+                raise ValueError(f'rate guarantee {guarantee["id"]}: unknown definition {link["declaration"]}')
+            resolved_links.append({**link, 'i': i})
+        guarantee_family[guarantee['id']] = guarantee['family']
+        out_guarantees.append({**guarantee, 'definitions': resolved_links})
     entries = cfg.get('rates', [])
     unique_ids(entries, 'rate')
     out = []
@@ -598,8 +630,20 @@ def rates_page(cfg, decls, index, targets):
         for key, value in rate.items():
             if key != 'resources' and (not isinstance(value, str) or (key != 'notes' and not value.strip())):
                 raise ValueError(f'rate {rate["id"]}: empty or invalid scalar metadata {key}')
-        required_text(rate, [f['field'] for f in family_filters[rate['family']]],
+        required_text(rate, [family_subjects[rate['family']],
+                             *[f['field'] for f in family_filters[rate['family']]]],
                       f'rate {rate["id"]} configured filter')
+        if rate['guarantee'] not in guarantee_ids:
+            raise ValueError(f'rate {rate["id"]}: unknown guarantee {rate["guarantee"]}')
+        if guarantee_family[rate['guarantee']] != rate['family']:
+            raise ValueError(f'rate {rate["id"]}: guarantee family mismatch')
+        definition_links = {}
+        for field in ('algorithm_definition', 'sketch_definition'):
+            if field in rate:
+                linked = index.get(rate[field])
+                if linked is None or decls[linked]['kind'] not in DEF_KINDS:
+                    raise ValueError(f'rate {rate["id"]}: unknown definition {rate[field]}')
+                definition_links[field + '_index'] = linked
         i = index.get(rate['theorem'])
         if i is None or i not in targets:
             raise ValueError(f'rate {rate["id"]}: missing asymptotic theorem {rate["theorem"]}')
@@ -620,21 +664,24 @@ def rates_page(cfg, decls, index, targets):
             if not isinstance(resource, dict):
                 raise ValueError(f'rate {rate["id"]}: invalid resource')
             required_text(resource, ['label', 'bound'], f'rate {rate["id"]} resource')
-        out.append({**rate, 'overview': i, 'explicit': j, 'result': d['_results'][0]})
-    return {'families': out_families, 'entries': out}
+        out.append({**rate, **definition_links, 'overview': i, 'explicit': j, 'result': d['_results'][0]})
+    return {'families': out_families, 'guarantees': out_guarantees, 'entries': out}
 
 
 def collections_page(cfg, results, decls, index, modules, aliases):
     collections = cfg.get('collections', [])
     unique_ids(collections, 'collection')
     out = []
-    topics = {m['topic'] for m in modules.values()}
+    curated_results = {aliases.get(rid, rid) for c in collections for g in c.get('groups', [])
+                       for rid in g.get('results', [])}
+    curated_defs = {name for c in collections for g in c.get('groups', [])
+                    for name in g.get('definitions', [])}
     seen_topics = set()
     for collection in collections:
         required_text(collection, ['title', 'description', 'topic'], 'collection')
         topic = collection['topic']
-        if topic not in topics:
-            raise ValueError(f'collection {collection["id"]}: unknown topic {topic}')
+        if not re.fullmatch(r'[A-Z][A-Za-z0-9]*', topic):
+            raise ValueError(f'collection {collection["id"]}: unsafe topic {topic}')
         if topic in seen_topics:
             raise ValueError(f'duplicate collection topic {topic}')
         seen_topics.add(topic)
@@ -669,10 +716,10 @@ def collections_page(cfg, results, decls, index, modules, aliases):
         topic = collection['topic']
         matches = lambda d: modules.get(d['module'], {}).get('topic') == topic
         fallback = [{'type': 'r', 'rid': rid} for rid, r in results.items()
-                    if rid not in used_results and any(matches(decls[i]) for i in r['decls'])]
+                    if rid not in curated_results and any(matches(decls[i]) for i in r['decls'])]
         fallback += [{'type': 'd', 'i': i} for i, d in enumerate(decls)
                      if matches(d) and d['kind'] in DEF_KINDS
-                     and d.get('explorerRole') != 'support' and i not in used_defs]
+                     and d.get('explorerRole') != 'support' and d['name'] not in curated_defs]
         if fallback:
             if any(g['id'] == 'other' for g in groups):
                 raise ValueError(f'collection {collection["id"]}: reserved fallback group id other')
@@ -911,6 +958,13 @@ def build(data, bib, out):
     for m in data['modules']:
         cited |= set(re.findall(r'\[([A-Z][A-Za-z]+\d{4}[a-z]?)[\],]', m.get('doc') or ''))
 
+    collections = collections_page(load_toml('collections.toml'), out_results, decls, index, modules, alias)
+    for collection in collections:
+        if not any(t['id'] == collection['topic'] for t in topics):
+            tc = cfg_for(collection['topic'])
+            topics.append({'id': collection['topic'], 'title': tc.get('title', collection['title']),
+                           'blurb': tc.get('blurb', collection['description']), 'subs': []})
+    topics.sort(key=lambda t: top_rank(t['id']))
     site = {
         'commit': data.get('commit'), 'date': data.get('date'), 'repo': REPO,
         'ref': data.get('commit') or topics_cfg.get('ref', 'scaffold'),
@@ -919,7 +973,7 @@ def build(data, bib, out):
         'nodes': nodes, 'bib': {k: v for k, v in bib.items() if k in cited},
         'synonyms': synonyms,
         'rates': rates_page(load_toml('rates.toml'), decls, index, targets),
-        'collections': collections_page(load_toml('collections.toml'), out_results, decls, index, modules, alias),
+        'collections': collections,
         'books': books_page(load_toml('books.toml'), bib, out_decls),
     }
 

@@ -22,7 +22,9 @@ comparison summaries are curated here and checked against the extracted declarat
 ## Rates and algorithm browsing
 
 The [Rates page](https://nla-lib.org/explore/rates/) compares sufficient asymptotic requirements
-by family and the filters appropriate to that family. With all families selected, only the
+by family, then shared guarantee, then distribution or algorithm. Each guarantee is stated once,
+with its formula and definition links in an expandable section; rows show resources and conditions.
+The filters are appropriate to each family. With all families selected, only the
 family selector and search are shown. Selecting a family reveals its configured filters; options
 are drawn from matching rows, and constant or irrelevant fields stay hidden. Its initial families
 are **Embeddings and sketch properties** and **One- and two-pass low-rank approximation**. Families are configuration,
@@ -31,7 +33,12 @@ A row is one exact theorem, not a whole Result group. Expand it for the theorem'
 its explicit bound and links to the declaration and source. Expectations of squared norms remain
 distinct from expected norms; JL, embedding and injection guarantees remain distinct.
 
-`rates.toml` supplies family order and comparison rows. Each row names an asymptotic declaration,
+`rates.toml` supplies ordered `families`, ordered `guarantees`, and comparison `rates`.
+A guarantee has `id`, `family`, `title`, `description` and optional `definitions` links, each with
+`label` and the full `declaration` name. A row references its guarantee by ID; cross-family
+references fail validation. OSI includes isotropy and the lower-tail condition, and remains
+separate from a fixed-subspace injection. The row's optional `algorithm_definition` and
+`sketch_definition` names provide direct definition links. Each row names an asymptotic declaration,
 uses its `Asymptotic:` target for the explicit view, and records a reviewed `statement_hash`.
 The hash is SHA-256 of the extracted signature, a newline, and its full docstring, after removing
 HTML comments from both. Changed wording or hypotheses fail the build until a reviewer checks the
@@ -48,11 +55,13 @@ Changing family clears dependent selections. Sketch classes are Gaussian, Haar, 
 Other; Trig includes Fourier/Hadamard transforms such as SRHT. General distribution classes and
 row sampling are under Other. Matrix norms are not mandatory rate metadata.
 
-To add a rate, choose or add a family, then record `id`, `theorem`, `family`, `algorithm`,
+To add a rate, choose or add a family and a shared guarantee, then record `id`, `theorem`, `family`, `algorithm`,
 `guarantee`, a nonempty `resources` list of `{label, bound}`, and `statement_hash`.
 `variant`, `sketch`, `norm`, `mode` and `notes` are optional; configured filter fields must be
 present on every row of that family. Keep restrictions visible in the row or its family notation;
-full statements come from Lean. Resource lists can describe rows, columns, samples or iterations;
+full statements come from Lean. Families can choose `subject_label`, `subject_field` (default
+`algorithm`) and `definition_label` (default "Algorithm definition"). "Copy link" copies the
+rate's stable URL. Resource lists can describe rows, columns, samples or iterations;
 the display does not assume every family uses a pair of sketch sizes. No runtime or pass-count
 claim is inferred from a theorem name. Only paired proved declarations can supply Rates entries.
 
@@ -61,7 +70,10 @@ are grouped under RSVD, generalized Nyström, PSD Nyström and shared theory. Ea
 existing result IDs and definition names, retaining canonical URLs. Newly extracted results in
 a configured topic appear in an automatic additional group until classified. Source modules
 remain available in a collapsed browser. Sketching has Gaussian, Haar, Sparse, Trig and Other
-groups, plus shared theory. Lean module paths are unchanged. A result may appear in more than
+groups, plus shared theory. Regression is a peer topic with sketch-and-solve,
+sketch-and-precondition and least-squares foundations. Collections can introduce a topic before
+its source directory exists, so the presentation works across a module migration. Explicitly
+classified results do not reappear in another collection's automatic fallback. A result may appear in more than
 one group. File moves preserve Rates and collection references because they use declaration names
 and result IDs; source paths and line numbers come from each fresh extraction. See
 [the migration direction](docs/rates-design.md#preparing-the-source-library-reorganization).

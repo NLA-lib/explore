@@ -6,7 +6,7 @@
 # `General`. Keep this file in step with the layer design notes in NLAlib's docs/design/.
 
 order = ["Matrix", "Polynomial", "Probability", "Krylov", "RandomMatrix", "Sketching",
-         "LowRank", "Estimation", "Solvers", "ForMathlib"]
+         "Regression", "LowRank", "Estimation", "Solvers", "ForMathlib"]
 
 [Matrix]
 title = "Matrix analysis"
@@ -66,3 +66,7 @@ UnitaryInvariance = "Haar"
 [ForMathlib]
 title = "Supplements to Mathlib"
 blurb = "General facts with no NLAlib vocabulary in their statements, declared in Mathlib's namespaces and headed upstream."
+
+[Regression]
+title = "Regression"
+blurb = "Sketch-and-solve, sketch-and-precondition and their least-squares foundations."

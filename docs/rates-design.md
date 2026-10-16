@@ -1,5 +1,8 @@
 # Rates and algorithm-oriented exploration
 
+The dated sections record successive changes. The latest section, **Shared guarantees and
+Regression**, describes the current schema and presentation.
+
 Approved 2026-10-16. Presentation only; no mathematical declarations or import paths change.
 The library checkout has ongoing Lean development, so implementation and validation use its
 published extraction at 50a4bf4616fdb8968f0d0169bd3a34519d7de2dc. All edits belong to the
@@ -118,3 +121,52 @@ pass; CI runs them. Chrome checks all 28 explicit views, family switching, compa
 options, ordering of the five sketch classes, reset/deep-link behavior, a synthetic future solver
 family with a preconditioner filter and no norm or sketch, and 800/390/320-pixel layouts. The
 six Sketching browse sections are present. Browser and probability rendering checks pass.
+
+
+## Shared guarantees and Regression (2026-10-16)
+
+The comparison hierarchy is family → guarantee → distribution/algorithm. `rates.toml` now
+owns seven ordered guarantees: distributional JL, oblivious and fixed-subspace embedding,
+oblivious and fixed-subspace injection, expected squared Frobenius relative error, and expected
+nuclear relative error for PSD matrices. Each row references a guarantee ID in its own family.
+The compact mathematical heading is always visible; the complete guarantee and its formal
+definitions appear once in a disclosure. Per-row resources and parameter restrictions stay
+visible. The family can choose which scalar field names a row (`subject_field`, default
+`algorithm`), so sketch-property comparisons lead with the distribution rather than repeating
+the guarantee on each row. Existing family-dependent filters remain configurable.
+
+OSI is square-integrable entries together with E[SᴴS] = I and the lower-tail property on every
+fixed subspace of dimension at most d. Leverage-dependent sampling results that conclude only
+`HasSubspaceInjection` are grouped separately; they are not presented as OSI. The distinction
+between fixed-subspace embedding and OSE is likewise explicit. All displayed probabilities
+retain mathbb P and square brackets. Low-rank guarantees distinguish expected squared Frobenius
+error from expected nuclear error; output-rank restrictions remain in each row.
+
+Guarantees link to their property definitions. Rows have direct algorithm/property and sketch
+links resolved from declaration names; distribution classes link to their defining interface.
+The former ambiguous `Link` was a row permalink. `Copy link` now copies that same stable rate
+URL, reports success accessibly, and shows a copyable URL when clipboard access is unavailable.
+
+Regression is an Explorer peer of Sketching and Low-rank, organized into sketch-and-solve,
+sketch-and-precondition, and least-squares foundations. Its collection links existing Result IDs
+and definitions, including Matrix foundations that retain their mathematical home. Explicit
+classification elsewhere suppresses automatic fallback duplication; intentional cross-links
+remain possible. A configured collection may introduce a topic before the corresponding source
+directory exists. This lets the same Explorer metadata work before and after the separate library
+migration to `NLAlib.Regression.{Embedding,Oblique,Oblivious,SketchAndSolve}`. Module navigation
+and source URLs still come from the actual extraction, without path overrides. There are no
+regression asymptotic corollaries yet, so this change adds no unsupported Regression rate rows.
+
+The current published extraction is dc71a3c26ae48e78b7741e3218f188aede15a988. All 28 existing
+Rates theorem hashes are unchanged and validate against it. The source migration preserves
+all mathematical declarations; its design and Lean checks are recorded separately in the
+library's `docs/design/Regression-Organization.md`. The earlier proposed split of the mixed
+Gaussian/Haar least-squares module is superseded by its whole-file move to Regression.
+
+Validation for this follow-up: 22 Python regression tests, the Node probability-formatting tests,
+JavaScript syntax checks and a complete build against the current published extraction pass.
+Chrome checked all 28 explicit/asymptotic views, all seven shared guarantees and their definition
+links, clipboard success and denied-access fallback, family-dependent filters and custom fields,
+search/reset/deep links, and Regression as a peer collection. Rates and expanded Regression have
+no page overflow at 320, 390 and 800 pixels; long catalogue equations scroll within the reading
+column. Screenshots were inspected. Independent placement and implementation reviews approved.
