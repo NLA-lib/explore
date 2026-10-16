@@ -60,3 +60,61 @@ No Lean source, library extraction workflow, port status or ledger file was edit
 metadata covers the published snapshot; future asymptotic results need a reviewed Rates entry.
 Collections automatically retain new topic results while awaiting classification. Rates hashes
 intentionally require review when an existing rate theorem's signature or prose changes.
+
+## Family filters, sketch classes and probability notation (2026-10-16)
+
+Each family declares its own ordered filter schema. The all-families view only exposes Family
+and search; a selected family supplies its field labels and option order. Options come from
+compatible rows in that family; constant fields are hidden. Family changes clear dependent
+selections. Arbitrary scalar metadata, such as a future preconditioner field, works without new
+frontend code. Norm, probability mode, sketch and variant are optional row fields: families that
+do not use them need no placeholder. Build validation checks every configured filter against
+its family's rows, while allowing an ordering list to include currently absent options.
+
+Sketch browsing uses Gaussian, Haar, Sparse, Trig and Other, with separate shared theory. The same
+classes are filter values on Rates. Trig is the requested presentation label for Fourier/Hadamard
+transforms such as SRHT. Other includes row sampling, dense Rademacher sketches and distribution
+classes such as sub-Gaussian or general rotation-invariant laws; it does not claim those classes
+are disjoint mathematical sets. A theorem for a general invariant law stays in Other rather than
+being presented as a Haar-only result. Distribution-specific variants retain their exact names.
+
+Displayed probabilities use mathbb P and square event brackets. Rates rows explicitly state
+success or failure events. The renderer converts recognized older probability operators and round
+event delimiters, retaining nested event expressions, conditioning and delimiter sizes. It does
+not rewrite plain matrix P, text/code or malformed input. All 72 probability math spans in the
+published snapshot were audited: 64 changed typography, none retained a recognized round event
+delimiter, and all rendered successfully. Lean source remains untouched; CONTRIBUTING §6 records
+the convention for newly written docstrings.
+
+## Preparing the source-library reorganization
+
+A source reorganization is worthwhile: Haar, Rademacher and general sub-Gaussian results should
+not be filed under Gaussian. The following is a migration direction, not a proof-stage design:
+
+| Current home | Recommended topic home |
+|---|---|
+| Sketching/Gaussian/Haar and HaarEmbedding | Sketching/Haar, by JL and embedding topic |
+| Sketching/Gaussian/Rademacher | Sketching/Rademacher |
+| Sketching/Gaussian/SubGaussian | Sketching/SubGaussian |
+| Sketching/Gaussian/LeastSquares | Separate law-specific facts into their Gaussian and Haar homes; review shared identities by mathematical subject |
+| Sketching/Structured | Retain Structured for Fourier/Hadamard transform sketches |
+| Sketching/Sampling, Sparse, Properties | Retain these mathematical topics |
+
+"Trig" and "Other" are browse labels, not proposed permanent Lean directory names. A later source
+move should preserve declaration namespaces and Result IDs wherever only placement changes.
+Presentation metadata uses these stable names rather than module paths. Source links are rebuilt
+from each extraction's module paths and line ranges. No module names are embedded in a Rates row
+or collection membership; only the top-level topic controls automatic unclassified-result discovery.
+
+A permanent regression moves a configured theorem from Sketching/Gaussian/Haar to
+Sketching/Haar/Embedding and shifts its lines. It checks unchanged Rates hashes and resolution,
+headline selection, collection membership and fallback discovery, while source paths and lines
+follow the new module. Renaming a public declaration is a separate API change and requires updating
+its explicit metadata references; a file move alone does not.
+
+Follow-up validation: 19 backend regressions pass, including custom family fields, optional
+norm/sketch metadata, filter order and module relocation. Dependency-free Node probability tests
+pass; CI runs them. Chrome checks all 28 explicit views, family switching, compatible filter
+options, ordering of the five sketch classes, reset/deep-link behavior, a synthetic future solver
+family with a preconditioner filter and no norm or sketch, and 800/390/320-pixel layouts. The
+six Sketching browse sections are present. Browser and probability rendering checks pass.

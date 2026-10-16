@@ -29,3 +29,45 @@ id = "shared"
 title = "Shared approximation theory"
 definitions = ["NLAlib.obliqueProjector", "NLAlib.IsProjectionCostPreserving"]
 results = ["early-truncation-structural-bound", "early-truncation-pcp-bound", "truncation-lemma", "truncated-gram-correspondence", "perturbed-truncation", "reverse-eckart-young", "gaussian-haar-range-transfer"]
+
+[[collections]]
+id = "sketching"
+topic = "Sketching"
+title = "Sketching"
+description = "Browse Gaussian, Haar, sparse and transform sketches. Trig includes Fourier/Hadamard transforms such as SRHT; Other covers row sampling, dense sign sketches and general distribution classes. Shared interfaces and guarantees have their own section."
+
+[[collections.groups]]
+id = "gaussian"
+title = "Gaussian"
+definitions = ["NLAlib.gaussianMatrix"]
+results = ["gaussian-ose", "gaussian-osi", "jl-distributional", "jl-lemma", "sketch-and-solve-expected-error"]
+
+[[collections.groups]]
+id = "haar"
+title = "Haar"
+definitions = ["NLAlib.haarFrame"]
+results = ["jl-haar", "haar-sketch-ose", "haar-sketch-osi", "sketch-and-solve-expected-error"]
+
+[[collections.groups]]
+id = "sparse"
+title = "Sparse"
+definitions = ["NLAlib.countSketchMatrix", "NLAlib.countSketch"]
+results = ["sparse-ose", "countsketch-osi", "amm-countsketch", "countsketch-jl-moment", "countsketch-second-moment"]
+
+[[collections.groups]]
+id = "trig"
+title = "Trig"
+definitions = ["NLAlib.srhtMatrix", "NLAlib.srht", "NLAlib.srhtWithReplacement"]
+results = ["srht-ose", "srht-osi", "srht-flattening"]
+
+[[collections.groups]]
+id = "other-sketches"
+title = "Other"
+definitions = ["NLAlib.rademacherMatrix", "NLAlib.samplingSketchMatrix", "NLAlib.samplingSketch", "NLAlib.samplingSketchWithoutReplacement"]
+results = ["jl-rademacher", "rademacher-ose", "jl-subgaussian", "subgaussian-ose", "leverage-sampling-ose", "leverage-sampling-osi", "sampling-without-replacement-ose", "sampling-without-replacement-osi", "amm-sampling"]
+
+[[collections.groups]]
+id = "shared"
+title = "Shared sketching theory"
+definitions = ["NLAlib.HasSubspaceInjection", "NLAlib.HasSubspaceEmbedding", "NLAlib.IsIsotropicSketch", "NLAlib.HasJLProperty", "NLAlib.HasJLMoment", "NLAlib.IsObliviousSubspaceEmbedding", "NLAlib.IsObliviousSubspaceInjection", "NLAlib.IsProjectionCostPreserving", "NLAlib.IsSubspaceInjection", "NLAlib.IsSubspaceEmbedding", "NLAlib.HasGramTraceMoment"]
+results = ["ose-def", "osi-def", "subspace-injection", "jl-lemma", "amm-ose", "projection-cost-preserving-sketch", "sketch-and-precondition", "sketch-and-solve-ls"]
