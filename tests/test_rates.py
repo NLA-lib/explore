@@ -15,9 +15,9 @@ class RatesTests(unittest.TestCase):
         doc = b.HTML_COMMENT.sub('', self.ds[1]['doc'])
         self.row = dict(id='rate', theorem='N.asym', family='family', algorithm='algorithm',
                         variant='variant', sketch='Gaussian', norm='Frobenius', mode='expectation',
-                        guarantee='$1+\\varepsilon$', resources=[dict(label='columns', bound='$k/\\varepsilon$')],
+                        guarantee='relative-error', resources=[dict(label='columns', bound='$k/\\varepsilon$')],
                         statement_hash=hashlib.sha256(('sig\n' + doc).encode()).hexdigest())
-        self.cfg = dict(families=[dict(id='family', title='Family', description='Description')], rates=[self.row])
+        self.cfg = dict(guarantees=[dict(id='relative-error', family='family', title='Relative error', description='$1+\\varepsilon$', definitions=[])], families=[dict(id='family', title='Family', description='Description')], rates=[self.row])
 
     def render(self, config, ds=None):
         with tempfile.TemporaryDirectory() as tmp:
@@ -106,7 +106,7 @@ class RatesTests(unittest.TestCase):
         def check(c):
             return b.collections_page({'collections': c}, rs, ds, index, mods, {'alias': 'bound'})
         bad_cases = []
-        bad = copy.deepcopy(collection); bad['topic'] = 'Unknown'; bad_cases.append([bad])
+        bad = copy.deepcopy(collection); bad['topic'] = 'bad/topic'; bad_cases.append([bad])
         other = copy.deepcopy(collection); other['id'] = 'second'; bad_cases.append([collection, other])
         bad = copy.deepcopy(collection); bad['id'] = 'bad"id'; bad_cases.append([bad])
         bad = copy.deepcopy(collection); bad['groups'][0]['results'] = ['bound', 'alias']; bad_cases.append([bad])
@@ -230,6 +230,75 @@ class RatesTests(unittest.TestCase):
         self.assertEqual([d['m'] for d in after['decls']], [new_module] * 4)
         self.assertEqual([d['l'] for d in after['decls']], [110, 111, 112, 113])
         self.assertEqual([d['e'] for d in after['decls']], [111, 112, 113, 114])
+
+    def test_shared_guarantees_and_definition_links_resolve(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg['guarantees'][0]['definitions'] = [dict(label='Interface', declaration='N.interface')]
+        cfg['rates'][0].update(algorithm_definition='N.interface', sketch_definition='N.sketch')
+        ds = self.ds + [decl('N.interface', kind='structure'), decl('N.sketch', kind='def')]
+        site, _ = self.render({'rates.toml': cfg}, ds)
+        self.assertEqual(site['rates']['guarantees'][0]['definitions'][0]['i'], 2)
+        self.assertEqual(site['rates']['entries'][0]['algorithm_definition_index'], 2)
+        self.assertEqual(site['rates']['entries'][0]['sketch_definition_index'], 3)
+        self.assertEqual(site['rates']['entries'][0]['guarantee'], 'relative-error')
+        bad_cases = []
+        bad = copy.deepcopy(cfg); bad['rates'][0]['guarantee'] = 'unknown'; bad_cases.append(bad)
+        bad = copy.deepcopy(cfg); bad['guarantees'].append(copy.deepcopy(bad['guarantees'][0])); bad_cases.append(bad)
+        bad = copy.deepcopy(cfg); bad['guarantees'][0]['family'] = 'missing'; bad_cases.append(bad)
+        bad = copy.deepcopy(cfg)
+        bad['families'].append(dict(id='other', title='Other', description='D'))
+        bad['guarantees'][0]['family'] = 'other'; bad_cases.append(bad)
+        for field in ('algorithm_definition', 'sketch_definition'):
+            bad = copy.deepcopy(cfg); bad['rates'][0][field] = 'missing'; bad_cases.append(bad)
+        for name in ('missing', 'N.exp'):
+            bad = copy.deepcopy(cfg); bad['guarantees'][0]['definitions'][0]['declaration'] = name; bad_cases.append(bad)
+        for bad in bad_cases:
+            with self.subTest(config=bad), self.assertRaises(ValueError):
+                self.render({'rates.toml': bad}, ds)
+
+    def test_curated_peer_topic_is_independent_of_source_paths(self):
+        ds = [dict(decl('N.solve', 'Result: solve'), module='NLAlib.Sketching.Gaussian.Haar'),
+              dict(decl('N.new', 'Result: future'), module='NLAlib.Sketching.Gaussian.Haar'),
+              dict(decl('N.algorithm', kind='def'), module='NLAlib.Sketching.Gaussian.Haar')]
+        cfg = {'collections': [
+            dict(id='regression', topic='Regression', title='Regression', description='Solvers',
+                 groups=[dict(id='solve', title='Solve', results=['solve'], definitions=['N.algorithm'])]),
+            dict(id='sketching', topic='Sketching', title='Sketching', description='Sketches', groups=[])]}
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / 'site'
+            config = {'collections.toml': cfg, 'topics.toml': {'order': ['Regression', 'Sketching']}}
+            with patch.object(b, 'load_toml', side_effect=lambda name: config.get(name, {})):
+                b.build(dict(decls=ds, modules=[dict(name='NLAlib.Sketching.Gaussian.Haar',
+                    path='NLAlib/Sketching/Gaussian/Haar.lean')]), {}, out)
+            site = json.loads((out / 'data.json').read_text())
+        self.assertEqual([t['id'] for t in site['topics']], ['Regression', 'Sketching'])
+        self.assertEqual(site['topics'][0]['subs'], [])
+        self.assertEqual(site['collections'][1]['groups'][0]['entries'], [{'type': 'r', 'rid': 'future'}])
+        self.assertEqual(site['collections'][0]['groups'][0]['entries'],
+                         [{'type': 'r', 'rid': 'solve'}, {'type': 'd', 'i': 2}])
+
+    def test_family_subject_is_configured_scalar_and_labels_are_nonempty(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg['families'][0].update(subject_field='preconditioner', subject_label='Preconditioner',
+                                  definition_label='Definition', notation='Let $p>0$.')
+        cfg['rates'][0]['preconditioner'] = 'Diagonal'
+        site, _ = self.render({'rates.toml': cfg})
+        self.assertEqual(site['rates']['families'][0]['subject_field'], 'preconditioner')
+        self.assertEqual(site['rates']['entries'][0]['preconditioner'], 'Diagonal')
+        site, _ = self.render({'rates.toml': self.cfg})
+        self.assertEqual(site['rates']['families'][0]['subject_field'], 'algorithm')
+        for subject in ('bad-key', 'resources', 'theorem', '', 3):
+            bad = copy.deepcopy(cfg); bad['families'][0]['subject_field'] = subject
+            with self.subTest(subject=subject), self.assertRaises(ValueError):
+                self.render({'rates.toml': bad})
+        bad = copy.deepcopy(cfg); del bad['rates'][0]['preconditioner']
+        with self.assertRaises(ValueError):
+            self.render({'rates.toml': bad})
+        for field in ('subject_label', 'definition_label', 'notation'):
+            for value in ('', 3):
+                bad = copy.deepcopy(cfg); bad['families'][0][field] = value
+                with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                    self.render({'rates.toml': bad})
 
 
 if __name__ == '__main__':

@@ -1,13 +1,15 @@
-# Reviewed against the published NLAlib extraction at 50a4bf4616fdb8968f0d0169bd3a34519d7de2dc.
+# Reviewed against the published NLAlib extraction at dc71a3c26ae48e78b7741e3218f188aede15a988.
 # Compare every changed summary with its exact theorem before updating statement_hash.
 
 [[families]]
 id = '''embeddings'''
 title = '''Embeddings and sketch properties'''
-subject_label = '''Property / sketch'''
+subject_label = '''Sketch'''
+subject_field = '''sketch'''
+definition_label = '''Property definition'''
 filters = [{field = 'algorithm', label = 'Property'}, {field = 'sketch_category', label = 'Sketch class', order = ['Gaussian', 'Haar', 'Sparse', 'Trig', 'Other']}, {field = 'sketch', label = 'Sketch'}, {field = 'variant', label = 'Variant'}]
 description = '''Compare sufficient sketch sizes for squared Euclidean distortion. JL concerns a fixed vector; embedding and injection concern every vector in a fixed subspace. Rates apply for sufficiently small positive $\varepsilon$ and the stated failure probability $\delta$.'''
-notation = '''Rows $s$, ambient dimension $n$ and $0<\varepsilon\le\varepsilon_0$ for an absolute $\varepsilon_0>0$; meaningful failure probabilities have $0<\delta<1$. Bounds are sufficient thresholds with absolute constants. OSE/OSI succeeds simultaneously on each fixed subspace $U$ of dimension at most $d$; it does not promise a single draw for all subspaces. Distributional JL is per fixed unit vector. All distortions use squared Euclidean norms. Gaussian, sign and sub-Gaussian sketches are $\mathbf{S}=s^{-1/2}\mathbf{X}$; sub-Gaussian rows are independent and isotropic with proxy $c$. Haar uses $\mathbf{S}=\sqrt{n/s}\,\mathbf{Q}^{\mathsf{T}}$. Sampling uses normalized rows $\mathbf{e}_i^{\mathsf{H}}/\sqrt{s p_i}$, with $\sum_i p_i=1$; uniform sampling has $p_i=1/n$. For sampling, $U=\operatorname{range}\mathbf{U}$ and $d=\operatorname{rank}\mathbf{U}$; $\ell_i(\mathbf{U})$ denotes leverage. SRHT uses $\mathbf{S}=\sqrt{n/s}\,\mathbf{P}^{\mathsf{H}}\mathbf{F}\mathbf{D}$, random signs independent of sampled indices, and a unitary $\mathbf{F}$ with $n|F_{ij}|^2\le\beta$. CountSketch has one independent sign per column with independent uniform row hashes. Oblivious injection also includes isotropy.'''
+notation = '''Rows $s$, ambient dimension $n$ and $0<\varepsilon\le\varepsilon_0$ for an absolute $\varepsilon_0>0$; meaningful failure probabilities have $0<\delta<1$. Bounds are sufficient thresholds with absolute constants. OSE/OSI succeeds simultaneously on each fixed subspace $U$ of dimension at most $d$; it does not promise a single draw for all subspaces. Distributional JL is per fixed unit vector. All distortions use squared Euclidean norms. Gaussian, sign and sub-Gaussian sketches are $\mathbf{S}=s^{-1/2}\mathbf{X}$; sub-Gaussian rows are independent and isotropic with proxy $c$. Haar uses $\mathbf{S}=\sqrt{n/s}\,\mathbf{Q}^{\mathsf{T}}$. Sampling uses normalized rows $\mathbf{e}_i^{\mathsf{H}}/\sqrt{s p_i}$, with $\sum_i p_i=1$; uniform sampling has $p_i=1/n$. For sampling, $U=\operatorname{range}\mathbf{U}$ and $d=\operatorname{rank}\mathbf{U}$; $\ell_i(\mathbf{U})$ denotes leverage. SRHT uses $\mathbf{S}=\sqrt{n/s}\,\mathbf{P}^{\mathsf{H}}\mathbf{F}\mathbf{D}$, random signs independent of sampled indices, and a unitary $\mathbf{F}$ with $n|F_{ij}|^2\le\beta$. CountSketch has one independent sign per column with independent uniform row hashes. Oblivious injection includes square-integrable entries and the expectation identity stated in its guarantee. Fixed-subspace injection does not assert this extra property.'''
 
 [[families]]
 id = '''low-rank-one-two-pass'''
@@ -16,6 +18,55 @@ subject_label = '''Algorithm / sketch'''
 filters = [{field = 'algorithm', label = 'Algorithm'}, {field = 'variant', label = 'Variant'}, {field = 'sketch_category', label = 'Sketch class', order = ['Gaussian', 'Haar', 'Sparse', 'Trig', 'Other']}, {field = 'sketch', label = 'Sketch'}, {field = 'norm', label = 'Norm'}, {field = 'mode', label = 'Guarantee mode'}]
 description = '''Compare sufficient sketch sizes for relative error $1+\varepsilon$, for sufficiently small positive $\varepsilon$. $\operatorname{OPT}_k$ is the best rank-$k$ error in the indicated norm; the basic outputs may have rank larger than $k$.'''
 notation = '''Real matrices and $0<\varepsilon\le\varepsilon_0$ for an absolute $\varepsilon_0>0$; rates give sufficient sample thresholds with absolute constants. Gaussian sketches have standard independent entries, with independent range and co-range sketches for generalized Nyström. Nyström requires $\mathbf{H}\succeq0$. Rotation-invariant sketches have a left unitarily invariant probability law and full column rank almost surely. $\widehat{\mathbf{A}}$ or $\widehat{\mathbf{H}}$ is the named algorithm output; late truncation takes its best rank-$k$ approximation, while early truncation truncates the sketch first. $\operatorname{OPT}_{\mathsf{F},k}^2=\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_k\|_{\mathsf{F}}^2$ and $\operatorname{OPT}_{*,k}=\|\mathbf{H}-\llbracket\mathbf{H}\rrbracket_k\|_*$. Frobenius guarantees take the expectation of the squared error.'''
+
+[[guarantees]]
+id = '''distributional-jl'''
+family = '''embeddings'''
+title = '''$(1\pm\varepsilon)$ distributional JL'''
+description = '''For every fixed unit vector $\mathbf{x}$, $\mathbb{P}[\lvert\|\mathbf{S}\mathbf{x}\|^2-1\rvert\ge\varepsilon]\le\delta$. The vector is fixed before drawing the sketch; this is not simultaneous over all vectors.'''
+definitions = [{ label = '''JL property''', declaration = '''NLAlib.HasJLProperty''' }]
+
+[[guarantees]]
+id = '''oblivious-subspace-embedding'''
+family = '''embeddings'''
+title = '''$(1\pm\varepsilon)$ oblivious subspace embedding'''
+description = '''For every fixed subspace $U$ of dimension at most $d$, $\mathbb{P}[\forall\,\mathbf{x}\in U:\ (1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\le(1+\varepsilon)\|\mathbf{x}\|^2]\ge1-\delta$. Each subspace has its own success event; a single draw need not succeed on all subspaces at once.'''
+definitions = [{ label = '''OSE''', declaration = '''NLAlib.IsObliviousSubspaceEmbedding''' }, { label = '''Fixed-subspace embedding''', declaration = '''NLAlib.HasSubspaceEmbedding''' }]
+
+[[guarantees]]
+id = '''fixed-subspace-embedding'''
+family = '''embeddings'''
+title = '''$(1\pm\varepsilon)$ embedding of a specified subspace'''
+description = '''For the specified $U=\operatorname{range}\mathbf{U}$, with $d=\operatorname{rank}\mathbf{U}$, $\mathbb{P}[\forall\,\mathbf{x}\in U:\ (1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\le(1+\varepsilon)\|\mathbf{x}\|^2]\ge1-\delta$. Sampling probabilities may depend on this subspace through its leverage scores; this is not an oblivious guarantee over all subspaces.'''
+definitions = [{ label = '''Fixed-subspace embedding''', declaration = '''NLAlib.HasSubspaceEmbedding''' }]
+
+[[guarantees]]
+id = '''oblivious-subspace-injection'''
+family = '''embeddings'''
+title = '''$(1-\varepsilon)$ oblivious subspace injection'''
+description = '''The entries of $\mathbf{S}$ are square integrable and $\mathbb{E}[\mathbf{S}^{\mathsf{H}}\mathbf{S}]=\mathbf{I}$; equivalently $\mathbb{E}\|\mathbf{S}\mathbf{x}\|^2=\|\mathbf{x}\|^2$ for every vector. In addition, for every fixed subspace $U$ of dimension at most $d$, $\mathbb{P}[\forall\,\mathbf{x}\in U:\ (1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2]\ge1-\delta$. The success event may depend on $U$. Both isotropy and the lower-tail condition are part of OSI.'''
+definitions = [{ label = '''OSI''', declaration = '''NLAlib.IsObliviousSubspaceInjection''' }, { label = '''Isotropic sketch''', declaration = '''NLAlib.IsIsotropicSketch''' }, { label = '''Fixed-subspace injection''', declaration = '''NLAlib.HasSubspaceInjection''' }]
+
+[[guarantees]]
+id = '''fixed-subspace-injection'''
+family = '''embeddings'''
+title = '''$(1-\varepsilon)$ injection on a specified subspace'''
+description = '''For the specified $U=\operatorname{range}\mathbf{U}$, with $d=\operatorname{rank}\mathbf{U}$, $\mathbb{P}[\forall\,\mathbf{x}\in U:\ (1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2]\ge1-\delta$. This conclusion alone does not assert isotropy or OSI; leverage-dependent sampling is tailored to the given subspace.'''
+definitions = [{ label = '''Fixed-subspace injection''', declaration = '''NLAlib.HasSubspaceInjection''' }]
+
+[[guarantees]]
+id = '''expected-relative-frobenius'''
+family = '''low-rank-one-two-pass'''
+title = '''$(1+\varepsilon)$ low-rank approximation · expected squared Frobenius error'''
+description = '''For every fixed real matrix $\mathbf{A}$, the named output $\widehat{\mathbf{A}}$ satisfies $\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_{\mathsf{F}}^2\le(1+\varepsilon)\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_k\|_{\mathsf{F}}^2$. The expectation is of the squared error, over the sketches; generalized Nyström uses independent range and co-range sketches. Row-specific rank restrictions and distribution assumptions still apply.'''
+definitions = [{ label = '''Best rank-k truncation''', declaration = '''NLAlib.truncatedSVD''' }]
+
+[[guarantees]]
+id = '''expected-relative-nuclear'''
+family = '''low-rank-one-two-pass'''
+title = '''$(1+\varepsilon)$ PSD low-rank approximation · expected nuclear error'''
+description = '''For every fixed real positive semidefinite matrix $\mathbf{H}$, the named Nyström output $\widehat{\mathbf{H}}$ satisfies $\mathbb{E}\|\mathbf{H}-\widehat{\mathbf{H}}\|_*\le(1+\varepsilon)\|\mathbf{H}-\llbracket\mathbf{H}\rrbracket_k\|_*$. The expectation is over the sketch. Row-specific rank restrictions and distribution assumptions still apply.'''
+definitions = [{ label = '''Nyström''', declaration = '''NLAlib.nystrom''' }, { label = '''Best rank-k truncation''', declaration = '''NLAlib.truncatedSVD''' }]
 
 [[rates]]
 id = '''jl-gaussian'''
@@ -27,9 +78,11 @@ sketch = '''Gaussian'''
 sketch_category = 'Gaussian'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''For each fixed unit $\mathbf{x}$, $\mathbb{P}[\lvert\|\mathbf{S}\mathbf{x}\|^2-1\rvert\ge\varepsilon]\le\delta$.'''
+guarantee = '''distributional-jl'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(\log(1/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$.'''
+algorithm_definition = '''NLAlib.HasJLProperty'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''6686237465d505251c666f092e555663a7e38f9a6e32a719a5aaa9ebb0d7ace5'''
 
 [[rates]]
@@ -42,9 +95,11 @@ sketch = '''Haar'''
 sketch_category = 'Haar'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''For each fixed unit $\mathbf{x}$, $\mathbb{P}[\lvert\|\mathbf{S}\mathbf{x}\|^2-1\rvert\ge\varepsilon]\le\delta$.'''
+guarantee = '''distributional-jl'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(\log(1/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s\le n$.'''
+algorithm_definition = '''NLAlib.HasJLProperty'''
+sketch_definition = '''NLAlib.haarFrame'''
 statement_hash = '''bb93f1c8e91da1a585cc7f4fe8d000d24eb47f59b746db199d015ba81da71d0a'''
 
 [[rates]]
@@ -57,9 +112,11 @@ sketch = '''Rademacher'''
 sketch_category = 'Other'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''For each fixed unit $\mathbf{x}$, $\mathbb{P}[\lvert\|\mathbf{S}\mathbf{x}\|^2-1\rvert\ge\varepsilon]\le\delta$.'''
+guarantee = '''distributional-jl'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(\log(1/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$.'''
+algorithm_definition = '''NLAlib.HasJLProperty'''
+sketch_definition = '''NLAlib.rademacherMatrix'''
 statement_hash = '''fc9810da51a1903cb7febbe852cf865d4742d600484f4fbe654c9f79af7754f5'''
 
 [[rates]]
@@ -72,9 +129,11 @@ sketch = '''Sub-Gaussian'''
 sketch_category = 'Other'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''For each fixed unit $\mathbf{x}$, $\mathbb{P}[\lvert\|\mathbf{S}\mathbf{x}\|^2-1\rvert\ge\varepsilon]\le\delta$.'''
+guarantee = '''distributional-jl'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(c^2 \log(1/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s>0$; independent isotropic rows, proxy $c$.'''
+algorithm_definition = '''NLAlib.HasJLProperty'''
+sketch_definition = '''NLAlib.IsSubgaussianVector'''
 statement_hash = '''28f8222ecc507d3c937d00ccd06027f58dfdfef7c184c73e7a9ee92247510748'''
 
 [[rates]]
@@ -87,9 +146,11 @@ sketch = '''CountSketch'''
 sketch_category = 'Sparse'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''$\mathbb{P}\!\left[\begin{gathered}\forall\,\mathbf{x}\in U:\\(1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\\\|\mathbf{S}\mathbf{x}\|^2\le(1+\varepsilon)\|\mathbf{x}\|^2\end{gathered}\right]\ge1-\delta$'''
+guarantee = '''oblivious-subspace-embedding'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(d^2/(\delta\varepsilon^2))$ suffices''' }]
 notes = '''$s>0$ when $n>0$.'''
+algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
+sketch_definition = '''NLAlib.countSketch'''
 statement_hash = '''11aa58275602e2015adcbfbf1a8bd68ba2e516737c08c6a8404d711080f100d3'''
 
 [[rates]]
@@ -102,9 +163,11 @@ sketch = '''Gaussian'''
 sketch_category = 'Gaussian'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''$\mathbb{P}\!\left[\begin{gathered}\forall\,\mathbf{x}\in U:\\(1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\\\|\mathbf{S}\mathbf{x}\|^2\le(1+\varepsilon)\|\mathbf{x}\|^2\end{gathered}\right]\ge1-\delta$'''
+guarantee = '''oblivious-subspace-embedding'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O((d+\log(1/\delta))/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$.'''
+algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''4efa48d836c550f4b86df6ace6e64ccf010159a2de03378341f7f68cc1357e61'''
 
 [[rates]]
@@ -117,9 +180,11 @@ sketch = '''Rademacher'''
 sketch_category = 'Other'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''$\mathbb{P}\!\left[\begin{gathered}\forall\,\mathbf{x}\in U:\\(1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\\\|\mathbf{S}\mathbf{x}\|^2\le(1+\varepsilon)\|\mathbf{x}\|^2\end{gathered}\right]\ge1-\delta$'''
+guarantee = '''oblivious-subspace-embedding'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O((d+\log(1/\delta))/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$.'''
+algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
+sketch_definition = '''NLAlib.rademacherMatrix'''
 statement_hash = '''11ac38d5e946bf32c2a95f4f3659c2a3e7a8d81f0908852e1354cf9848401e2e'''
 
 [[rates]]
@@ -132,9 +197,11 @@ sketch = '''Row sampling'''
 sketch_category = 'Other'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''$\mathbb{P}\!\left[\begin{gathered}\forall\,\mathbf{x}\in U:\\(1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\\\|\mathbf{S}\mathbf{x}\|^2\le(1+\varepsilon)\|\mathbf{x}\|^2\end{gathered}\right]\ge1-\delta$'''
+guarantee = '''fixed-subspace-embedding'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(L\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $\ell_i(\mathbf{U})\le Lp_i$.'''
+algorithm_definition = '''NLAlib.HasSubspaceEmbedding'''
+sketch_definition = '''NLAlib.samplingSketch'''
 statement_hash = '''362d0842625dcaebff31da77b79910716fafab1010f9f8e6567c15ead0d11847'''
 
 [[rates]]
@@ -147,9 +214,11 @@ sketch = '''Row sampling'''
 sketch_category = 'Other'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''$\mathbb{P}\!\left[\begin{gathered}\forall\,\mathbf{x}\in U:\\(1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\\\|\mathbf{S}\mathbf{x}\|^2\le(1+\varepsilon)\|\mathbf{x}\|^2\end{gathered}\right]\ge1-\delta$'''
+guarantee = '''fixed-subspace-embedding'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(L\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s\le n$; $\ell_i(\mathbf{U})\le L/n$.'''
+algorithm_definition = '''NLAlib.HasSubspaceEmbedding'''
+sketch_definition = '''NLAlib.samplingSketchWithoutReplacement'''
 statement_hash = '''a4698ff6a49266cb6855b70230d421f4ebea497e2dd24e1c258c3af4a806d152'''
 
 [[rates]]
@@ -162,9 +231,11 @@ sketch = '''SRHT'''
 sketch_category = 'Trig'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''$\mathbb{P}\!\left[\begin{gathered}\forall\,\mathbf{x}\in U:\\(1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\\\|\mathbf{S}\mathbf{x}\|^2\le(1+\varepsilon)\|\mathbf{x}\|^2\end{gathered}\right]\ge1-\delta$'''
+guarantee = '''oblivious-subspace-embedding'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(\beta\,(d+\log(n/\delta))\,\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. Flatness $\beta$.'''
+algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
+sketch_definition = '''NLAlib.srhtWithReplacement'''
 statement_hash = '''a2d92b3f7e3040ac1d39828b47e0ffb011a71864625dea8df4104249b8122cdc'''
 
 [[rates]]
@@ -177,9 +248,11 @@ sketch = '''SRHT'''
 sketch_category = 'Trig'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''$\mathbb{P}\!\left[\begin{gathered}\forall\,\mathbf{x}\in U:\\(1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\\\|\mathbf{S}\mathbf{x}\|^2\le(1+\varepsilon)\|\mathbf{x}\|^2\end{gathered}\right]\ge1-\delta$'''
+guarantee = '''oblivious-subspace-embedding'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(\beta\,(d+\log(n/\delta))\,\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s\le n$. Flatness $\beta$.'''
+algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
+sketch_definition = '''NLAlib.srht'''
 statement_hash = '''025d8aba534031aeb9a9527a0cdeff808488df8a344f1ade9690a931debb32d5'''
 
 [[rates]]
@@ -192,9 +265,11 @@ sketch = '''Sub-Gaussian'''
 sketch_category = 'Other'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''$\mathbb{P}\!\left[\begin{gathered}\forall\,\mathbf{x}\in U:\\(1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\\\|\mathbf{S}\mathbf{x}\|^2\le(1+\varepsilon)\|\mathbf{x}\|^2\end{gathered}\right]\ge1-\delta$'''
+guarantee = '''oblivious-subspace-embedding'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(c^2 (d+\log(1/\delta))/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s>0$; independent isotropic rows, proxy $c$.'''
+algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
+sketch_definition = '''NLAlib.IsSubgaussianVector'''
 statement_hash = '''5f6264413c1ba2c5fb8c8646637f7a89610abd378bd58a4512eca10399b2fe40'''
 
 [[rates]]
@@ -207,9 +282,11 @@ sketch = '''Gaussian'''
 sketch_category = 'Gaussian'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''$\mathbb{P}\!\left[\begin{gathered}\forall\,\mathbf{x}\in U:\\(1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\end{gathered}\right]\ge1-\delta$'''
+guarantee = '''oblivious-subspace-injection'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O((d+\log(1/\delta))/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$.'''
+algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''894f84241199ccf651db040502607c78a7d64d19edface145e5e6104f1b2608b'''
 
 [[rates]]
@@ -222,9 +299,11 @@ sketch = '''Row sampling'''
 sketch_category = 'Other'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''$\mathbb{P}\!\left[\begin{gathered}\forall\,\mathbf{x}\in U:\\(1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\end{gathered}\right]\ge1-\delta$'''
+guarantee = '''fixed-subspace-injection'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(L\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\ell_i(\mathbf{U})\le Lp_i$.'''
+algorithm_definition = '''NLAlib.HasSubspaceInjection'''
+sketch_definition = '''NLAlib.samplingSketch'''
 statement_hash = '''af1c16cea42bea54d9db72da45bfed283fab30d419a26b849b3affba0fe81905'''
 
 [[rates]]
@@ -237,9 +316,11 @@ sketch = '''Row sampling'''
 sketch_category = 'Other'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''$\mathbb{P}\!\left[\begin{gathered}\forall\,\mathbf{x}\in U:\\(1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\end{gathered}\right]\ge1-\delta$'''
+guarantee = '''fixed-subspace-injection'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(L\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$s\le n$; $\ell_i(\mathbf{U})\le L/n$.'''
+algorithm_definition = '''NLAlib.HasSubspaceInjection'''
+sketch_definition = '''NLAlib.samplingSketchWithoutReplacement'''
 statement_hash = '''e7887d346b27ad05d729dcec943f12e6b93898f29c283a0d808922bde6d0552c'''
 
 [[rates]]
@@ -252,9 +333,11 @@ sketch = '''SRHT'''
 sketch_category = 'Trig'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''$\mathbb{P}\!\left[\begin{gathered}\forall\,\mathbf{x}\in U:\\(1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\end{gathered}\right]\ge1-\delta$'''
+guarantee = '''oblivious-subspace-injection'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(\beta\,(d+\log(n/\delta))\,\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s>0$, $n>0$. Flatness $\beta$.'''
+algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
+sketch_definition = '''NLAlib.srhtWithReplacement'''
 statement_hash = '''4ee644e06070e3495d53c9bd732e3520876bb5649c262e8cf110c306875c750d'''
 
 [[rates]]
@@ -267,9 +350,11 @@ sketch = '''SRHT'''
 sketch_category = 'Trig'
 norm = '''Euclidean squared'''
 mode = '''High probability'''
-guarantee = '''$\mathbb{P}\!\left[\begin{gathered}\forall\,\mathbf{x}\in U:\\(1-\varepsilon)\|\mathbf{x}\|^2\le\|\mathbf{S}\mathbf{x}\|^2\end{gathered}\right]\ge1-\delta$'''
+guarantee = '''oblivious-subspace-injection'''
 resources = [{ label = '''Sketch rows s''', bound = '''$O(\beta\,(d+\log(n/\delta))\,\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s\le n$. $s>0$ for injection. Flatness $\beta$.'''
+algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
+sketch_definition = '''NLAlib.srht'''
 statement_hash = '''ac3c202707adb16b07ee28d8fa58076190e6b04865c196104257b54da0294b71'''
 
 [[rates]]
@@ -282,9 +367,11 @@ sketch = '''Gaussian'''
 sketch_category = 'Gaussian'
 norm = '''Frobenius squared'''
 mode = '''Expectation'''
-guarantee = '''$\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_{\mathsf{F}}^2 \le (1+\varepsilon)\operatorname{OPT}_{\mathsf{F},k}^2$'''
+guarantee = '''expected-relative-frobenius'''
 resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
+algorithm_definition = '''NLAlib.rsvd'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''a5807e4c53879ffb91df6992d0452b3054ceeac7df892308425d8f6f83272d0b'''
 
 [[rates]]
@@ -297,9 +384,11 @@ sketch = '''Rotation invariant'''
 sketch_category = 'Other'
 norm = '''Frobenius squared'''
 mode = '''Expectation'''
-guarantee = '''$\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_{\mathsf{F}}^2 \le (1+\varepsilon)\operatorname{OPT}_{\mathsf{F},k}^2$'''
+guarantee = '''expected-relative-frobenius'''
 resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
+algorithm_definition = '''NLAlib.rsvd'''
+sketch_definition = '''NLAlib.IsLeftUnitarilyInvariant'''
 statement_hash = '''87d96669747ab353bfa2e4f129644692f5aa5cd205d57ad31f36d6cb79972338'''
 
 [[rates]]
@@ -312,9 +401,11 @@ sketch = '''Gaussian'''
 sketch_category = 'Gaussian'
 norm = '''Frobenius squared'''
 mode = '''Expectation'''
-guarantee = '''$\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_{\mathsf{F}}^2 \le (1+\varepsilon)\operatorname{OPT}_{\mathsf{F},k}^2$'''
+guarantee = '''expected-relative-frobenius'''
 resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''Output rank $\le k$.'''
+algorithm_definition = '''NLAlib.rsvd'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''5135d85d6315fd8a1cca906dd1d1282d5f0c62103eda31ab6e6ca21f74a3dd99'''
 
 [[rates]]
@@ -327,9 +418,11 @@ sketch = '''Gaussian'''
 sketch_category = 'Gaussian'
 norm = '''Frobenius squared'''
 mode = '''Expectation'''
-guarantee = '''$\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_{\mathsf{F}}^2 \le (1+\varepsilon)\operatorname{OPT}_{\mathsf{F},k}^2$'''
+guarantee = '''expected-relative-frobenius'''
 resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon^2)$ suffices''' }]
 notes = '''Output rank $\le k$.'''
+algorithm_definition = '''NLAlib.earlyTruncatedRSVD'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''cd69fe2b4d401650f77682383a965e4e39b5ee8bd15d845aed80df0a1111e94e'''
 
 [[rates]]
@@ -342,9 +435,11 @@ sketch = '''Gaussian'''
 sketch_category = 'Gaussian'
 norm = '''Frobenius squared'''
 mode = '''Expectation'''
-guarantee = '''$\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_{\mathsf{F}}^2 \le (1+\varepsilon)\operatorname{OPT}_{\mathsf{F},k}^2$'''
+guarantee = '''expected-relative-frobenius'''
 resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }, { label = '''Co-range columns p''', bound = '''$O(\ell/\varepsilon)$ suffices''' }]
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
+algorithm_definition = '''NLAlib.generalizedNystrom'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''0f59b4522a53bd568ec4a35de4a91c3948becc09b6c5455247e3ca2daa6087b6'''
 
 [[rates]]
@@ -357,9 +452,11 @@ sketch = '''Gaussian'''
 sketch_category = 'Gaussian'
 norm = '''Frobenius squared'''
 mode = '''Expectation'''
-guarantee = '''$\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_{\mathsf{F}}^2 \le (1+\varepsilon)\operatorname{OPT}_{\mathsf{F},k}^2$'''
+guarantee = '''expected-relative-frobenius'''
 resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }, { label = '''Co-range columns p''', bound = '''$O(\ell/\varepsilon)$ suffices''' }]
 notes = '''Output rank $\le k$.'''
+algorithm_definition = '''NLAlib.generalizedNystrom'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''8b12074ea426bacebf27fb2e24bf2ea51d42b8fd3668977653ee6edc020464ce'''
 
 [[rates]]
@@ -372,9 +469,11 @@ sketch = '''Gaussian'''
 sketch_category = 'Gaussian'
 norm = '''Frobenius squared'''
 mode = '''Expectation'''
-guarantee = '''$\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_{\mathsf{F}}^2 \le (1+\varepsilon)\operatorname{OPT}_{\mathsf{F},k}^2$'''
+guarantee = '''expected-relative-frobenius'''
 resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon^2)$ suffices''' }, { label = '''Co-range columns p''', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''Output rank $\le k$.'''
+algorithm_definition = '''NLAlib.earlyTruncatedGeneralizedNystrom'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''92fd99c49d03a45f0a77c2b8134cf6d8226345b736f489bcd0b82d3d5aa06d94'''
 
 [[rates]]
@@ -387,9 +486,11 @@ sketch = '''Gaussian'''
 sketch_category = 'Gaussian'
 norm = '''Nuclear'''
 mode = '''Expectation'''
-guarantee = '''$\mathbb{E}\|\mathbf{H}-\widehat{\mathbf{H}}\|_* \le (1+\varepsilon)\operatorname{OPT}_{*,k}$'''
+guarantee = '''expected-relative-nuclear'''
 resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
+algorithm_definition = '''NLAlib.nystrom'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''53dc767fa9c30ded48dfe8b3cf905df9b7dce7af7b0a921c7a973148c506a9bc'''
 
 [[rates]]
@@ -402,9 +503,11 @@ sketch = '''Rotation invariant'''
 sketch_category = 'Other'
 norm = '''Nuclear'''
 mode = '''Expectation'''
-guarantee = '''$\mathbb{E}\|\mathbf{H}-\widehat{\mathbf{H}}\|_* \le (1+\varepsilon)\operatorname{OPT}_{*,k}$'''
+guarantee = '''expected-relative-nuclear'''
 resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
+algorithm_definition = '''NLAlib.nystrom'''
+sketch_definition = '''NLAlib.IsLeftUnitarilyInvariant'''
 statement_hash = '''76acc17f1867fab73c95b1d9c51dd0fd3b69d18f6088fcbaa5434c762b8bb53f'''
 
 [[rates]]
@@ -417,9 +520,11 @@ sketch = '''Gaussian'''
 sketch_category = 'Gaussian'
 norm = '''Nuclear'''
 mode = '''Expectation'''
-guarantee = '''$\mathbb{E}\|\mathbf{H}-\widehat{\mathbf{H}}\|_* \le (1+\varepsilon)\operatorname{OPT}_{*,k}$'''
+guarantee = '''expected-relative-nuclear'''
 resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''Output rank $\le k$.'''
+algorithm_definition = '''NLAlib.nystrom'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''6df697c387891aae3d69ea3d9d68054bf3ebab88473d5419fe3ee27746840630'''
 
 [[rates]]
@@ -432,7 +537,9 @@ sketch = '''Rotation invariant'''
 sketch_category = 'Other'
 norm = '''Nuclear'''
 mode = '''Expectation'''
-guarantee = '''$\mathbb{E}\|\mathbf{H}-\widehat{\mathbf{H}}\|_* \le (1+\varepsilon)\operatorname{OPT}_{*,k}$'''
+guarantee = '''expected-relative-nuclear'''
 resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''Output rank $\le k$.'''
+algorithm_definition = '''NLAlib.nystrom'''
+sketch_definition = '''NLAlib.IsLeftUnitarilyInvariant'''
 statement_hash = '''08c379df6a1fdff875baa3e48f569a266469c141e8c0ae44d9245d92c529708d'''

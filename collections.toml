@@ -40,13 +40,13 @@ description = "Browse Gaussian, Haar, sparse and transform sketches. Trig includ
 id = "gaussian"
 title = "Gaussian"
 definitions = ["NLAlib.gaussianMatrix"]
-results = ["gaussian-ose", "gaussian-osi", "jl-distributional", "jl-lemma", "sketch-and-solve-expected-error"]
+results = ["gaussian-ose", "gaussian-osi", "jl-distributional", "jl-lemma"]
 
 [[collections.groups]]
 id = "haar"
 title = "Haar"
 definitions = ["NLAlib.haarFrame"]
-results = ["jl-haar", "haar-sketch-ose", "haar-sketch-osi", "sketch-and-solve-expected-error"]
+results = ["jl-haar", "haar-sketch-ose", "haar-sketch-osi"]
 
 [[collections.groups]]
 id = "sparse"
@@ -70,4 +70,27 @@ results = ["jl-rademacher", "rademacher-ose", "jl-subgaussian", "subgaussian-ose
 id = "shared"
 title = "Shared sketching theory"
 definitions = ["NLAlib.HasSubspaceInjection", "NLAlib.HasSubspaceEmbedding", "NLAlib.IsIsotropicSketch", "NLAlib.HasJLProperty", "NLAlib.HasJLMoment", "NLAlib.IsObliviousSubspaceEmbedding", "NLAlib.IsObliviousSubspaceInjection", "NLAlib.IsProjectionCostPreserving", "NLAlib.IsSubspaceInjection", "NLAlib.IsSubspaceEmbedding", "NLAlib.HasGramTraceMoment"]
-results = ["ose-def", "osi-def", "subspace-injection", "jl-lemma", "amm-ose", "projection-cost-preserving-sketch", "sketch-and-precondition", "sketch-and-solve-ls"]
+results = ["ose-def", "osi-def", "subspace-injection", "jl-lemma", "amm-ose", "projection-cost-preserving-sketch"]
+
+[[collections]]
+id = "regression"
+topic = "Regression"
+title = "Regression"
+description = "Sketch-and-solve and sketch-and-precondition, with exact error formulas and least-squares foundations."
+
+[[collections.groups]]
+id = "sketch-and-solve"
+title = "Sketch-and-solve"
+definitions = ["NLAlib.sketchAndSolve"]
+results = ["sketch-and-solve-ls", "sketch-and-solve-error-decomposition", "sketch-and-solve-expected-error"]
+
+[[collections.groups]]
+id = "sketch-and-precondition"
+title = "Sketch-and-precondition"
+results = ["sketch-and-precondition"]
+
+[[collections.groups]]
+id = "foundations"
+title = "Least-squares foundations"
+definitions = ["NLAlib.IsLeastSquaresSolution", "NLAlib.obliqueProjector"]
+results = ["normal-equations", "least-squares-pseudoinverse", "minimum-norm-least-squares", "least-squares-perturbation", "oblique-projection-error-split"]

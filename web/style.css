@@ -827,3 +827,26 @@ button:focus-visible, select:focus-visible {
     .rate-filters select { min-height: 32px; }
 }
 .rate-notation .katex-display { overflow-x: auto; overflow-y: hidden; }
+
+/* A shared guarantee heads its comparison rows once. */
+.rate-guarantee { margin: 1.5em 0 2em; }
+.rate-guarantee > h3 { font-size: 19px; margin-bottom: 0.4em; }
+.guarantee-description { font-size: 80%; line-height: 1.45; }
+.guarantee-description .katex-display, .rate-definitions .katex-display { overflow-x: auto; overflow-y: hidden; }
+.rate-definitions { margin: 0.6em 0 1em; font-size: 80%; }
+.rate-definitions > summary { text-decoration: underline; text-underline-offset: 2px; }
+.rate-definitions h4 { margin-bottom: 0.5em; }
+.rate-definition-links { display: block; margin-top: 0.4em; font-size: 85%; }
+.rates-table th:first-child { width: 38%; }
+.rates-table th:nth-child(2) { width: auto; }
+.rate-copy-status { float: right; font-size: 85%; margin-right: 0.5em; max-width: 65%; overflow-wrap: anywhere; }
+.rate-theorem button.rate-permalink { font-size: 85%; margin-top: 0; }
+.rate-definitions .statement > p { font-size: 100%; }
+
+.rate-definitions .guarantee-description { font-size: 100%; }
+/* Catalogue summaries can contain a full display equation; keep it inside the reading column. */
+.desc .katex-display { overflow-x: auto; overflow-y: hidden; }
+.desc .katex { display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden; vertical-align: middle; }
+.desc .katex-display .katex { display: block; }
+.desc .nowrap { display: inline-block; max-width: 100%; vertical-align: middle; }
+details.topic, details.sub { scroll-margin-top: 4rem; }

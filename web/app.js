@@ -278,7 +278,7 @@
       const flat = t.subs.length === 1 && t.subs[0].title === t.title;
       const collection = (D.collections || []).find(c => c.topic === t.id);
       const sourceBody = t.subs.map(s => section(`s-${s.id}`, 'sub', 'h3', s.title, counts(s.modules), s.modules.map(moduleHtml).join(''))).join('');
-      const collectionBody = collection ? (collection.description ? `<p class="topic-blurb">${md(collection.description, { inline: true })}</p>` : '') + collection.groups.map(g => section(`collection-${collection.id}-${g.id}`, 'sub', 'h3', g.title, '', `<ul class="entries">${g.entries.filter(e => e.type === 'r' ? D.results[e.rid] : decls[e.i]).map(entryHtml).join('')}</ul>`)).join('') + `<details class="source-modules" id="source-modules-${esc(collection.id)}"${openSections.has(`source-modules-${collection.id}`) ? ' open' : ''}><summary>Browse source modules</summary>${sourceBody}</details>` : '';
+      const collectionBody = collection ? (collection.description ? `<p class="topic-blurb">${md(collection.description, { inline: true })}</p>` : '') + collection.groups.map(g => section(`collection-${collection.id}-${g.id}`, 'sub', 'h3', g.title, '', `<ul class="entries">${g.entries.filter(e => e.type === 'r' ? D.results[e.rid] : decls[e.i]).map(entryHtml).join('')}</ul>`)).join('') + (sourceBody ? `<details class="source-modules" id="source-modules-${esc(collection.id)}"${openSections.has(`source-modules-${collection.id}`) ? ' open' : ''}><summary>Browse source modules</summary>${sourceBody}</details>` : '') : '';
       const body = collection ? collectionBody : (t.blurb ? `<p class="topic-blurb">${md(t.blurb, { inline: true })}</p>` : '') +
         t.subs.map(s => {
           const inner = (s.blurb ? `<p class="sub-blurb">${md(s.blurb, { inline: true })}</p>` : '') +
@@ -392,7 +392,8 @@
     const entries = (D.rates?.entries || []).filter(e => {
       if (!Object.entries(rateFilters).every(([k, v]) => !v || String(e[k]) === v)) return false;
       const family = D.rates.families.find(f => f.id === e.family);
-      const words = rateSearchWords([e.algorithm, e.variant, e.sketch, e.norm, e.mode, e.guarantee,
+      const guarantee = D.rates.guarantees?.find(g => g.id === e.guarantee && g.family === e.family);
+      const words = rateSearchWords([e.algorithm, e.variant, e.sketch, e.norm, e.mode, guarantee?.title, guarantee?.description,
         ...(family?.filters || []).map(f => e[f.field]), ...e.resources.flatMap(r => [r.label, r.bound]), ...(Array.isArray(e.notes) ? e.notes : [e.notes]), family?.title].join(' '));
       return query.every(q => words.some(w => w.includes(q)));
     });
@@ -402,17 +403,36 @@
       const subject = esc(f.subject_label || 'Method / sketch');
       if (!rows.length) return '';
       const notationId = `rate-notation-${f.id}`;
+      const definitionLink = (i, label) => Number.isInteger(i) && decls[i]
+        ? `<a href="${BASE}${declRoute(i)}">${esc(label)}</a>` : '';
+      const groups = (D.rates.guarantees || []).filter(g => g.family === f.id && rows.some(e => e.guarantee === g.id));
       return `<section class="rate-family"><h2>${esc(f.title)}</h2>${f.description ? `<p class="topic-blurb">${md(f.description, { inline: true })}</p>` : ''}` +
-        (f.notation ? `<details class="rate-notation" id="${esc(notationId)}"${openSections.has(notationId) ? ' open' : ''}><summary>Notation and assumptions</summary>${md(f.notation)}</details>` : '') +
-        `<table class="rates-table"><thead><tr><th scope="col">${subject}</th><th scope="col">Guarantee</th><th scope="col">Resources</th></tr></thead><tbody>` + rows.map(e => {
-          const notes = Array.isArray(e.notes) ? e.notes.join(' ') : e.notes;
-          return `<tr id="rate-row-${esc(e.id)}"><td data-label="${subject}"><strong>${esc(e.algorithm)}</strong>${e.variant ? `<span class="rate-meta">${md(e.variant, { inline: true })}</span>` : ''}${e.sketch ? `<span class="rate-meta">${esc(e.sketch)}</span>` : ''}</td>` +
-            `<td data-label="Guarantee">${e.norm || e.mode ? `<span class="rate-meta">${[e.norm, e.mode].filter(Boolean).map(esc).join(' · ')}</span>` : ''}${md(e.guarantee, { inline: true })}</td>` +
-            `<td data-label="Resources">${e.resources.map(r => `<div class="rate-resource"><strong>${esc(r.label)}:</strong> ${md(r.bound, { inline: true })}</div>`).join('')}${notes ? `<p class="rate-caveat"><strong>Parameters:</strong> ${md(notes, { inline: true })}</p>` : ''}</td>` +
-            `</tr><tr class="rate-theorem"><td colspan="3"><a class="rate-permalink" href="#rate/${encodeURIComponent(e.id)}" aria-label="Link to this rate">Link</a><details class="rate-detail" data-rate="${esc(e.id)}"><summary>View theorem</summary><div class="rate-expanded"></div></details></td></tr>`;
-        }).join('') + '</tbody></table></section>';
+        (f.notation ? `<details class="rate-notation" id="${esc(notationId)}"${openSections.has(notationId) ? ' open' : ''}><summary>Notation and assumptions</summary>${md(f.notation)}</details>` : '') + groups.map(g => {
+          const groupId = `rate-guarantee-${f.id}-${g.id}`;
+          const definitions = g.definitions || [];
+          return `<section class="rate-guarantee"><h3>${md(g.title, { inline: true })}</h3>` +
+            `<details class="rate-definitions" id="${esc(groupId)}"${openSections.has(groupId) ? ' open' : ''}><summary>Guarantee and definitions</summary><div class="guarantee-description">${md(g.description)}</div>${definitions.map(d =>
+              `<h4>${definitionLink(d.i, d.label || d.declaration)}</h4>${statementHtml(null, d.i)}`).join('')}</details>` +
+            `<table class="rates-table"><thead><tr><th scope="col">${subject}</th><th scope="col">Resources</th></tr></thead><tbody>` + rows.filter(e => e.guarantee === g.id).map(e => {
+              const notes = Array.isArray(e.notes) ? e.notes.join(' ') : e.notes;
+              return `<tr id="rate-row-${esc(e.id)}"><td data-label="${subject}"><strong>${esc(e[f.subject_field || 'algorithm'])}</strong>${e.variant && e.variant !== 'Standard' ? `<span class="rate-meta">${md(e.variant, { inline: true })}</span>` : ''}${e.sketch && f.subject_field !== 'sketch' ? `<span class="rate-meta">${esc(e.sketch)}</span>` : ''}` +
+                `<span class="rate-definition-links">${[definitionLink(e.algorithm_definition_index, f.definition_label || 'Algorithm definition'), definitionLink(e.sketch_definition_index, 'Sketch definition')].filter(Boolean).join(' · ')}</span></td>` +
+                `<td data-label="Resources">${e.resources.map(r => `<div class="rate-resource"><strong>${esc(r.label)}:</strong> ${md(r.bound, { inline: true })}</div>`).join('')}${notes ? `<p class="rate-caveat"><strong>Parameters:</strong> ${md(notes, { inline: true })}</p>` : ''}</td>` +
+                `</tr><tr class="rate-theorem"><td colspan="2"><button type="button" class="rate-permalink" data-copy-rate="${esc(e.id)}">Copy link</button><span class="rate-copy-status" role="status"></span><details class="rate-detail" data-rate="${esc(e.id)}"><summary>View theorem</summary><div class="rate-expanded"></div></details></td></tr>`;
+            }).join('') + '</tbody></table></section>';
+        }).join('') + '</section>';
     }).join('') : '<p class="empty">No rates match these filters.</p><button type="button" id="reset-rates">Reset filters and search</button>';
     $('#reset-rates')?.addEventListener('click', resetRates);
+    for (const button of document.querySelectorAll('[data-copy-rate]')) button.addEventListener('click', async () => {
+      const url = new URL('#rate/' + encodeURIComponent(button.dataset.copyRate), location.href).href;
+      const status = button.nextElementSibling;
+      try {
+        await navigator.clipboard.writeText(url);
+        status.textContent = 'Link copied';
+      } catch (error) {
+        status.innerHTML = `Copy this link: <a href="${esc(url)}">${esc(url)}</a>`;
+      }
+    });
     for (const detail of document.querySelectorAll('.rate-detail')) {
       const e = entries.find(e => e.id === detail.dataset.rate);
       let explicit = false;
