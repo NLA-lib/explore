@@ -8,7 +8,7 @@
     src: url('font/source-sans/SourceSans3-Regular.woff2') format('woff2');
     font-weight: 400;
     font-style: normal;
-    font-display: swap;
+    font-display: block;
 }
 
 @font-face {
@@ -16,7 +16,7 @@
     src: url('font/source-sans/SourceSans3-It.woff2') format('woff2');
     font-weight: 400;
     font-style: italic;
-    font-display: swap;
+    font-display: block;
 }
 
 @font-face {
@@ -24,7 +24,7 @@
     src: url('font/source-sans/SourceSans3-Semibold.woff2') format('woff2');
     font-weight: 600;
     font-style: normal;
-    font-display: swap;
+    font-display: block;
 }
 
 @font-face {
@@ -32,7 +32,7 @@
     src: url('font/source-sans/SourceSans3-Bold.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
-    font-display: swap;
+    font-display: block;
 }
 
 @font-face {
@@ -40,7 +40,7 @@
     src: url('font/source-sans/SourceSans3-BoldIt.woff2') format('woff2');
     font-weight: 700;
     font-style: italic;
-    font-display: swap;
+    font-display: block;
 }
 
 :root {
