@@ -10,8 +10,9 @@ Everything shown is generated from the library. Nothing here needs editing when 
 ## How it updates
 
 1. On every push, NLAlib's `explore` workflow builds the library, runs
-   `scripts/Explore.lean` (every public declaration: kind, docstring, signature, source
-   statement, line range, and the library declarations its statement and proof use), and
+   `scripts/explore_data.sh` (every public declaration: kind, docstring, signature, source
+   statement, line range, presentation role, source hashes, and the library declarations its
+   statement and proof use), and
    publishes the result as `explore-data.json` on NLAlib's rolling `explore-data` release.
 2. It then sends a `nlalib-updated` dispatch to this repository (needs the secret below), whose
    `deploy` workflow downloads the data and `references.bib`, runs `build.py`, and deploys
@@ -25,6 +26,17 @@ Everything shown is generated from the library. Nothing here needs editing when 
 - **Results** are the `Result: <id>` lines of docstrings (CONTRIBUTING §6). Declarations with
   the same id are shown together as one result; its title is the bold name opening the first
   docstring (`**Weyl's inequality.**`), else the id.
+- **Roles**: registered named numerical bounds carry `explorerRole: "support"` in raw data;
+  output roles are `support`, `concept` (other definitions), and `lemma`. Support declarations
+  stay searchable and available in source views; default dependency graphs collapse through them.
+- **Asymptotic forms** use `Asymptotic: Full.explicit.name` (the name may be on the next
+  line). Metadata is hidden from prose. Forms inherit the target’s result ids while keeping
+  their own; unresolved targets, cycles and pairs without any result id fail the build.
+  Each result exports `overview`,
+  `explicit`, and every `{overview, explicit}` pair in `forms`. The default pair prefers the
+  original primary explicit declaration, then extraction order. Paired views use mathematical
+  statements parsed from their own docstrings, with Related, Notes and References below;
+  legacy result LaTeX overrides are used only for unpaired results.
 - **Definitions** are `def`, `abbrev`, `structure`, `class` and `inductive` declarations; every
   other theorem without a result id is a lemma, listed on its file's page.
 - **Statements** are the docstrings, rendered as Markdown with `$…$` and `$$…$$` typeset by
@@ -45,7 +57,10 @@ Everything shown is generated from the library. Nothing here needs editing when 
 - **Definitions are shown whole.** The data's statement of a declaration stops at `:=`, which
   hides only a theorem's proof but a definition's whole content; with `--src` (an NLAlib checkout
   at the data's commit, which the deploy downloads) a definition, structure or class is shown with
-  its body or fields, read from its source lines.
+  its body or fields, read from its source lines. Extraction-time `sourceHashes` must cover
+  every listed module, with safe relative paths and matching SHA-256 bytes under `--src`.
+  A source archive works without Git. A mismatch fails; legacy data without hashes builds
+  with a warning and skips body enrichment.
 - **Docstrings are split** (`build.py`, `split_doc`) along CONTRIBUTING §6: the bold name becomes
   the declaration's label, citations and the remarks on how the source differs go to
   References, sentences pointing at other declarations go to Related, a `Proof:` paragraph goes
@@ -71,13 +86,20 @@ Everything shown is generated from the library. Nothing here needs editing when 
 
 ## Local build
 
+When introducing the role and asymptotic metadata support, merge the corresponding NLAlib
+docstring and extraction changes first. The new builder rejects malformed tags that older
+extractions could contain; the last successfully deployed site remains available meanwhile.
+
 ```sh
-# in NLAlib, after LEAN_NUM_THREADS=4 lake build NLAlib
-EXPLORE_OUT=../explore/data/explore-data.json lake env lean -M 8000 scripts/Explore.lean
+# in NLAlib, after LEAN_NUM_THREADS=2 lake build NLAlib
+bash scripts/explore_data.sh ../explore/data/explore-data.json
 # here
 python3 build.py --bib ../nlalib/docs/references.bib --src ../nlalib
 python3 -m http.server -d site 8000     # http://localhost:8000
 ```
+
+Run metadata regressions with `python3 -m unittest discover -s tests -v` and check browser-script
+syntax with `node --check web/app.js`.
 
 ## One-time setup
 

@@ -21,6 +21,8 @@ what the Lean source does not say, and the build works with all three empty.
 
 import argparse
 import json
+import hashlib
+import sys
 import re
 import shutil
 import tomllib
@@ -32,6 +34,7 @@ REPO = 'https://github.com/NLA-lib/NLAlib'
 
 DEF_KINDS = {'def', 'abbrev', 'opaque', 'structure', 'class', 'inductive'}
 HTML_COMMENT = re.compile(r'<!--.*?-->', re.S)
+ASYMPTOTIC_LINE = re.compile(r'^\s*Asymptotic:[ \t]*(?:\n[ \t]*)?([\w.]+)[ \t]*$', re.M)
 RESULT_LINE = re.compile(r'^\s*Result:\s*(.+?)\s*$', re.M)
 BOLD_NAME = re.compile(r'^\s*\*\*(.+?)\*\*')
 
@@ -120,7 +123,7 @@ def is_source(text):
 
 
 def strip_result_line(doc):
-    return RESULT_LINE.sub('', doc).rstrip() if doc else doc
+    return ASYMPTOTIC_LINE.sub('', RESULT_LINE.sub('', doc)).rstrip() if doc else doc
 
 
 DISPLAY = re.compile(r'\$\$(.+?)\$\$((?:\s*[.,;:])*)', re.S)
@@ -584,18 +587,55 @@ def build(data, bib, out):
                          'modules': sorted(tree[top][sub])})
         topics.append({'id': top, 'title': tc.get('title', humanize(top)), 'blurb': tc.get('blurb', ''), 'subs': subs})
 
-    # --- results, from the `Result:` lines of the docstrings
+    # Resolve metadata before grouping: a corollary inherits all target result ids.
+    targets = {}
+    for i, d in enumerate(decls):
+        matches = ASYMPTOTIC_LINE.findall(d.get('doc') or '')
+        if len(re.findall(r'Asymptotic:', d.get('doc') or '')) != len(matches):
+            raise ValueError(f"malformed Asymptotic metadata: {d['name']}")
+        if len(matches) > 1:
+            raise ValueError(f"multiple Asymptotic targets: {d['name']}")
+        if matches:
+            if matches[0] not in index:
+                raise ValueError(f"unresolved Asymptotic target: {matches[0]}")
+            targets[i] = index[matches[0]]
+        result_lines = RESULT_LINE.findall(d.get('doc') or '')
+        if len(re.findall(r'Result:', d.get('doc') or '')) != len(result_lines) or any(
+                not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', part.strip())
+                for line in result_lines for part in line.split(',')):
+            raise ValueError(f"malformed Result metadata: {d['name']}")
+        d['_results'] = list(dict.fromkeys(x.strip()
+            for line in RESULT_LINE.findall(d.get('doc') or '')
+            for x in line.split(',') if x.strip()))
+    original_results = {i: list(d['_results']) for i, d in enumerate(decls)}
+    resolved = set()
+
+    def inherit(i, stack=()):
+        if i in stack:
+            raise ValueError(f"cyclic Asymptotic target: {decls[i]['name']}")
+        if i in resolved:
+            return
+        if i in targets:
+            j = targets[i]
+            inherit(j, stack + (i,))
+            decls[i]['_results'] = list(dict.fromkeys(
+                decls[i]['_results'] + decls[j]['_results']))
+        resolved.add(i)
+
+    for i in range(len(decls)):
+        inherit(i)
+    for i in targets:
+        if not decls[i]['_results']:
+            raise ValueError(f"Asymptotic pair has no Result id: {decls[i]['name']} -> {decls[targets[i]]['name']}")
     results = {}
     for i, d in enumerate(decls):
-        ids = []
-        for line in RESULT_LINE.findall(d.get('doc') or ''):
-            ids += [x.strip() for x in line.split(',') if x.strip()]
-        d['_results'] = ids
-        for rid in ids:
+        for rid in d['_results']:
             results.setdefault(rid, {'decls': [], 'bold': Counter(), 'phrase': Counter()})
             results[rid]['decls'].append(i)
             p = split_doc(d.get('doc'), index)
             d['_name'] = p['name']
+            if rid not in original_results[i] or i in targets:
+                continue
             if p['name']:
                 results[rid]['bold'][p['name']] += 1
             elif p['phrase']:
@@ -626,9 +666,16 @@ def build(data, bib, out):
         # the declaration the title names comes first: its statement is the result's
         named = lambda j: (decls[j].get('_name') or '').split(',')[0].strip() == title.split(',')[0].strip()
         r['decls'].sort(key=lambda j: not named(j))
-        primary = r['decls'][0]
+        primary = next((j for j in r['decls']
+                        if j not in targets and any(alias.get(x, x) == rid
+                                                   for x in original_results[j])), r['decls'][0])
+        forms = [{'overview': i, 'explicit': targets[i]}
+                 for i in sorted(r['decls']) if i in targets]
+        forms.sort(key=lambda f: f['explicit'] != primary)
+        pair = forms[0] if forms else {'overview': primary, 'explicit': primary}
         out_results[rid] = {'title': title, 'aliases': cfg.get('aliases', []), 'latex': cfg.get('latex'),
-                            'ids': r.get('ids', []),
+                            'ids': r.get('ids', []), 'overview': pair['overview'],
+                            'explicit': pair['explicit'], 'forms': forms,
                             'decls': r['decls'], 'module': decls[primary]['module']}
 
     # --- graph nodes: a result (all its declarations together) or a documented definition.
@@ -637,6 +684,8 @@ def build(data, bib, out):
         d = decls[i]
         if d['_results']:
             return 'r:' + d['_results'][0]
+        if d.get('explorerRole') == 'support':
+            return None
         if d['kind'] in DEF_KINDS:
             return 'd:' + d['name']
         return None
@@ -688,6 +737,8 @@ def build(data, bib, out):
         vd = [index[n] for n in d.get('valueDeps', []) if n in index]
         p = split_doc(d.get('doc'), index)
         out_decls.append({
+            'role': ('support' if d.get('explorerRole') == 'support' else
+                     'concept' if d['kind'] in DEF_KINDS else 'lemma'),
             'n': d['name'], 'm': d['module'], 'k': d['kind'], 'l': d.get('line'), 'e': d.get('endLine'),
             'doc': d.get('doc'), 'sig': d.get('signature'), 'st': d.get('statement'),
             'r': d['_results'], 's': bool(d.get('sorry')), 'td': td, 'vd': vd,
@@ -755,6 +806,33 @@ def whole_definitions(decls, src):
     return n
 
 
+def validate_sources(data, src):
+    """Verify extraction-time bytes before trusting source line ranges, including tarballs."""
+    hashes = data.get('sourceHashes')
+    if hashes is None:
+        print('warning: legacy data has no sourceHashes; skipping definition body enrichment',
+              file=sys.stderr)
+        return False
+    expected = {m['path'] for m in data['modules']}
+    if not isinstance(hashes, dict) or set(hashes) != expected:
+        raise ValueError('sourceHashes must cover exactly all listed modules')
+    for d in data.get('decls', []):
+        path = d['module'].replace('.', '/') + '.lean'
+        if path not in hashes:
+            raise ValueError(f'sourceHashes missing declaration module: {path}')
+    root = Path(src).resolve()
+    for name, digest in hashes.items():
+        path = Path(name)
+        if path.is_absolute() or '..' in path.parts or not path.parts or path.suffix != '.lean':
+            raise ValueError(f'unsafe source path: {name}')
+        full = (root / path).resolve()
+        if not full.is_relative_to(root):
+            raise ValueError(f'unsafe source path: {name}')
+        if not full.is_file() or hashlib.sha256(full.read_bytes()).hexdigest() != digest:
+            raise ValueError(f'source hash mismatch: {name}')
+    return True
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--data', default=ROOT / 'data' / 'explore-data.json')
@@ -766,7 +844,7 @@ def main():
     data = json.loads(Path(a.data).read_text())
     if data.get('schema') != 1:
         raise SystemExit(f"unsupported data schema {data.get('schema')!r}")
-    if a.src:
+    if a.src and validate_sources(data, a.src):
         print(f"{whole_definitions(data['decls'], a.src)} definitions given whole from {a.src}")
     build(data, parse_bib(a.bib), a.out)
 
