@@ -21,3 +21,30 @@ aliases = ["Leverage sampling OSI"]
 [sampling-without-replacement-osi]
 title = "Row sampling without replacement: subspace injection"
 aliases = ["Sampling without replacement OSI"]
+
+[etgn]
+title = "Early-truncated generalized Nyström"
+aliases = ["Early-truncated GN"]
+primary = "NLAlib.integral_frobNorm_sub_earlyTruncatedGeneralizedNystrom_sq_le_one_add_mul_of_hasLaw_gaussianMatrix"
+
+[etrsvd]
+title = "Early-truncated randomized SVD"
+aliases = ["Early-truncated RSVD"]
+primary = "NLAlib.integral_frobNorm_sub_earlyTruncatedRSVD_sq_le_one_add_mul_of_hasLaw_gaussianMatrix"
+
+[generalized-nystrom-expected-error]
+title = "Generalized Nyström: expected error"
+primary = "NLAlib.integral_frobNorm_sub_generalizedNystrom_sq_le_of_hasLaw_gaussianMatrix"
+
+[tgn-expected-error]
+title = "Late-truncated generalized Nyström: expected error"
+aliases = ["Truncated GN"]
+primary = "NLAlib.integral_frobNorm_sub_truncatedSVD_generalizedNystrom_sq_le_one_add_mul_of_hasLaw_gaussianMatrix"
+
+[randomized-svd-expected-error]
+title = "Randomized SVD: expected Frobenius error"
+primary = "NLAlib.integral_frobNorm_sub_rsvd_sq_le_of_hasLaw_gaussianMatrix"
+
+[randomized-nystrom-expected-error]
+title = "PSD Nyström: expected error"
+primary = "Matrix.PosSemidef.integral_nuclearNorm_sub_nystrom_le_of_hasLaw_gaussianMatrix"

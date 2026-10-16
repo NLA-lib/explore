@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('explore_build', Path(__file__).resolve().parents[1] / 'build.py')
 b = importlib.util.module_from_spec(spec)
@@ -19,7 +20,8 @@ def decl(name, doc='', kind='theorem', **kw):
 class BuildTests(unittest.TestCase):
     def render(self, ds):
         with tempfile.TemporaryDirectory() as tmp:
-            b.build(dict(decls=ds, modules=[dict(name='NLAlib.Test', path='NLAlib/Test.lean')]), {}, Path(tmp) / 'site')
+            with patch.object(b, 'load_toml', return_value={}):
+                b.build(dict(decls=ds, modules=[dict(name='NLAlib.Test', path='NLAlib/Test.lean')]), {}, Path(tmp) / 'site')
             return json.loads((Path(tmp) / 'site/data.json').read_text())
 
     def test_inherits_ids_and_removes_metadata(self):

@@ -536,6 +536,120 @@ def books_page(cfg, bib, decls):
     return out
 
 
+def required_text(row, fields, label):
+    for field in fields:
+        if not isinstance(row.get(field), str) or not row[field].strip():
+            raise ValueError(f'{label}: empty or invalid {field}')
+
+
+def unique_ids(rows, label):
+    seen = set()
+    for row in rows:
+        required_text(row, ['id'], label)
+        if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', row['id']):
+            raise ValueError(f'{label}: unsafe id {row["id"]}')
+        if row['id'] in seen:
+            raise ValueError(f'{label}: duplicate id {row["id"]}')
+        seen.add(row['id'])
+    return seen
+
+
+def rates_page(cfg, decls, index, targets):
+    families = cfg.get('families', [])
+    family_ids = unique_ids(families, 'rate family')
+    for family in families:
+        required_text(family, ['title', 'description'], 'rate family')
+    entries = cfg.get('rates', [])
+    unique_ids(entries, 'rate')
+    out = []
+    for rate in entries:
+        required_text(rate, ['theorem', 'family', 'algorithm', 'variant', 'sketch', 'norm',
+                             'mode', 'guarantee', 'statement_hash'], f'rate {rate["id"]}')
+        if 'notes' in rate and not isinstance(rate['notes'], str):
+            raise ValueError(f'rate {rate["id"]}: invalid notes')
+        if rate['family'] not in family_ids:
+            raise ValueError(f'rate {rate["id"]}: unknown family {rate["family"]}')
+        i = index.get(rate['theorem'])
+        if i is None or i not in targets:
+            raise ValueError(f'rate {rate["id"]}: missing asymptotic theorem {rate["theorem"]}')
+        j = targets[i]
+        d = decls[i]
+        if not d['_results']:
+            raise ValueError(f'rate {rate["id"]}: missing result membership')
+        if d.get('sorry') or decls[j].get('sorry'):
+            raise ValueError(f'rate {rate["id"]}: unproved declaration')
+        digest = hashlib.sha256((HTML_COMMENT.sub('', d.get('signature') or '') + '\n' +
+                                HTML_COMMENT.sub('', d.get('doc') or '')).encode('utf-8')).hexdigest()
+        if rate['statement_hash'] != digest:
+            raise ValueError(f'rate {rate["id"]}: statement_hash mismatch; review curated mathematics')
+        resources = rate.get('resources')
+        if not isinstance(resources, list) or not resources:
+            raise ValueError(f'rate {rate["id"]}: resources must be nonempty')
+        for resource in resources:
+            if not isinstance(resource, dict):
+                raise ValueError(f'rate {rate["id"]}: invalid resource')
+            required_text(resource, ['label', 'bound'], f'rate {rate["id"]} resource')
+        out.append({**rate, 'overview': i, 'explicit': j, 'result': d['_results'][0]})
+    return {'families': families, 'entries': out}
+
+
+def collections_page(cfg, results, decls, index, modules, aliases):
+    collections = cfg.get('collections', [])
+    unique_ids(collections, 'collection')
+    out = []
+    topics = {m['topic'] for m in modules.values()}
+    seen_topics = set()
+    for collection in collections:
+        required_text(collection, ['title', 'description', 'topic'], 'collection')
+        topic = collection['topic']
+        if topic not in topics:
+            raise ValueError(f'collection {collection["id"]}: unknown topic {topic}')
+        if topic in seen_topics:
+            raise ValueError(f'duplicate collection topic {topic}')
+        seen_topics.add(topic)
+        groups = collection.get('groups', [])
+        unique_ids(groups, f'collection {collection["id"]} group')
+        used_results, used_defs, rendered = set(), set(), []
+        for group in groups:
+            required_text(group, ['title'], 'collection group')
+            entries = []
+            group_results, group_defs = set(), set()
+            for rid in group.get('results', []):
+                rid = aliases.get(rid, rid)
+                if rid not in results:
+                    raise ValueError(f'collection {collection["id"]}: unknown result {rid}')
+                if rid in group_results:
+                    raise ValueError(f'collection group {group["id"]}: duplicate result {rid}')
+                group_results.add(rid)
+                entries.append({'type': 'r', 'rid': rid})
+                used_results.add(rid)
+            for name in group.get('definitions', []):
+                i = index.get(name)
+                if i is None or decls[i]['kind'] not in DEF_KINDS:
+                    raise ValueError(f'collection {collection["id"]}: unknown definition {name}')
+                if decls[i].get('explorerRole') == 'support':
+                    raise ValueError(f'collection group {group["id"]}: support definition {name}')
+                if i in group_defs:
+                    raise ValueError(f'collection group {group["id"]}: duplicate definition {name}')
+                group_defs.add(i)
+                entries.append({'type': 'd', 'i': i})
+                used_defs.add(i)
+            rendered.append({**group, 'entries': entries})
+        topic = collection['topic']
+        matches = lambda d: modules.get(d['module'], {}).get('topic') == topic
+        fallback = [{'type': 'r', 'rid': rid} for rid, r in results.items()
+                    if rid not in used_results and any(matches(decls[i]) for i in r['decls'])]
+        fallback += [{'type': 'd', 'i': i} for i, d in enumerate(decls)
+                     if matches(d) and d['kind'] in DEF_KINDS
+                     and d.get('explorerRole') != 'support' and i not in used_defs]
+        if fallback:
+            if any(g['id'] == 'other' for g in groups):
+                raise ValueError(f'collection {collection["id"]}: reserved fallback group id other')
+            rendered.append({'id': 'other', 'title': 'Other results and definitions', 'entries': fallback})
+        out.append({**collection, 'groups': rendered})
+    return out
+
+
 def build(data, bib, out):
     topics_cfg = load_toml('topics.toml')
     results_cfg = load_toml('results.toml')
@@ -659,6 +773,9 @@ def build(data, bib, out):
     for d in decls:
         d['_results'] = list(dict.fromkeys(alias.get(x, x) for x in d['_results']))
 
+    for configured_id, cfg in results_cfg.items():
+        if 'primary' in cfg and configured_id not in results:
+            raise ValueError(f'result {configured_id}: primary configured for unknown or alias result')
     out_results = {}
     for rid, r in results.items():
         cfg = results_cfg.get(rid, {})
@@ -669,6 +786,12 @@ def build(data, bib, out):
         primary = next((j for j in r['decls']
                         if j not in targets and any(alias.get(x, x) == rid
                                                    for x in original_results[j])), r['decls'][0])
+        if 'primary' in cfg:
+            required_text(cfg, ['primary'], f'result {rid}')
+            preferred = index.get(cfg['primary'])
+            if preferred is None or preferred not in r['decls'] or preferred in targets:
+                raise ValueError(f'result {rid}: primary must name an explicit member')
+            primary = preferred
         forms = [{'overview': i, 'explicit': targets[i]}
                  for i in sorted(r['decls']) if i in targets]
         forms.sort(key=lambda f: f['explicit'] != primary)
@@ -764,6 +887,8 @@ def build(data, bib, out):
         'resultAlias': alias,
         'nodes': nodes, 'bib': {k: v for k, v in bib.items() if k in cited},
         'synonyms': synonyms,
+        'rates': rates_page(load_toml('rates.toml'), decls, index, targets),
+        'collections': collections_page(load_toml('collections.toml'), out_results, decls, index, modules, alias),
         'books': books_page(load_toml('books.toml'), bib, out_decls),
     }
 
@@ -779,6 +904,10 @@ def build(data, bib, out):
     page = page.replace('<body>', '<body data-page="books" data-base="../">')
     (out / 'books').mkdir()
     (out / 'books' / 'index.html').write_text(page)
+    rates_html = page.replace('data-page="books"', 'data-page="rates"')
+    rates_html = re.sub(r'<title>.*?</title>', '<title>Rates · NLAlib explorer</title>', rates_html, flags=re.S)
+    (out / 'rates').mkdir()
+    (out / 'rates' / 'index.html').write_text(rates_html)
     n_def = sum(1 for d in decls if d['kind'] in DEF_KINDS)
     print(f'{len(modules)} modules, {len(decls)} declarations, {len(out_results)} results, '
           f'{n_def} definitions -> {out}/ ({(out / "data.json").stat().st_size // 1024} KB data)')
