@@ -29,6 +29,8 @@
   const byName = new Map(decls.map((d, i) => [d.n, i]));
   const DEF_KINDS = new Set(['def', 'abbrev', 'opaque', 'structure', 'class', 'inductive']);
   const isDef = d => DEF_KINDS.has(d.k);
+  const isSupport = d => d.role === 'support';
+  const overviewOf = r => r.overview ?? r.decls[0];
   const short = n => n.startsWith('NLAlib.') ? n.slice(7) : n;
   const topicById = new Map(D.topics.map(t => [t.id, t]));
   const subById = new Map(D.topics.flatMap(t => t.subs.map(s => [s.id, s])));
@@ -48,7 +50,7 @@
           list.push({ type: 'r', rid, line: d.l });
         }
       }
-    } else if (isDef(d)) {
+    } else if (isDef(d) && !isSupport(d)) {
       list.push({ type: 'd', i, line: d.l });
     } else {
       moduleLemmas.get(d.m).push(i);
@@ -183,6 +185,7 @@
   const descHtml = i => md(decls[i].fs, { inline: true, bold: boldOf(i) });
 
   const stripResult = doc => (doc || '').replace(/^\s*Result:.*$/m, '')
+    .replace(/^[ \t]*Asymptotic:[ \t]*(?:[^\n]+|\n[ \t]*[\w.]+)[ \t]*$/gm, '')
     .replace(/\s*Port(?:ed)? (?:of|from) `[^`]+`(?:`[^`]*`|[^`.])*\./g, '').trimEnd();
 
   // ------------------------------------------------------------------ Lean with links
@@ -234,11 +237,10 @@
   function entryHtml(e) {
     if (e.type === 'r') {
       const r = D.results[e.rid];
-      const first = decls[r.decls[0]];
       const anyWip = r.decls.some(j => decls[j].s);
       return `<li><a class="entry-title" href="#r/${encodeURIComponent(e.rid)}">${md(r.title, { inline: true })}</a>` +
         (anyWip ? '<span class="wip">proof in progress</span>' : '') +
-        `<span class="desc">${descHtml(r.decls[0])}</span></li>`;
+        `<span class="desc">${descHtml(overviewOf(r))}</span></li>`;
     }
     const d = decls[e.i];
     return `<li><a class="entry-title" href="${declRoute(e.i)}"><code>${esc(short(d.n))}</code></a>` +
@@ -265,7 +267,7 @@
     const entries = moduleEntries.get(m).slice().sort((a, b) => a.line - b.line);
     const nl = moduleLemmas.get(m).length;
     return `<div class="module"><a class="mtitle" href="#m/${encodeURIComponent(m)}">${md(mod.title, { inline: true })}</a>` +
-      `<span class="count">${nl ? `<a href="#m/${encodeURIComponent(m)}">+${nl} lemma${nl > 1 ? 's' : ''}</a>` : ''}</span></div>` +
+      `<span class="count">${nl ? `<a href="#m/${encodeURIComponent(m)}">+${nl} supporting declaration${nl > 1 ? 's' : ''}</a>` : ''}</span></div>` +
       (entries.length ? `<ul class="entries">${entries.map(entryHtml).join('')}</ul>` : '');
   }
 
@@ -385,7 +387,7 @@
     }
     decls.forEach((d, i) => {
       if (d.r.length) return;
-      add(isDef(d) ? 'd' : 'l', i, [[short(d.n), isDef(d) ? 4 : 2.5], [d.doc, 1],
+      add(isDef(d) ? 'd' : 'l', i, [[short(d.n), isDef(d) ? 4 : 2.5], [stripResult(d.doc), 1],
         [D.modules[d.m]?.title, 0.5]], isDef(d) ? 1.2 : 0.75);
     });
     for (const [m, mod] of Object.entries(D.modules)) {
@@ -446,7 +448,7 @@
     if (it.type === 'r') {
       const r = D.results[it.key];
       return `<li><a class="entry-title" href="#r/${encodeURIComponent(it.key)}">${md(r.title, { inline: true })}</a>` +
-        `<span class="kind">result</span><span class="desc">${descHtml(r.decls[0])}` +
+        `<span class="kind">result</span><span class="desc">${descHtml(overviewOf(r))}` +
         ` <em>${md(D.modules[r.module]?.title || '', { inline: true })}</em></span></li>`;
     }
     if (it.type === 'm') {
@@ -716,19 +718,52 @@
     rid = D.resultAlias?.[rid] ?? rid;
     const r = D.results[rid];
     if (!r) return showMissing();
+    const overview = overviewOf(r);
+    const forms = r.forms || [];
+    // An asymptotic declaration may have an additional Result id of its own. Its target
+    // still needs a formal section here without changing that target's result membership.
+    const formalDecls = [...new Set([overview, ...r.decls, ...forms.flatMap(f => [f.overview, f.explicit])])];
     const body = $('#panelbody');
     body.innerHTML = headHtml(md(r.title, { inline: true }), 'Theorem') +
-      `<div class="subtitle"><code>${esc(rid)}</code>${r.ids.map(x => `, <code>${esc(x)}</code>`).join('')} · ${r.decls.length} formal statement${r.decls.length > 1 ? 's' : ''}` +
-      `${r.aliases.length ? ' · also known as ' + r.aliases.map(esc).join(', ') : ''}</div>` +
-      '<div class="label">Statement</div>' + statementHtml(r.latex, r.decls[0]);
-    r.decls.forEach((j, k) =>
-      body.append(declSection(j, { title: r.title, first: k === 0 })));
-    body.append(graphSection(['r:' + rid, 'i:' + (focusDecl ?? r.decls[0])], ['nodes', 'decls']));
-    body.insertAdjacentHTML('beforeend', notesHtml(r.decls));
-    openPanel(crumbs(r.module));
-    if (focusDecl !== undefined && focusDecl !== r.decls[0]) {
-      document.getElementById('decl-' + focusDecl)?.scrollIntoView();
+      `<div class="subtitle"><code>${esc(rid)}</code>${r.ids.map(x => `, <code>${esc(x)}</code>`).join('')} · ${formalDecls.length} formal statement${formalDecls.length > 1 ? 's' : ''}` +
+      `${r.aliases.length ? ' · also known as ' + r.aliases.map(esc).join(', ') : ''}</div>`;
+    if (forms.length) {
+      // Each pair owns its parsed mathematical statement and hypotheses. Related pointers,
+      // proof constants and citations stay in their sections below; no result override applies.
+      let pair = Math.max(0, forms.findIndex(f => f.overview === overview));
+      let explicit = false;
+      const box = h('<section class="result-statement"></section>');
+      const choices = forms.length > 1 ? `<label class="variant">Variant <select aria-label="Statement variant">${forms.map((f, k) =>
+        `<option value="${k}"${k === pair ? ' selected' : ''}>${esc(plainTex(decls[f.explicit].nm || short(decls[f.explicit].n)))}</option>`).join('')}</select></label>` : '';
+      box.innerHTML = '<div class="label">Statement<span class="opts">' +
+        '<button type="button" class="explicit-bound" aria-pressed="false">Explicit bound</button></span></div>' + choices +
+        '<div class="selected-statement" aria-live="polite"></div>';
+      const draw = () => {
+        const i = explicit ? forms[pair].explicit : forms[pair].overview;
+        $('.selected-statement', box).innerHTML = statementHtml(null, i) +
+          `<p class="statement-source"><a href="#decl-${i}" data-formal="${i}">View formal statement</a></p>`;
+        const button = $('.explicit-bound', box);
+        button.setAttribute('aria-pressed', String(explicit));
+        button.classList.toggle('on', explicit);
+      };
+      $('.explicit-bound', box).addEventListener('click', () => { explicit = !explicit; draw(); });
+      $('select', box)?.addEventListener('change', ev => { pair = +ev.target.value; draw(); });
+      box.addEventListener('click', ev => {
+        const a = ev.target.closest('[data-formal]');
+        if (!a) return;
+        ev.preventDefault();
+        document.getElementById('decl-' + a.dataset.formal)?.scrollIntoView({ behavior: 'smooth' });
+      });
+      draw();
+      body.append(box);
+    } else {
+      body.insertAdjacentHTML('beforeend', '<div class="label">Statement</div>' + statementHtml(r.latex, overview));
     }
+    formalDecls.forEach((j, k) => body.append(declSection(j, { title: r.title, first: k === 0 })));
+    body.append(graphSection(['r:' + rid, 'i:' + (focusDecl ?? overview)], ['nodes', 'decls']));
+    body.insertAdjacentHTML('beforeend', notesHtml(formalDecls));
+    openPanel(crumbs(r.module));
+    if (focusDecl !== undefined) document.getElementById('decl-' + focusDecl)?.scrollIntoView();
   }
 
   function showDecl(name) {
@@ -737,7 +772,7 @@
     const d = decls[i];
     if (d.r.length) return showResult(d.r[0], i);
     const body = $('#panelbody');
-    const def = isDef(d);
+    const def = isDef(d) && !isSupport(d);
     body.innerHTML = headHtml(`<code>${esc(short(d.n))}</code>`, KIND_NAMES[d.k] ?? d.k) +
       `<div class="subtitle">${md(D.modules[d.m]?.title || d.m, { inline: true })}</div>` +
       (d.stmt ? '<div class="label">Statement</div>' + statementHtml(null, i) : '');
@@ -755,14 +790,14 @@
       `${d.r.length ? ` <em>${md(resultTitle(d.r[0]), { inline: true })}</em>` : ''}${wip(d)}` +
       (d.fs ? `<span class="desc">${descHtml(i)}</span>` : '') + '</li>';
     const results = inMod.filter(([d]) => d.r.length);
-    const defs = inMod.filter(([d]) => !d.r.length && isDef(d));
-    const lemmas = inMod.filter(([d]) => !d.r.length && !isDef(d));
+    const defs = inMod.filter(([d]) => !d.r.length && isDef(d) && !isSupport(d));
+    const lemmas = inMod.filter(([d]) => !d.r.length && (!isDef(d) || isSupport(d)));
     $('#panelbody').innerHTML = headHtml(md(mod.title, { inline: true }), 'File') +
       `<div class="subtitle"><code>${esc(name)}</code> · <a href="${D.repo}/blob/${D.ref}/${mod.path}" target="_blank" rel="noopener">source ↗</a></div>` +
       (mod.summary ? `<div class="doc"><p>${md(mod.summary, { inline: true })}</p></div>` : '') +
       (results.length ? `<div class="label">Results</div><ul class="declist">${results.map(item).join('')}</ul>` : '') +
       (defs.length ? `<div class="label">Definitions</div><ul class="declist">${defs.map(item).join('')}</ul>` : '') +
-      (lemmas.length ? `<div class="label">Lemmas</div><ul class="declist">${lemmas.map(item).join('')}</ul>` : '') +
+      (lemmas.length ? `<div class="label">Supporting API</div><ul class="declist">${lemmas.map(item).join('')}</ul>` : '') +
       (mod.imports.length ? `<div class="label">Imports from the library</div><ul class="declist">${mod.imports.map(m =>
         D.modules[m] ? `<li><a href="#m/${encodeURIComponent(m)}">${md(D.modules[m].title, { inline: true })}</a> <code>${esc(m)}</code></li>` : '').join('')}</ul>` : '');
     openPanel(crumbs(name));

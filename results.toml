@@ -13,3 +13,11 @@
 [davis-kahan]
 title = "The Davis–Kahan sin Θ theorem"
 aliases = ["Davis-Kahan", "sin theta theorem", "eigenvector perturbation"]
+
+[leverage-sampling-osi]
+title = "Leverage-score sampling: subspace injection"
+aliases = ["Leverage sampling OSI"]
+
+[sampling-without-replacement-osi]
+title = "Row sampling without replacement: subspace injection"
+aliases = ["Sampling without replacement OSI"]

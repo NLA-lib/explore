@@ -53,6 +53,9 @@
 
 html {
     font-size: 19px;
+    /* Keep the same reading-column position as the long main page, even when the
+       catalogue is collapsed and has no scrollbar. Overlay scrollbars take no space. */
+    scrollbar-gutter: stable;
 }
 
 body {
@@ -729,4 +732,36 @@ ul.declist li {
 /* links that are Lean names keep their underscores clear of the underline */
 .bkitem a code, .declist a code {
     text-underline-offset: 4px;
+}
+
+/* Paired statements keep their controls adjacent and usable at narrow widths. */
+.result-statement .label {
+    flex-wrap: wrap;
+}
+
+.variant {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+    font-size: 75%;
+    margin-bottom: 0.6em;
+}
+
+.variant select {
+    min-width: 0;
+    max-width: 100%;
+    font: inherit;
+    color: inherit;
+    background: #fff;
+    border: 1px solid var(--ink);
+}
+
+.statement-source {
+    font-size: 70%;
+    margin-top: 0.4em;
+}
+
+button:focus-visible, select:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
 }
