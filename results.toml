@@ -48,3 +48,12 @@ primary = "NLAlib.integral_frobNorm_sub_rsvd_sq_le_of_hasLaw_gaussianMatrix"
 [randomized-nystrom-expected-error]
 title = "PSD Nyström: expected error"
 primary = "Matrix.PosSemidef.integral_nuclearNorm_sub_nystrom_le_of_hasLaw_gaussianMatrix"
+
+
+[sketch-and-solve-expected-error]
+title = "Sketch-and-solve: expected relative residual"
+primary = "NLAlib.integral_frobNorm_sub_mul_sketchAndSolve_sq_le_one_add_mul_of_hasLaw_gaussianMatrix"
+
+[sketch-and-solve-ls]
+title = "Sketch-and-solve: relative residual with high probability"
+primary = "NLAlib.measureReal_frobNorm_sub_mul_sketchAndSolve_sq_gt_le_of_hasLaw_gaussianMatrix"

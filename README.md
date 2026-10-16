@@ -26,12 +26,21 @@ by family, then shared guarantee, then distribution or algorithm. Each guarantee
 with its formula and definition links in an expandable section; rows show resources and conditions.
 The filters are appropriate to each family. With all families selected, only the
 family selector and search are shown. Selecting a family reveals its configured filters; options
-are drawn from matching rows, and constant or irrelevant fields stay hidden. Its initial families
-are **Embeddings and sketch properties** and **One- and two-pass low-rank approximation**. Families are configuration,
-so iterative low-rank methods, regression or other future families need no new page template.
+are drawn from matching rows, and constant or irrelevant fields stay hidden. Its families
+are **Embeddings and sketch properties**, **One- and two-pass low-rank approximation**, and
+**Regression**. Families are configuration,
+so iterative low-rank methods or other future families need no new page template.
 A row is one exact theorem, not a whole Result group. Expand it for the theorem's own assumptions,
 its explicit bound and links to the declaration and source. Expectations of squared norms remain
 distinct from expected norms; JL, embedding and injection guarantees remain distinct.
+
+Regression compares expected and high-probability squared Frobenius residual error against the
+least-squares optimum, with sketch class, sketch and guarantee-mode filters. Gaussian and Haar
+expectation rows require $O((r+1)/\varepsilon)$ sketch rows, where $r$ is the input rank. The
+Gaussian high-probability row uses a second-moment sufficient rate
+$O((r+1)/(\varepsilon\delta))$; CountSketch uses
+$O(((r+1)^2+(r+1)/\varepsilon)/\delta)$ and supports complex inputs. Haar retains the ambient
+size cap. Per-row notes and full theorem views give the exact domains and sketch conventions.
 
 `rates.toml` supplies ordered `families`, ordered `guarantees`, and comparison `rates`.
 A guarantee has `id`, `family`, `title`, `description` and optional `definitions` links, each with
@@ -172,6 +181,14 @@ bash scripts/explore_data.sh ../explore/data/explore-data.json
 python3 build.py --bib ../nlalib/docs/references.bib --src ../nlalib
 python3 -m http.server -d site 8000     # http://localhost:8000
 ```
+
+Regression Rates metadata references new library theorems. Merge those theorem
+changes into NLAlib and wait for fresh rolling-release extraction before merging or deploying
+explorer rows that reference them. Review each final asymptotic/explicit pair, row restrictions
+and signature/docstring hash against that extraction. Passing explorer unit tests on a PR does
+not establish compatibility with the currently published library data. Keep strict reference,
+proved-pair, rate-hash and source-fingerprint validation enabled; local previews must use matching
+extracted data and source bytes. See [the preparation status](docs/rates-design.md#regression-rates-preparation-2026-10-16).
 
 Run metadata regressions with `python3 -m unittest discover -s tests -v` and check browser-script
 syntax with `node --check web/app.js`. Run probability-rendering regressions with

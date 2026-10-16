@@ -1,4 +1,4 @@
-# Reviewed against the published NLAlib extraction at dc71a3c26ae48e78b7741e3218f188aede15a988.
+# Reviewed against the committed NLAlib extraction at b66e36e811709491eb8d5e5a54e891a3c173032d. Publish this library revision before explorer deployment.
 # Compare every changed summary with its exact theorem before updating statement_hash.
 
 [[families]]
@@ -18,6 +18,15 @@ subject_label = '''Algorithm / sketch'''
 filters = [{field = 'algorithm', label = 'Algorithm'}, {field = 'variant', label = 'Variant'}, {field = 'sketch_category', label = 'Sketch class', order = ['Gaussian', 'Haar', 'Sparse', 'Trig', 'Other']}, {field = 'sketch', label = 'Sketch'}, {field = 'norm', label = 'Norm'}, {field = 'mode', label = 'Guarantee mode'}]
 description = '''Compare sufficient sketch sizes for relative error $1+\varepsilon$, for sufficiently small positive $\varepsilon$. $\operatorname{OPT}_k$ is the best rank-$k$ error in the indicated norm; the basic outputs may have rank larger than $k$.'''
 notation = '''Real matrices and $0<\varepsilon\le\varepsilon_0$ for an absolute $\varepsilon_0>0$; rates give sufficient sample thresholds with absolute constants. Gaussian sketches have standard independent entries, with independent range and co-range sketches for generalized Nyström. Nyström requires $\mathbf{H}\succeq0$. Rotation-invariant sketches have a left unitarily invariant probability law and full column rank almost surely. $\widehat{\mathbf{A}}$ or $\widehat{\mathbf{H}}$ is the named algorithm output; late truncation takes its best rank-$k$ approximation, while early truncation truncates the sketch first. $\operatorname{OPT}_{\mathsf{F},k}^2=\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_k\|_{\mathsf{F}}^2$ and $\operatorname{OPT}_{*,k}=\|\mathbf{H}-\llbracket\mathbf{H}\rrbracket_k\|_*$. Frobenius guarantees take the expectation of the squared error.'''
+
+[[families]]
+id = 'regression'
+title = 'Regression'
+subject_label = 'Sketch'
+subject_field = 'sketch'
+filters = [{field = 'sketch_category', label = 'Sketch class', order = ['Gaussian', 'Haar', 'Sparse', 'Trig', 'Other']}, {field = 'sketch', label = 'Sketch'}, {field = 'mode', label = 'Guarantee mode'}]
+description = '''Compare sufficient sketch sizes for relative least-squares residual error. The error is the squared Frobenius norm of the residual.'''
+notation = '''For fixed matrices $\mathbf{A}\in\Bbbk^{m\times n}$ and $\mathbf{B}\in\Bbbk^{m\times q}$ over the scalar field permitted by the row, let $r=\operatorname{rank}\mathbf{A}$ and $\operatorname{OPT}_{\mathrm{LS}}^2=\min_{\mathbf{Y}}\|\mathbf{B}-\mathbf{A}\mathbf{Y}\|_{\mathsf{F}}^2=\|(\mathbf{I}-\mathbf{A}\mathbf{A}^{+})\mathbf{B}\|_{\mathsf{F}}^2$. A sketch $\mathbf{S}\in\Bbbk^{s\times m}$ produces $\widehat{\mathbf{X}}=\mathsf{sketchAndSolve}(\mathbf{A},\mathbf{S},\mathbf{B})=(\mathbf{S}\mathbf{A})^{+}\mathbf{S}\mathbf{B}$. For absolute $\varepsilon_0>0$, the rates assume $0<\varepsilon\le\varepsilon_0$. The input matrices are fixed before drawing the sketch; expectations and probabilities concern that draw. Resource thresholds, parameter ranges, rank restrictions, sketch normalization and any ambient-dimension cap are supplied by each reviewed row and its exact theorem. Gaussian and Haar rows use real inputs; the CountSketch tail also permits complex inputs. No full-column-rank assumption or coefficient-error guarantee is inferred.'''
 
 [[guarantees]]
 id = '''distributional-jl'''
@@ -543,3 +552,81 @@ notes = '''Output rank $\le k$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.IsLeftUnitarilyInvariant'''
 statement_hash = '''08c379df6a1fdff875baa3e48f569a266469c141e8c0ae44d9245d92c529708d'''
+
+[[guarantees]]
+id = 'expected-relative-regression-frobenius'
+family = 'regression'
+title = '''$(1+\varepsilon)$ least-squares residual · expected squared Frobenius error'''
+description = '''For fixed $\mathbf{A}$ and $\mathbf{B}$, the sketched least-squares output $\widehat{\mathbf{X}}=(\mathbf{S}\mathbf{A})^{+}\mathbf{S}\mathbf{B}$ satisfies $\mathbb{E}\|\mathbf{B}-\mathbf{A}\widehat{\mathbf{X}}\|_{\mathsf{F}}^2\le(1+\varepsilon)\operatorname{OPT}_{\mathrm{LS}}^2$, where $\operatorname{OPT}_{\mathrm{LS}}^2=\min_{\mathbf{Y}}\|\mathbf{B}-\mathbf{A}\mathbf{Y}\|_{\mathsf{F}}^2$. The expectation is of the squared residual over the sketch; this is neither a coefficient-error bound nor a rank-k approximation bound. Row-specific distribution, size and rank conditions apply.'''
+definitions = [{label = 'Sketch-and-solve', declaration = 'NLAlib.sketchAndSolve'}, {label = 'Least-squares solution', declaration = 'NLAlib.IsLeastSquaresSolution'}]
+
+[[guarantees]]
+id = 'high-prob-relative-regression-frobenius'
+family = 'regression'
+title = '''$(1+\varepsilon)$ least-squares residual · high probability'''
+description = '''For fixed $\mathbf{A}$ and $\mathbf{B}$, with probability at least $1-\delta$, the sketched least-squares output $\widehat{\mathbf{X}}=(\mathbf{S}\mathbf{A})^{+}\mathbf{S}\mathbf{B}$ satisfies $\|\mathbf{B}-\mathbf{A}\widehat{\mathbf{X}}\|_{\mathsf{F}}^2\le(1+\varepsilon)\operatorname{OPT}_{\mathrm{LS}}^2$, where $\operatorname{OPT}_{\mathrm{LS}}^2=\min_{\mathbf{Y}}\|\mathbf{B}-\mathbf{A}\mathbf{Y}\|_{\mathsf{F}}^2$. Each fixed input pair has its own success event; a single sketch need not work simultaneously for every input. Row-specific distribution, size, rank and parameter conditions apply.'''
+definitions = [{label = 'Sketch-and-solve', declaration = 'NLAlib.sketchAndSolve'}, {label = 'Least-squares solution', declaration = 'NLAlib.IsLeastSquaresSolution'}]
+
+[[rates]]
+id = '''regression-expected-gaussian'''
+theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_mul_sketchAndSolve_sq_le_of_hasLaw_gaussianMatrix'''
+family = '''regression'''
+algorithm = '''Sketch-and-solve'''
+sketch = '''Gaussian'''
+sketch_category = '''Gaussian'''
+norm = '''Frobenius squared'''
+mode = '''Expectation'''
+guarantee = '''expected-relative-regression-frobenius'''
+notes = '''Real inputs; unnormalized standard Gaussian sketch. Any rank $r\ge0$.'''
+algorithm_definition = '''NLAlib.sketchAndSolve'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''2859f44e5a6fc1e7ccfa8785cc9a17ed15e076e9c56b97482bb0d1f1db25bb7c'''
+resources = [{label = 'Sketch rows s', bound = '''$O((r+1)/\varepsilon)$ suffices'''}]
+
+[[rates]]
+id = '''regression-expected-haar'''
+theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_mul_sketchAndSolve_sq_le_of_hasLaw_haarFrame'''
+family = '''regression'''
+algorithm = '''Sketch-and-solve'''
+sketch = '''Haar'''
+sketch_category = '''Haar'''
+norm = '''Frobenius squared'''
+mode = '''Expectation'''
+guarantee = '''expected-relative-regression-frobenius'''
+notes = '''Real inputs; sketch $\mathbf{Q}^{\mathsf{H}}$ for an $m\times s$ Haar frame. $s\le m$; any rank $r\ge0$.'''
+algorithm_definition = '''NLAlib.sketchAndSolve'''
+sketch_definition = '''NLAlib.haarFrame'''
+statement_hash = '''3ea38288e0060e16c6a9bf5f9d3ac50b2dd7c8810b922eaebe5093f41d9f7bdb'''
+resources = [{label = 'Sketch rows s', bound = '''$O((r+1)/\varepsilon)$ suffices'''}]
+
+[[rates]]
+id = '''regression-high-prob-gaussian'''
+theorem = '''NLAlib.exists_forall_measureReal_frobNorm_sub_mul_sketchAndSolve_sq_gt_le_of_hasLaw_gaussianMatrix'''
+family = '''regression'''
+algorithm = '''Sketch-and-solve'''
+sketch = '''Gaussian'''
+sketch_category = '''Gaussian'''
+norm = '''Frobenius squared'''
+mode = '''High probability'''
+guarantee = '''high-prob-relative-regression-frobenius'''
+notes = '''Real inputs; unnormalized standard Gaussian sketch. $0<\delta\le1/2$; second-moment sufficient rate; any rank $r\ge0$.'''
+algorithm_definition = '''NLAlib.sketchAndSolve'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''fdd5592af60333194bf62a72dba7a6e987811c3321e9bd2fac5b6c0e81e2c752'''
+resources = [{label = 'Sketch rows s', bound = '''$O((r+1)/(\varepsilon\delta))$ suffices'''}]
+
+[[rates]]
+id = '''regression-high-prob-countsketch'''
+theorem = '''NLAlib.exists_forall_measureReal_frobNorm_sub_mul_sketchAndSolve_sq_gt_le_of_hasLaw_countSketch'''
+family = '''regression'''
+algorithm = '''Sketch-and-solve'''
+sketch = '''CountSketch'''
+sketch_category = '''Sparse'''
+norm = '''Frobenius squared'''
+mode = '''High probability'''
+guarantee = '''high-prob-relative-regression-frobenius'''
+notes = '''Real or complex inputs; unscaled one-sign-per-column CountSketch. $\delta>0$; any rank $r\ge0$.'''
+algorithm_definition = '''NLAlib.sketchAndSolve'''
+sketch_definition = '''NLAlib.countSketch'''
+statement_hash = '''404998880bc5588f76c55ce8d346ecf51efc00248bca3dc503a69ddf05d133a5'''
+resources = [{label = 'Sketch rows s', bound = '''$O(((r+1)^2+(r+1)/\varepsilon)/\delta)$ suffices'''}]
