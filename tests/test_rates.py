@@ -128,6 +128,109 @@ class RatesTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'unsafe id'):
                 self.render({'rates.toml': cfg})
 
+    def test_family_filters_allow_custom_scalar_without_norm_or_sketch(self):
+        cfg = copy.deepcopy(self.cfg)
+        family = cfg['families'][0]
+        family['filters'] = [dict(field='preconditioner', label='Preconditioner')]
+        row = cfg['rates'][0]
+        for field in ('norm', 'mode', 'variant', 'sketch'):
+            del row[field]
+        row['preconditioner'] = 'Diagonal'
+        site, _ = self.render({'rates.toml': cfg})
+        self.assertEqual(site['rates']['families'][0]['filters'], family['filters'])
+        self.assertEqual(site['rates']['entries'][0]['preconditioner'], 'Diagonal')
+        self.assertNotIn('norm', site['rates']['entries'][0])
+        for bad_value in (None, '', [], 3):
+            bad = copy.deepcopy(cfg)
+            if bad_value is None:
+                del bad['rates'][0]['preconditioner']
+            else:
+                bad['rates'][0]['preconditioner'] = bad_value
+            with self.subTest(value=bad_value), self.assertRaises(ValueError):
+                self.render({'rates.toml': bad})
+
+    def test_family_filters_validate_schema_and_do_not_infer(self):
+        site, _ = self.render({'rates.toml': self.cfg})
+        self.assertEqual(site['rates']['families'][0]['filters'], [])
+        cases = [[dict(field='algorithm', label='')],
+                 [dict(field='preconditioner', label='P')] * 2,
+                 [dict(field='bad-field', label='P')],
+                 [dict(field='Algorithm', label='P')], 'algorithm']
+        cases += [[dict(field=field, label='P')] for field in
+                  ('id', 'theorem', 'family', 'statement_hash', 'resources', 'overview',
+                   'explicit', 'result', 'guarantee', 'notes', 'hash')]
+        for filters in cases:
+            bad = copy.deepcopy(self.cfg)
+            bad['families'][0]['filters'] = filters
+            with self.subTest(filters=filters), self.assertRaises(ValueError):
+                self.render({'rates.toml': bad})
+        # Optional display attributes still must be nonempty strings when supplied.
+        for field in ('norm', 'mode', 'variant', 'sketch'):
+            bad = copy.deepcopy(self.cfg)
+            bad['rates'][0][field] = ''
+            with self.assertRaises(ValueError):
+                self.render({'rates.toml': bad})
+
+    def test_filter_order_is_optional_generic_and_unique(self):
+        cfg = copy.deepcopy(self.cfg)
+        facet = dict(field='sketch_category', label='Sketch',
+                     order=['Gaussian', 'Haar', 'Sparse', 'Trig', 'Other'])
+        cfg['families'][0]['filters'] = [facet]
+        cfg['rates'][0]['sketch_category'] = 'Gaussian'
+        site, _ = self.render({'rates.toml': cfg})
+        self.assertEqual(site['rates']['families'][0]['filters'][0]['order'], facet['order'])
+        # Unused ordered values and new values are both allowed across future families.
+        cfg['rates'][0]['sketch_category'] = 'New distribution'
+        self.render({'rates.toml': cfg})
+        for order in ('Gaussian', [''], [' '], [3], ['Gaussian', 'Gaussian']):
+            bad = copy.deepcopy(cfg)
+            bad['families'][0]['filters'][0]['order'] = order
+            with self.subTest(order=order), self.assertRaisesRegex(ValueError, 'order'):
+                self.render({'rates.toml': bad})
+
+    def test_metadata_survives_physical_module_reorganization(self):
+        old_module = 'NLAlib.Sketching.Gaussian.Haar'
+        new_module = 'NLAlib.Sketching.Haar.Embedding'
+        ds = copy.deepcopy(self.ds)
+        ds += [decl('N.new_result', 'Result: future'), decl('N.futureConcept', kind='def')]
+        for i, d in enumerate(ds):
+            d.update(module=old_module, line=10 + i, endLine=11 + i)
+        config = {
+            'rates.toml': self.cfg,
+            'results.toml': {'bound': {'primary': 'N.exp'}},
+            'collections.toml': {'collections': [dict(
+                id='sketching', title='Sketching', description='D', topic='Sketching',
+                groups=[dict(id='haar', title='Haar', results=['bound'], definitions=[])])]},
+        }
+        def build_at(module, declarations):
+            with tempfile.TemporaryDirectory() as tmp:
+                out = Path(tmp) / 'site'
+                data = dict(decls=copy.deepcopy(declarations), modules=[dict(
+                    name=module, path=module.replace('.', '/') + '.lean')])
+                with patch.object(b, 'load_toml', side_effect=lambda name: config.get(name, {})):
+                    b.build(data, {}, out)
+                return json.loads((out / 'data.json').read_text())
+        before = build_at(old_module, ds)
+        moved = copy.deepcopy(ds)
+        for d in moved:
+            d.update(module=new_module, line=d['line'] + 100, endLine=d['endLine'] + 100)
+        after = build_at(new_module, moved)
+        # Stable declaration identity and doc/signature hash preserve curated metadata.
+        self.assertEqual(before['rates'], after['rates'])
+        self.assertEqual(before['collections'], after['collections'])
+        for site in (before, after):
+            result = site['results']['bound']
+            self.assertEqual(site['decls'][result['explicit']]['n'], 'N.exp')
+            self.assertEqual(site['decls'][result['overview']]['n'], 'N.asym')
+            self.assertEqual(site['collections'][0]['groups'][-1]['entries'], [
+                {'type': 'r', 'rid': 'future'}, {'type': 'd', 'i': 3}])
+        self.assertNotIn(old_module, after['modules'])
+        self.assertEqual(after['modules'][new_module]['path'], 'NLAlib/Sketching/Haar/Embedding.lean')
+        self.assertEqual(after['results']['bound']['module'], new_module)
+        self.assertEqual([d['m'] for d in after['decls']], [new_module] * 4)
+        self.assertEqual([d['l'] for d in after['decls']], [110, 111, 112, 113])
+        self.assertEqual([d['e'] for d in after['decls']], [111, 112, 113, 114])
+
 
 if __name__ == '__main__':
     unittest.main()

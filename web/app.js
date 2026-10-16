@@ -89,7 +89,7 @@
 
   function tex(src, display) {
     try {
-      return katex.renderToString(src, { displayMode: display, throwOnError: false, output: 'html' });
+      return katex.renderToString(normalizeProbability(src), { displayMode: display, throwOnError: false, output: 'html' });
     } catch (e) {
       return `<code>${esc(src)}</code>`;
     }
@@ -97,7 +97,7 @@
 
   const typeset = src => {
     try {
-      return katex.renderToString(src, { throwOnError: true, strict: 'ignore', output: 'html' });
+      return katex.renderToString(normalizeProbability(src), { throwOnError: true, strict: 'ignore', output: 'html' });
     } catch (e) {
       return null;   // not valid TeX after all
     }
@@ -332,19 +332,44 @@
     $('#q').placeholder = 'Search rates, algorithms, sketches and guarantees';
     $('#q').setAttribute('aria-label', 'Search rates');
     $('#byline').innerHTML = `From NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
-    const fields = [['family', 'Family'], ['algorithm', 'Method / property'], ['sketch', 'Sketch'], ['norm', 'Norm'], ['mode', 'Guarantee mode']];
-    const filters = h('<div class="rate-filters" aria-label="Filter rates"></div>');
-    for (const [key, title] of fields) {
-      const values = [...new Set((D.rates?.entries || []).map(e => e[key]).filter(Boolean))];
-      const label = h(`<label>${title}<select aria-label="${title}"><option value="">All</option>${values.map(v => {
-        const name = key === 'family' ? D.rates.families.find(f => f.id === v)?.title || v : v;
-        return `<option value="${esc(v)}">${esc(name)}</option>`;
-      }).join('')}</select></label>`);
-      $('select', label).addEventListener('change', ev => { rateFilters[key] = ev.target.value; renderRates(); });
-      filters.append(label);
-    }
-    $('#searchbar').append(filters);
+    $('#searchbar').append(h('<div class="rate-filters" aria-label="Filter rates"></div>'));
     renderRates();
+  }
+
+  function renderRateFilters() {
+    const families = D.rates?.families || [];
+    const family = families.find(f => f.id === rateFilters.family);
+    const schema = family?.filters || [];
+    const allowed = new Set(['family', ...schema.map(f => f.field)]);
+    for (const key of Object.keys(rateFilters)) if (!allowed.has(key)) delete rateFilters[key];
+    const filters = $('.rate-filters');
+    if (!filters) return;
+    filters.replaceChildren();
+    const add = (field, title, values, names = {}) => {
+      const label = h(`<label>${esc(title)}<select data-field="${esc(field)}" aria-label="${esc(title)}"><option value="">All${field === 'family' ? ' families' : ''}</option>${values.map(v =>
+        `<option value="${esc(v)}"${rateFilters[field] === v ? ' selected' : ''}>${esc(names[v] || v)}</option>`).join('')}</select></label>`);
+      $('select', label).addEventListener('change', ev => {
+        const value = ev.target.value;
+        if (field === 'family') for (const key of Object.keys(rateFilters)) delete rateFilters[key];
+        rateFilters[field] = value;
+        renderRates();
+        [...document.querySelectorAll('.rate-filters select')].find(s => s.dataset.field === field)?.focus();
+      });
+      filters.append(label);
+    };
+    add('family', 'Family', families.map(f => f.id), Object.fromEntries(families.map(f => [f.id, f.title])));
+    if (!family) return;
+    const rows = (D.rates?.entries || []).filter(e => e.family === family.id);
+    for (const facet of schema) {
+      const compatible = rows.filter(e => schema.every(other => other.field === facet.field || !rateFilters[other.field] || e[other.field] === rateFilters[other.field]));
+      const values = [...new Set(compatible.map(e => e[facet.field]).filter(v => v !== undefined && v !== null && v !== '').map(String))];
+      if (facet.order) {
+        const rank = value => { const i = facet.order.indexOf(value); return i < 0 ? facet.order.length : i; };
+        values.sort((a, b) => rank(a) - rank(b));
+      }
+      if (rateFilters[facet.field] && !values.includes(rateFilters[facet.field])) delete rateFilters[facet.field];
+      if (values.length > 1 || rateFilters[facet.field]) add(facet.field, facet.label || facet.field, values);
+    }
   }
 
   function rateSearchWords(text) {
@@ -357,17 +382,18 @@
   function resetRates() {
     $('#q').value = '';
     for (const k of Object.keys(rateFilters)) rateFilters[k] = '';
-    document.querySelectorAll('.rate-filters select').forEach(s => { s.value = ''; });
+    renderRateFilters();
     renderRates();
   }
 
   function renderRates() {
+    renderRateFilters();
     const query = rateSearchWords($('#q').value);
     const entries = (D.rates?.entries || []).filter(e => {
-      if (!Object.entries(rateFilters).every(([k, v]) => !v || e[k] === v)) return false;
+      if (!Object.entries(rateFilters).every(([k, v]) => !v || String(e[k]) === v)) return false;
       const family = D.rates.families.find(f => f.id === e.family);
       const words = rateSearchWords([e.algorithm, e.variant, e.sketch, e.norm, e.mode, e.guarantee,
-        ...e.resources.flatMap(r => [r.label, r.bound]), ...(Array.isArray(e.notes) ? e.notes : [e.notes]), family?.title].join(' '));
+        ...(family?.filters || []).map(f => e[f.field]), ...e.resources.flatMap(r => [r.label, r.bound]), ...(Array.isArray(e.notes) ? e.notes : [e.notes]), family?.title].join(' '));
       return query.every(q => words.some(w => w.includes(q)));
     });
     const families = D.rates?.families || [];
@@ -380,8 +406,8 @@
         (f.notation ? `<details class="rate-notation" id="${esc(notationId)}"${openSections.has(notationId) ? ' open' : ''}><summary>Notation and assumptions</summary>${md(f.notation)}</details>` : '') +
         `<table class="rates-table"><thead><tr><th scope="col">${subject}</th><th scope="col">Guarantee</th><th scope="col">Resources</th></tr></thead><tbody>` + rows.map(e => {
           const notes = Array.isArray(e.notes) ? e.notes.join(' ') : e.notes;
-          return `<tr id="rate-row-${esc(e.id)}"><td data-label="${subject}"><strong>${esc(e.algorithm)}</strong>${e.variant ? `<span class="rate-meta">${md(e.variant, { inline: true })}</span>` : ''}<span class="rate-meta">${esc(e.sketch)}</span></td>` +
-            `<td data-label="Guarantee"><span class="rate-meta">${esc(e.norm)} · ${esc(e.mode)}</span>${md(e.guarantee, { inline: true })}</td>` +
+          return `<tr id="rate-row-${esc(e.id)}"><td data-label="${subject}"><strong>${esc(e.algorithm)}</strong>${e.variant ? `<span class="rate-meta">${md(e.variant, { inline: true })}</span>` : ''}${e.sketch ? `<span class="rate-meta">${esc(e.sketch)}</span>` : ''}</td>` +
+            `<td data-label="Guarantee">${e.norm || e.mode ? `<span class="rate-meta">${[e.norm, e.mode].filter(Boolean).map(esc).join(' · ')}</span>` : ''}${md(e.guarantee, { inline: true })}</td>` +
             `<td data-label="Resources">${e.resources.map(r => `<div class="rate-resource"><strong>${esc(r.label)}:</strong> ${md(r.bound, { inline: true })}</div>`).join('')}${notes ? `<p class="rate-caveat"><strong>Parameters:</strong> ${md(notes, { inline: true })}</p>` : ''}</td>` +
             `</tr><tr class="rate-theorem"><td colspan="3"><a class="rate-permalink" href="#rate/${encodeURIComponent(e.id)}" aria-label="Link to this rate">Link</a><details class="rate-detail" data-rate="${esc(e.id)}"><summary>View theorem</summary><div class="rate-expanded"></div></details></td></tr>`;
         }).join('') + '</tbody></table></section>';

@@ -169,6 +169,96 @@
     return src;
   }
 
+  // Only explicit probability operators are typography: a plain P may be a matrix.
+  // Parse balanced event delimiters before changing either end; malformed input stays intact.
+  function normalizeProbability(tex) {
+    const groupEnd = (at) => {
+      if (tex[at] !== '{') return -1;
+      let depth = 1;
+      for (let i = at + 1; i < tex.length; i++) {
+        if (tex[i] === '\\') { i++; continue; }
+        if (tex[i] === '{') depth++;
+        if (tex[i] === '}' && --depth === 0) return i + 1;
+      }
+      return -1;
+    };
+    const protectedEnd = at => {
+      const verb = /^\\verb\*?([^A-Za-z\s])/.exec(tex.slice(at));
+      if (verb) {
+        const end = tex.indexOf(verb[1], at + verb[0].length);
+        return end < 0 ? tex.length : end + 1;
+      }
+      const m = /^\\(?:text|textrm|texttt|textsf|textnormal|mbox)\s*\{/.exec(tex.slice(at));
+      return m ? groupEnd(at + m[0].lastIndexOf('{')) : -1;
+    };
+    const delimiter = at => {
+      const m = /^(\\(?:left|right|bigl|bigr|Bigl|Bigr|biggl|biggr|Biggl|Biggr|big|Big|bigg|Bigg)\s*)?(\\[{}]|[()[\]{}])/.exec(tex.slice(at));
+      if (!m) return null;
+      return { end: at + m[0].length, size: m[1] || '', char: m[2] };
+    };
+    const closing = { '(': ')', '[': ']', '{': '}', '\\{': '\\}' };
+    const sizePair = s => s.replace(/left\b/, 'right').replace(/l\s*$/, 'r');
+    let out = '', copied = 0;
+    for (let i = 0; i < tex.length; i++) {
+      const skip = protectedEnd(i);
+      if (skip > i) { i = skip - 1; continue; }
+      if (tex[i] !== '\\') continue;
+      const op = /^(?:\\mathbb\s*\{\s*P\s*\}|\\Pr(?![A-Za-z])|\\operatorname\s*\{\s*Pr\s*\})/.exec(tex.slice(i));
+      if (!op) { // Do not mistake a command escaped by \\ for an operator.
+        if (tex[i + 1] === '\\') i++;
+        continue;
+      }
+      const opEnd = i + op[0].length;
+      let at = opEnd;
+      // Probability measures can carry subscripts/superscripts before the event.
+      while (true) {
+        while (/\s/.test(tex[at] || '') && at < tex.length) at++;
+        if (tex[at] !== '_' && tex[at] !== '^') break;
+        at++;
+        while (/\s/.test(tex[at] || '') && at < tex.length) at++;
+        if (tex[at] === '{') {
+          const end = groupEnd(at);
+          if (end < 0) { at = tex.length; break; }
+          at = end;
+        } else {
+          const atom = /^(?:\\[A-Za-z]+|[^\s{}_[\]()^])/.exec(tex.slice(at));
+          if (!atom) { at = tex.length; break; }
+          at += atom[0].length;
+        }
+      }
+      const open = delimiter(at);
+      if (!open || !['(', '['].includes(open.char) || /right|r\s*$/.test(open.size)) continue;
+      const stack = [open];
+      let close = null;
+      for (let j = open.end; j < tex.length;) {
+        const end = protectedEnd(j);
+        if (end > j) { j = end; continue; }
+        const token = delimiter(j);
+        if (!token) {
+          if (tex[j] === '\\') {
+            const command = /^\\(?:[A-Za-z]+|.)/.exec(tex.slice(j));
+            j += command ? command[0].length : 1;
+          } else j++;
+          continue;
+        }
+        if (closing[token.char]) stack.push(token);
+        else {
+          const last = stack.pop();
+          if (!last || closing[last.char] !== token.char ||
+              sizePair(last.size).trim() !== token.size.trim()) break;
+          if (!stack.length) { close = { ...token, start: j }; break; }
+        }
+        j = token.end;
+      }
+      if (!close) continue;
+      out += tex.slice(copied, i) + '\\mathbb{P}' + tex.slice(opEnd, at) +
+        open.size + '[' + normalizeProbability(tex.slice(open.end, close.start)) + close.size + ']';
+      copied = close.end;
+      i = close.end - 1;
+    }
+    return out + tex.slice(copied);
+  }
+
   function codeToTex(src, lenient = false, bold = null) {
     const slots = [];
     src = caretGroups(expand(src, lenient, bold, slots));
@@ -309,7 +399,7 @@
     for (const c of ['_', '\\^']) {
       tex = tex.replace(new RegExp(`${c}\\{${G}\\}${c}\\{${G}\\}`, 'g'), (m, a, b) => `${m[0]}{${a}${b}}`);
     }
-    return sqrt(tex);
+    return normalizeProbability(sqrt(tex));
   }
 
   // `\surd (…)` -> `\sqrt{…}` with balanced brackets, `\surd x` -> `\sqrt{x}`
@@ -339,5 +429,6 @@
   }
 
   root.codeToTex = codeToTex;
-  if (typeof module !== 'undefined') module.exports = { codeToTex };
+  root.normalizeProbability = normalizeProbability;
+  if (typeof module !== 'undefined') module.exports = { codeToTex, normalizeProbability };
 })(typeof window !== 'undefined' ? window : globalThis);

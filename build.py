@@ -557,18 +557,49 @@ def unique_ids(rows, label):
 def rates_page(cfg, decls, index, targets):
     families = cfg.get('families', [])
     family_ids = unique_ids(families, 'rate family')
+    reserved_filters = {'id', 'ids', 'theorem', 'family', 'statement_hash', 'hash', 'resources',
+                        'overview', 'explicit', 'result', 'guarantee', 'notes',
+                        'doc', 'signature', 'statement', 'source', 'title', 'description', 'filters'}
+    family_filters = {}
+    out_families = []
     for family in families:
         required_text(family, ['title', 'description'], 'rate family')
+        filters = family.get('filters', [])
+        if not isinstance(filters, list):
+            raise ValueError(f'rate family {family["id"]}: filters must be a list')
+        seen = set()
+        for item in filters:
+            if not isinstance(item, dict):
+                raise ValueError(f'rate family {family["id"]}: invalid filter')
+            required_text(item, ['field', 'label'], f'rate family {family["id"]} filter')
+            if 'order' in item:
+                order = item['order']
+                if not isinstance(order, list) or any(not isinstance(v, str) or not v.strip() for v in order):
+                    raise ValueError(f'rate family {family["id"]}: filter order must contain nonempty strings')
+                if len(order) != len(set(order)):
+                    raise ValueError(f'rate family {family["id"]}: duplicate filter order values')
+            field = item['field']
+            if not re.fullmatch(r'[a-z][a-z0-9_]*', field) or field in reserved_filters:
+                raise ValueError(f'rate family {family["id"]}: unsafe or reserved filter field {field}')
+            if field in seen:
+                raise ValueError(f'rate family {family["id"]}: duplicate filter field {field}')
+            seen.add(field)
+        family_filters[family['id']] = filters
+        out_families.append({**family, 'filters': filters})
     entries = cfg.get('rates', [])
     unique_ids(entries, 'rate')
     out = []
     for rate in entries:
-        required_text(rate, ['theorem', 'family', 'algorithm', 'variant', 'sketch', 'norm',
-                             'mode', 'guarantee', 'statement_hash'], f'rate {rate["id"]}')
+        required_text(rate, ['theorem', 'family', 'algorithm', 'guarantee', 'statement_hash'], f'rate {rate["id"]}')
         if 'notes' in rate and not isinstance(rate['notes'], str):
             raise ValueError(f'rate {rate["id"]}: invalid notes')
         if rate['family'] not in family_ids:
             raise ValueError(f'rate {rate["id"]}: unknown family {rate["family"]}')
+        for key, value in rate.items():
+            if key != 'resources' and (not isinstance(value, str) or (key != 'notes' and not value.strip())):
+                raise ValueError(f'rate {rate["id"]}: empty or invalid scalar metadata {key}')
+        required_text(rate, [f['field'] for f in family_filters[rate['family']]],
+                      f'rate {rate["id"]} configured filter')
         i = index.get(rate['theorem'])
         if i is None or i not in targets:
             raise ValueError(f'rate {rate["id"]}: missing asymptotic theorem {rate["theorem"]}')
@@ -590,7 +621,7 @@ def rates_page(cfg, decls, index, targets):
                 raise ValueError(f'rate {rate["id"]}: invalid resource')
             required_text(resource, ['label', 'bound'], f'rate {rate["id"]} resource')
         out.append({**rate, 'overview': i, 'explicit': j, 'result': d['_results'][0]})
-    return {'families': families, 'entries': out}
+    return {'families': out_families, 'entries': out}
 
 
 def collections_page(cfg, results, decls, index, modules, aliases):
