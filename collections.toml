@@ -94,3 +94,51 @@ id = "foundations"
 title = "Least-squares foundations"
 definitions = ["NLAlib.IsLeastSquaresSolution", "NLAlib.obliqueProjector"]
 results = ["normal-equations", "least-squares-pseudoinverse", "minimum-norm-least-squares", "least-squares-perturbation", "oblique-projection-error-split"]
+
+[[collections]]
+id = "krylov"
+topic = "Krylov"
+title = "Krylov methods"
+description = "Browse by algorithm: the Lanczos and Arnoldi processes, CG, MINRES and GMRES with their preconditioned variants and recurrences, and Lanczos for matrix functions; the Krylov spaces they share come first."
+
+[[collections.groups]]
+id = "krylov-spaces"
+title = "Krylov spaces"
+definitions = ["NLAlib.krylovMatrix", "NLAlib.krylovSpace", "NLAlib.krylovGrade"]
+results = ["krylov-space-dimension", "krylov-space-polynomial"]
+
+[[collections.groups]]
+id = "lanczos"
+title = "Lanczos"
+definitions = ["NLAlib.lanczosState", "NLAlib.lanczosMatrix", "NLAlib.lanczosTridiagonal", "NLAlib.LanczosState", "NLAlib.lanczosStep", "NLAlib.lanczosAlpha", "NLAlib.preconditionedLanczosState", "NLAlib.preconditionedLanczosMatrix", "NLAlib.preconditionedLanczosTridiagonal", "NLAlib.PreconditionedLanczosState", "NLAlib.preconditionedLanczosStep", "NLAlib.preconditionedLanczosAlpha"]
+results = ["lanczos-tridiagonal", "lanczos-recurrence", "lanczos-breakdown", "preconditioned-lanczos-recurrence"]
+
+[[collections.groups]]
+id = "arnoldi"
+title = "Arnoldi"
+definitions = ["NLAlib.arnoldiMatrix", "NLAlib.IsGradedKrylovBasis", "NLAlib.arnoldiState", "NLAlib.arnoldiStep", "NLAlib.mgsArnoldiMatrix", "NLAlib.mgsArnoldiHessenberg"]
+results = ["arnoldi-basis", "arnoldi-relation", "arnoldi-hessenberg", "arnoldi-recurrence", "arnoldi-breakdown"]
+
+[[collections.groups]]
+id = "cg"
+title = "CG"
+definitions = ["NLAlib.cgIterate", "NLAlib.galerkinInverse", "NLAlib.cgState", "NLAlib.CGState", "NLAlib.cgStep", "NLAlib.pcgIterate", "NLAlib.pcgState", "NLAlib.PCGState", "NLAlib.pcgStep", "NLAlib.chebyshevExtremaMatrix", "NLAlib.chebyshevErrorVector"]
+results = ["cg-galerkin-formula", "cg-galerkin-condition", "galerkin-optimality", "cg-optimality", "cg-polynomial-bound", "cg-chebyshev-bound", "cg-outlier-bound", "cg-spectrum-minimax-bound", "cg-finite-termination", "cgls", "cg-recurrence", "cg-orthogonality", "cg-lanczos", "lanczos-fa-cg", "cg-near-optimality", "cg-near-optimality-lower-bound", "cg-chebyshev-sharp", "cg-spectrum-minimax-sharp", "pcg-optimality", "pcg-split-system", "pcg-chebyshev-bound", "pcg-outlier-bound", "pcg-spectrum-minimax-bound", "pcg-finite-termination", "pcg-recurrence", "pcg-orthogonality"]
+
+[[collections.groups]]
+id = "minres"
+title = "MINRES"
+definitions = ["NLAlib.gmresIterate", "NLAlib.pminresIterate", "NLAlib.minresState", "NLAlib.MINRESState", "NLAlib.minresStep", "NLAlib.chebyshevExtremaMatrix", "NLAlib.chebyshevWeightVector", "NLAlib.chebyshevTwoIntervalMatrix", "NLAlib.chebyshevTwoIntervalVector"]
+results = ["minres-polynomial-bound", "minres-chebyshev-bound", "minres-two-interval-bound", "minres-outlier-bound", "minres-spectrum-minimax-bound", "minres-lanczos", "minres-recurrence", "minres-residual-estimate", "minres-chebyshev-sharp", "minres-two-interval-sharp", "minres-spectrum-minimax-sharp", "pminres-optimality", "pminres-split-system", "pminres-polynomial-bound", "pminres-chebyshev-bound", "pminres-finite-termination", "pminres-lanczos"]
+
+[[collections.groups]]
+id = "gmres"
+title = "GMRES"
+definitions = ["NLAlib.gmresIterate", "NLAlib.minResidualInverse"]
+results = ["min-residual-optimality", "gmres-optimality", "gmres-petrov-galerkin", "gmres-polynomial-bound", "gmres-diagonalizable-bound", "gmres-field-of-values-bound", "gmres-finite-termination", "gmres-arnoldi", "gmres-givens", "gmres-residual-estimate", "givens-qr"]
+
+[[collections.groups]]
+id = "lanczos-fa"
+title = "Lanczos for matrix functions"
+definitions = ["NLAlib.lanczosFA", "NLAlib.compressedCfc", "NLAlib.IsStieltjes", "NLAlib.HasStieltjesMeasure"]
+results = ["lanczos-fa-formula", "lanczos-fa-interpolation", "lanczos-fa-exactness", "lanczos-fa-uniform-bound", "lanczos-fa-recurrence", "lanczos-fa-cg", "lanczos-fa-near-optimality", "lanczos-fa-kernel-near-optimality", "lanczos-fa-near-optimality-lower-bound"]
