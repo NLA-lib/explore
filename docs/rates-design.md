@@ -1,7 +1,6 @@
 # Rates and algorithm-oriented exploration
 
-The dated sections record successive changes. The latest section, **Shared guarantees and
-Regression**, describes the current schema and presentation.
+The dated sections record successive changes. The latest section, **Regression Rates validation**, describes the current completed extension. Earlier dated sections record its preparation and preceding schema changes.
 
 Approved 2026-10-16. Presentation only; no mathematical declarations or import paths change.
 The library checkout has ongoing Lean development, so implementation and validation use its
@@ -154,8 +153,8 @@ classification elsewhere suppresses automatic fallback duplication; intentional 
 remain possible. A configured collection may introduce a topic before the corresponding source
 directory exists. This lets the same Explorer metadata work before and after the separate library
 migration to `NLAlib.Regression.{Embedding,Oblique,Oblivious,SketchAndSolve}`. Module navigation
-and source URLs still come from the actual extraction, without path overrides. There are no
-regression asymptotic corollaries yet, so this change adds no unsupported Regression rate rows.
+and source URLs still come from the actual extraction, without path overrides. At that checkpoint there were no regression asymptotic corollaries, so no Regression rate rows
+were added until the subsequent proof stage described below.
 
 The current published extraction is dc71a3c26ae48e78b7741e3218f188aede15a988. All 28 existing
 Rates theorem hashes are unchanged and validate against it. The source migration preserves
@@ -170,3 +169,117 @@ links, clipboard success and denied-access fallback, family-dependent filters an
 search/reset/deep links, and Regression as a peer collection. Rates and expanded Regression have
 no page overflow at 320, 390 and 800 pixels; long catalogue equations scroll within the reading
 column. Screenshots were inspected. Independent placement and implementation reviews approved.
+
+## Regression Rates preparation (2026-10-16)
+
+The staged Regression family reuses the existing family → guarantee → rows layout. It leads
+with the sketch and configures sketch class, sketch and guarantee mode as its facets. All
+planned rows use squared Frobenius residual error, so a norm facet would add no choice. The
+algorithm definition is `NLAlib.sketchAndSolve`; sketch-definition links will identify the exact
+Gaussian, Haar or CountSketch object used by each proved statement.
+
+The common comparison quantity is
+$\operatorname{OPT}_{\mathrm{LS}}^2=\min_{\mathbf{Y}}\|\mathbf{B}-\mathbf{A}\mathbf{Y}\|_{\mathsf{F}}^2
+=\|(\mathbf{I}-\mathbf{A}\mathbf{A}^{+})\mathbf{B}\|_{\mathsf{F}}^2$,
+with fixed real inputs and $\widehat{\mathbf{X}}=(\mathbf{S}\mathbf{A})^{+}\mathbf{S}\mathbf{B}$.
+One shared guarantee bounds the expectation of the squared residual by
+$(1+\varepsilon)\operatorname{OPT}_{\mathrm{LS}}^2$; a second bounds that residual with probability
+at least $1-\delta$. Input quantifiers are per fixed pair, with randomness over the sketch.
+Visible row notes will carry the exact theorem's rank restrictions, parameter domains,
+normalization and Haar ambient-size cap.
+
+Preparation checkpoint (now completed): the family and two guarantees were drafted using existing
+algorithm and least-squares definitions. The four new rows were held back until their signatures,
+proofs and fresh extraction were complete. No placeholder hashes or result primaries were used.
+Their resource rates were then read from the completed statements; the final validation is below.
+
+Deployment order is a dependency of this change. Merge the library theorem changes first and
+wait for the rolling `explore-data` release to publish their fresh extraction, commit and source
+hash manifest. Then review all four asymptotic/explicit pairs and their parameter conditions,
+record their signature/docstring hashes, and merge/deploy the explorer metadata. Strict
+reference, proved-pair, source-fingerprint and rate-hash validation stays enabled throughout.
+Explorer unit tests can pass on a metadata PR before the new library release exists; they do
+not establish that a deployment build against the currently published extraction will succeed.
+A local integration preview may use the final uncommitted extraction and its matching source
+bytes, but publication must wait for the library release. Its public source links become accurate
+only after extraction records the committed source revision.
+
+
+### Locked Regression row plan
+
+The approved library note `Regression-Rates.md` fixed the four rows below before implementation. Here
+$r=\operatorname{rank}\mathbf{A}$, $s$ is the sketch row count and the stated resources are
+sufficient thresholds. Their active metadata and hashes were added only after proof completion and fresh extraction.
+
+| Planned row id | Sketch / mode | Sketch rows $s$ | Visible conditions |
+| --- | --- | --- | --- |
+| `regression-expected-gaussian` | Gaussian / Expectation | $O((r+1)/\varepsilon)$ | Real inputs; unnormalized standard Gaussian sketch; sufficiently small positive epsilon; rank deficiency allowed. |
+| `regression-expected-haar` | Haar / Expectation | $O((r+1)/\varepsilon)$ | Real inputs; sketch is the adjoint of a Haar frame; $s\le m$; sufficiently small positive epsilon. |
+| `regression-high-prob-gaussian` | Gaussian / High probability | $O((r+1)/(\varepsilon\delta))$ | Real inputs; unnormalized standard Gaussian sketch; $0<\delta\le1/2$; second-moment sufficient rate. |
+| `regression-high-prob-countsketch` | CountSketch / High probability | $O(((r+1)^2+(r+1)/\varepsilon)/\delta)$ | Real or complex inputs; unscaled one-sign-per-column sketch; $\delta>0$; sufficiently small positive epsilon. |
+
+The expected asymptotic names are
+`NLAlib.exists_forall_integral_frobNorm_sub_mul_sketchAndSolve_sq_le_of_hasLaw_gaussianMatrix`
+and `NLAlib.exists_forall_integral_frobNorm_sub_mul_sketchAndSolve_sq_le_of_hasLaw_haarFrame`.
+Their explicit names replace `exists_forall_integral` by `integral` and `_sq_le_of_` by
+`_sq_le_one_add_mul_of_`. Their existing Result id remains `sketch-and-solve-expected-error`.
+The intended primary is
+`NLAlib.integral_frobNorm_sub_mul_sketchAndSolve_sq_le_one_add_mul_of_hasLaw_gaussianMatrix`.
+
+The high-probability asymptotic names are
+`NLAlib.exists_forall_measureReal_frobNorm_sub_mul_sketchAndSolve_sq_gt_le_of_hasLaw_gaussianMatrix`
+and `NLAlib.exists_forall_measureReal_frobNorm_sub_mul_sketchAndSolve_sq_gt_le_of_hasLaw_countSketch`;
+the explicit names omit `exists_forall_`. Their Result id remains `sketch-and-solve-ls`, with
+the Gaussian explicit theorem as intended primary. Existing identities and generic forms stay
+in both results. The strict failure event is residual squared **greater than**
+$(1+\varepsilon)\operatorname{OPT}_{\mathrm{LS}}^2$, so its complementary success statement
+uses a non-strict upper bound, including when the optimal residual vanishes.
+
+These names and summaries were compared to the completed extracted signatures and proof status
+in the final validation below. In particular, Gaussian probability normalization must not be inserted into the
+algorithm shown by its theorem, and CountSketch's complex-field support must not be lost in a
+family-wide real-only convention. A Gaussian logarithmic-in-failure rate is not claimed.
+
+
+## Regression Rates validation
+
+The four planned Regression rows are now populated from the completed extracted declarations.
+There are 32 rows, nine shared guarantees and three families. Both regression Result groups use
+the new Gaussian explicit relative-residual declaration as their preferred primary; their Haar,
+CountSketch, exact-identity and generic formal statements remain accessible. The earlier
+preparation statements about absent rows are superseded by this section.
+
+Read-back from the final signatures: for every fixed real input pair, Gaussian sketch-and-solve
+with $s\ge C(r+1)/\varepsilon$ bounds the expected **squared** Frobenius residual by
+$(1+\varepsilon)$ times the optimal squared least-squares residual. Haar has the same sufficient
+threshold using the adjoint frame and retains $s\le m$. The Gaussian high-probability theorem
+uses an unnormalized standard Gaussian sketch and sufficient
+$s\ge C(r+1)/(\varepsilon\delta)$, with $0<\delta\le1/2$. CountSketch is unscaled,
+works over any `RCLike` field, and uses
+$s\ge C((r+1)^2+(r+1)/\varepsilon)/\delta$ with $\delta>0$. All four use sufficiently
+small positive epsilon, absolute constants before every dimension and input, arbitrary matrix
+right-hand sides, and rank-plus-one thresholds that include rank zero. Both high-probability
+statements bound the **strict** failure event above $(1+\varepsilon)$ times the optimum by
+$\delta$. The earlier real-only wording applies to expectation and Gaussian rows; CountSketch
+also permits complex inputs.
+
+Validation used `/tmp/nlalib-regression-rates-explore.json` (301 listed modules, 3466 public
+declarations) and matching extraction-time source bytes from NLAlib. The source manifest validated
+before 167 definition bodies were enriched; the explorer displays 300 modules because the root
+aggregator is not a topic module. All 28 previous Rates rows remain unchanged. Four new hashes
+were computed from the fresh signature/docstring bytes, with only HTML comments removed, and the
+strict builder accepted every pair and preferred primary. The final extraction records committed library revision
+`b66e36e811709491eb8d5e5a54e891a3c173032d`; source fingerprints and the four theorem hashes remain unchanged from the
+validated local snapshot. The preview was rebuilt with this committed revision so source links
+identify the new theorem versions. Publish this library revision before explorer deployment.
+
+All 22 Python regressions, Node probability tests and JavaScript syntax checks passed. Chrome
+checked all 32 explicit/asymptotic row views, all nine guarantee groups and definition links,
+Regression's four rows and expectation/high-probability filters (two each), and Gaussian/Haar/
+CountSketch filters (two/one/one). Clipboard success/fallback, search/reset, hidden-row deep links,
+custom family facets, existing collection/source breadcrumbs and Regression peer browsing passed.
+Every family's expanded guarantees and notation, plus expanded Regression catalogue content,
+stayed within the page at 320, 390 and 800 pixels; no browser or KaTeX errors were observed.
+Desktop and expanded mobile Regression screenshots were inspected. No frontend or validation
+changes were needed for the new family. Publication order remains library merge and fresh
+rolling-release extraction first, explorer metadata merge and deployment second.
