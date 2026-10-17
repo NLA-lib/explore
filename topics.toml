@@ -52,6 +52,15 @@ BoundedDifferences = "Entropy"
 MatrixIntegral = "MatrixValued"
 MatrixConditionalExpectation = "MatrixValued"
 
+[Krylov]
+title = "Krylov methods"
+blurb = "Krylov spaces, the Lanczos and Arnoldi processes, CG, MINRES and GMRES with their preconditioned variants, and Lanczos for matrix functions."
+order = ["Basic", "Processes", "LinearSystems", "Functions"]
+Basic.title = "Krylov spaces"
+Processes.title = "Lanczos and Arnoldi processes"
+LinearSystems.title = "Linear systems: CG, MINRES and GMRES"
+Functions.title = "Matrix functions: Lanczos-FA"
+
 [RandomMatrix]
 title = "Random matrices"
 blurb = "Gaussian, sub-Gaussian and Haar random matrices: invariance, moments, inverse moments and extreme singular values."

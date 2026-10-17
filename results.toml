@@ -57,3 +57,53 @@ primary = "NLAlib.integral_frobNorm_sub_mul_sketchAndSolve_sq_le_one_add_mul_of_
 [sketch-and-solve-ls]
 title = "Sketch-and-solve: relative residual with high probability"
 primary = "NLAlib.measureReal_frobNorm_sub_mul_sketchAndSolve_sq_gt_le_of_hasLaw_gaussianMatrix"
+
+# Krylov: titles for ids whose declarations' bold names are generic or differ
+[krylov-space-dimension]
+title = "Dimension of the Krylov space"
+
+[arnoldi-basis]
+title = "The canonical Arnoldi basis is graded and unique"
+primary = "NLAlib.IsGradedKrylovBasis.eq_arnoldiMatrix"
+
+[arnoldi-relation]
+title = "The Arnoldi relation"
+
+[arnoldi-hessenberg]
+title = "The Arnoldi compression is upper Hessenberg"
+
+[lanczos-tridiagonal]
+title = "The Lanczos compression is tridiagonal"
+
+[cg-chebyshev-bound]
+title = "The Chebyshev bound for CG"
+primary = "Matrix.IsHermitian.re_quadForm_sub_cgIterate_le_four_mul_pow"
+
+[cg-finite-termination]
+title = "Finite termination of CG"
+
+[cg-orthogonality]
+title = "CG: orthogonal residuals and conjugate directions"
+
+[cg-near-optimality]
+title = "Near-optimality of CG in the $\\mathbf{A}^\\alpha$-norms"
+primary = "Matrix.IsHermitian.re_quadForm_rpow_sub_cgIterate_le"
+
+[pcg-finite-termination]
+title = "Finite termination of PCG"
+
+[pcg-orthogonality]
+title = "PCG: orthogonal residuals and conjugate directions"
+
+[minres-residual-estimate]
+title = "The MINRES residual estimate"
+
+[gmres-finite-termination]
+title = "Finite termination of GMRES"
+
+[lanczos-fa-cg]
+title = "CG is Lanczos-FA for the inverse"
+primary = "Matrix.IsHermitian.lanczosFA_inv_eq_cgIterate"
+
+[lanczos-fa-exactness]
+title = "Exactness of Lanczos-FA"
