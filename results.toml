@@ -168,10 +168,22 @@ primary = "Matrix.PosSemidef.integral_specNorm_sub_nystrom_pow_mul_le_singularGa
 variant_labels = ["Spectral norm", "Truncated, trace norm"]
 
 [randomized-svd-tail]
-variant_labels = ["CountSketch", "Sub-Gaussian"]
+variant_labels = ["CountSketch", "Sub-Gaussian", "Sub-Gaussian, constant factor"]
 
 [srht-osi]
 variant_labels = ["Without replacement", "With replacement"]
 
 [srht-ose]
 variant_labels = ["Without replacement", "With replacement"]
+
+[hutchinson-variance-gaussian]
+title = "Girard–Hutchinson variance: real Gaussian probe"
+aliases = ["Hutchinson variance Gaussian", "Gaussian trace estimator variance"]
+
+[hutchinson-variance-rademacher]
+title = "Girard–Hutchinson variance: Rademacher probe"
+aliases = ["Hutchinson variance Rademacher", "Hutchinson trace estimator variance"]
+
+[hutchinson-variance-real-sphere]
+title = "Girard–Hutchinson variance: real sphere probe"
+aliases = ["Hutchinson variance sphere"]

@@ -252,6 +252,15 @@ class RatesTests(unittest.TestCase):
             bad = copy.deepcopy(cfg); bad['rates'][0][field] = 'missing'; bad_cases.append(bad)
         for name in ('missing', 'N.exp'):
             bad = copy.deepcopy(cfg); bad['guarantees'][0]['definitions'][0]['declaration'] = name; bad_cases.append(bad)
+        # a per-row label for the algorithm definition link: nonempty, reserved, and needs the link
+        labelled = copy.deepcopy(cfg); labelled['rates'][0]['algorithm_definition_label'] = 'Isotropy'
+        site, _ = self.render({'rates.toml': labelled}, ds)
+        self.assertEqual(site['rates']['entries'][0]['algorithm_definition_label'], 'Isotropy')
+        for value in ('', 3):
+            bad = copy.deepcopy(labelled); bad['rates'][0]['algorithm_definition_label'] = value; bad_cases.append(bad)
+        bad = copy.deepcopy(labelled); del bad['rates'][0]['algorithm_definition']; bad_cases.append(bad)
+        bad = copy.deepcopy(cfg); bad['families'][0]['filters'] = [dict(field='algorithm_definition_label', label='L')]
+        bad_cases.append(bad)
         for bad in bad_cases:
             with self.subTest(config=bad), self.assertRaises(ValueError):
                 self.render({'rates.toml': bad}, ds)
@@ -299,6 +308,68 @@ class RatesTests(unittest.TestCase):
                 bad = copy.deepcopy(cfg); bad['families'][0][field] = value
                 with self.subTest(field=field, value=value), self.assertRaises(ValueError):
                     self.render({'rates.toml': bad})
+
+    def exact_fixture(self):
+        """An exact identity beside the asymptotic pair: one theorem, hashed like any row."""
+        ds = self.ds + [decl('N.identity', 'Var = 2. <!-- value two 2 -->', signature='isig')]
+        digest = lambda sig, doc: hashlib.sha256((sig + '\n' + b.HTML_COMMENT.sub('', doc)).encode()).hexdigest()
+        cfg = copy.deepcopy(self.cfg)
+        cfg['families'][0]['resources_label'] = 'Exact value'
+        cfg['rates'].append(dict(id='identity', kind='exact', theorem='N.identity', family='family',
+                                 algorithm='estimator', guarantee='relative-error',
+                                 resources=[dict(label='Variance', bound='$2$')],
+                                 statement_hash=digest('isig', ds[2]['doc'])))
+        return ds, cfg, digest
+
+    def test_exact_rows_cite_one_theorem_without_asymptotic_pairing(self):
+        ds, cfg, digest = self.exact_fixture()
+        site, _ = self.render({'rates.toml': cfg}, ds)
+        asym, exact = site['rates']['entries']
+        self.assertNotIn('kind', asym)
+        self.assertEqual((asym['overview'], asym['explicit']), (1, 0))
+        self.assertEqual((exact['kind'], exact['overview'], exact['explicit']), ('exact', 2, 2))
+        self.assertEqual(site['rates']['families'][0]['resources_label'], 'Exact value')
+        # an exact identity needs no Result id; one is recorded when present
+        self.assertIsNone(exact['result'])
+        ds[2]['doc'] += '\nResult: identity-result'
+        cfg['rates'][1]['statement_hash'] = digest('isig', ds[2]['doc'])
+        site, _ = self.render({'rates.toml': cfg}, ds)
+        self.assertEqual(site['rates']['entries'][1]['result'], 'identity-result')
+        # the hash still guards the summary
+        bad = copy.deepcopy(cfg); bad['rates'][1]['statement_hash'] = 'stale'
+        with self.assertRaisesRegex(ValueError, 'statement_hash'):
+            self.render({'rates.toml': bad}, ds)
+
+    def test_exact_rows_reject_pairings_and_unknown_kinds(self):
+        ds, cfg, digest = self.exact_fixture()
+        for theorem, sig, i in (('N.asym', 'sig', 1), ('N.exp', '', 0)):
+            # an asymptotic declaration, or an explicit theorem that has one, is not exact
+            bad = copy.deepcopy(cfg)
+            bad['rates'][1].update(theorem=theorem, statement_hash=digest(sig, ds[i]['doc']))
+            with self.subTest(theorem=theorem), self.assertRaisesRegex(ValueError, 'asymptotic pairing'):
+                self.render({'rates.toml': bad}, ds)
+        for theorem in ('missing', 'N.concept'):
+            bad = copy.deepcopy(cfg); bad['rates'][1]['theorem'] = theorem
+            with self.subTest(theorem=theorem), self.assertRaisesRegex(ValueError, 'missing exact theorem'):
+                self.render({'rates.toml': bad}, ds + [decl('N.concept', kind='def')])
+        for kind in ('asymptotic', 'Exact', ''):
+            bad = copy.deepcopy(cfg); bad['rates'][1]['kind'] = kind
+            with self.subTest(kind=kind), self.assertRaisesRegex(ValueError, 'kind'):
+                self.render({'rates.toml': bad}, ds)
+        # rows without `kind` keep the paired contract: an untagged plain theorem is rejected
+        bad = copy.deepcopy(cfg); del bad['rates'][1]['kind']
+        with self.assertRaisesRegex(ValueError, 'missing asymptotic theorem'):
+            self.render({'rates.toml': bad}, ds)
+        bad = copy.deepcopy(ds); bad[2]['sorry'] = True
+        with self.assertRaisesRegex(ValueError, 'unproved'):
+            self.render({'rates.toml': cfg}, bad)
+        bad = copy.deepcopy(cfg); bad['families'][0]['filters'] = [dict(field='kind', label='Kind')]
+        with self.assertRaisesRegex(ValueError, 'reserved'):
+            self.render({'rates.toml': bad}, ds)
+        for value in ('', 3):
+            bad = copy.deepcopy(cfg); bad['families'][0]['resources_label'] = value
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                self.render({'rates.toml': bad}, ds)
 
 
 if __name__ == '__main__':

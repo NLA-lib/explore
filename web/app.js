@@ -393,14 +393,15 @@
       if (!Object.entries(rateFilters).every(([k, v]) => !v || String(e[k]) === v)) return false;
       const family = D.rates.families.find(f => f.id === e.family);
       const guarantee = D.rates.guarantees?.find(g => g.id === e.guarantee && g.family === e.family);
-      const words = rateSearchWords([e.algorithm, e.variant, e.sketch, e.norm, e.mode, guarantee?.title, guarantee?.description,
+      const words = rateSearchWords([e.algorithm, e[family?.subject_field || 'algorithm'], e.variant, e.sketch, e.norm, e.mode, guarantee?.title, guarantee?.description,
         ...(family?.filters || []).map(f => e[f.field]), ...e.resources.flatMap(r => [r.label, r.bound]), ...(Array.isArray(e.notes) ? e.notes : [e.notes]), family?.title].join(' '));
       return query.every(q => words.some(w => w.includes(q)));
     });
     const families = D.rates?.families || [];
-    $('#content').innerHTML = entries.length ? `<p class="searchnote">${entries.length} rate${entries.length === 1 ? '' : 's'}. Resources and parameter caveats are stated per row.</p>` + families.map(f => {
+    $('#content').innerHTML = entries.length ? `<p class="searchnote">${entries.length} row${entries.length === 1 ? '' : 's'}. Resources, exact values and parameter caveats are stated per row.</p>` + families.map(f => {
       const rows = entries.filter(e => e.family === f.id);
       const subject = esc(f.subject_label || 'Method / sketch');
+      const resourcesLabel = esc(f.resources_label || 'Resources');
       if (!rows.length) return '';
       const notationId = `rate-notation-${f.id}`;
       const definitionLink = (i, label) => Number.isInteger(i) && decls[i]
@@ -413,11 +414,11 @@
           return `<section class="rate-guarantee"><h3>${md(g.title, { inline: true })}</h3>` +
             `<details class="rate-definitions" id="${esc(groupId)}"${openSections.has(groupId) ? ' open' : ''}><summary>Guarantee and definitions</summary><div class="guarantee-description">${md(g.description)}</div>${definitions.map(d =>
               `<h4>${definitionLink(d.i, d.label || d.declaration)}</h4>${statementHtml(null, d.i)}`).join('')}</details>` +
-            `<table class="rates-table"><thead><tr><th scope="col">${subject}</th><th scope="col">Resources</th></tr></thead><tbody>` + rows.filter(e => e.guarantee === g.id).map(e => {
+            `<table class="rates-table"><thead><tr><th scope="col">${subject}</th><th scope="col">${resourcesLabel}</th></tr></thead><tbody>` + rows.filter(e => e.guarantee === g.id).map(e => {
               const notes = Array.isArray(e.notes) ? e.notes.join(' ') : e.notes;
               return `<tr id="rate-row-${esc(e.id)}"><td data-label="${subject}"><strong>${esc(e[f.subject_field || 'algorithm'])}</strong>${e.variant && e.variant !== 'Standard' ? `<span class="rate-meta">${md(e.variant, { inline: true })}</span>` : ''}${e.sketch && f.subject_field !== 'sketch' ? `<span class="rate-meta">${esc(e.sketch)}</span>` : ''}` +
-                `<span class="rate-definition-links">${[definitionLink(e.algorithm_definition_index, f.definition_label || 'Algorithm definition'), definitionLink(e.sketch_definition_index, 'Sketch definition')].filter(Boolean).join(' · ')}</span></td>` +
-                `<td data-label="Resources">${e.resources.map(r => `<div class="rate-resource"><strong>${esc(r.label)}:</strong> ${md(r.bound, { inline: true })}</div>`).join('')}${notes ? `<p class="rate-caveat"><strong>Parameters:</strong> ${md(notes, { inline: true })}</p>` : ''}</td>` +
+                `<span class="rate-definition-links">${[definitionLink(e.algorithm_definition_index, e.algorithm_definition_label || f.definition_label || 'Algorithm definition'), definitionLink(e.sketch_definition_index, 'Sketch definition')].filter(Boolean).join(' · ')}</span></td>` +
+                `<td data-label="${resourcesLabel}">${e.resources.map(r => `<div class="rate-resource"><strong>${esc(r.label)}:</strong> ${md(r.bound, { inline: true })}</div>`).join('')}${notes ? `<p class="rate-caveat"><strong>${e.kind === 'exact' ? 'Hypotheses' : 'Parameters'}:</strong> ${md(notes, { inline: true })}</p>` : ''}</td>` +
                 `</tr><tr class="rate-theorem"><td colspan="2"><button type="button" class="rate-permalink" data-copy-rate="${esc(e.id)}">Copy link</button><span class="rate-copy-status" role="status"></span><details class="rate-detail" data-rate="${esc(e.id)}"><summary>View theorem</summary><div class="rate-expanded"></div></details></td></tr>`;
             }).join('') + '</tbody></table></section>';
         }).join('') + '</section>';
@@ -438,8 +439,12 @@
       let explicit = false;
       const draw = () => {
         const i = explicit ? e.explicit : e.overview;
-        $('.rate-expanded', detail).innerHTML = (e.explicit !== e.overview ? `<button type="button" class="rate-explicit${explicit ? ' on' : ''}" aria-pressed="${explicit}">Explicit bound</button>` : '') +
-          statementHtml(null, i) + `<p class="rate-links"><a href="${BASE}${declRoute(e.overview)}">Asymptotic theorem</a> · <a href="${BASE}${declRoute(e.explicit)}">Explicit theorem</a> · <a href="${sourceUrl(i)}" target="_blank" rel="noopener">Source ↗</a></p>`;
+        // an exact row cites one theorem: no asymptotic form, so no toggle and a single link
+        const exact = e.kind === 'exact';
+        const links = exact ? `<a href="${BASE}${declRoute(e.overview)}">Theorem</a>`
+          : `<a href="${BASE}${declRoute(e.overview)}">Asymptotic theorem</a> · <a href="${BASE}${declRoute(e.explicit)}">Explicit theorem</a>`;
+        $('.rate-expanded', detail).innerHTML = (!exact && e.explicit !== e.overview ? `<button type="button" class="rate-explicit${explicit ? ' on' : ''}" aria-pressed="${explicit}">Explicit bound</button>` : '') +
+          statementHtml(null, i) + `<p class="rate-links">${links} · <a href="${sourceUrl(i)}" target="_blank" rel="noopener">Source ↗</a></p>`;
         $('.rate-explicit', detail)?.addEventListener('click', () => { explicit = !explicit; draw(); });
       };
       detail.addEventListener('toggle', () => { if (detail.open && !$('.rate-expanded', detail).childNodes.length) draw(); });

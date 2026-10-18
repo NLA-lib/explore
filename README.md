@@ -28,7 +28,7 @@ The filters are appropriate to each family. With all families selected, only the
 family selector and search are shown. Selecting a family reveals its configured filters; options
 are drawn from matching rows, and constant or irrelevant fields stay hidden. Its families
 are **Embeddings and sketch properties**, **One- and two-pass low-rank approximation**,
-**Block Krylov and subspace iteration**, and **Regression**. Families are configuration,
+**Block Krylov and subspace iteration**, **Regression** and **Trace estimation**. Families are configuration,
 so other future families need no new page template.
 A row is one exact theorem, not a whole Result group. Expand it for the theorem's own assumptions,
 its explicit bound and links to the declaration and source. Expectations of squared norms remain
@@ -48,6 +48,13 @@ rows need $O(\log(n+1)/\sqrt{\varepsilon})$ blocks for RBKI and NysBKI and $O(\l
 power steps for RSI and NysSI (late-truncated RBKI and RSI: $\log(n/\varepsilon)$ for $\log(n+1)$);
 gapped rows need $O(\log(n/\varepsilon)/\sqrt{\gamma})$ blocks or $O(\log(n/\varepsilon)/\gamma)$
 power steps for a relative singular gap $\gamma>0$. No rates are listed for Krylov linear-system solvers.
+
+Trace estimation lists exact values rather than rates: the variance of the Girard–Hutchinson
+estimate for one real Gaussian, Rademacher or radius-$\sqrt{n}$ sphere probe, or one probe with
+independent coordinates of fourth moment $m_4$, the Haar frame estimator
+$(n/k)\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})$, and the second moment
+$\mathbb{E}\lvert\cdot-\operatorname{tr}\mathbf{A}\rvert^2$ for $m$ independent isotropic probes
+(single-probe value over $m$), with probe-class and probe-law filters.
 
 `rates.toml` supplies ordered `families`, ordered `guarantees`, and comparison `rates`.
 A guarantee has `id`, `family`, `title`, `description` and optional `definitions` links, each with
@@ -76,10 +83,21 @@ To add a rate, choose or add a family and a shared guarantee, then record `id`, 
 `variant`, `sketch`, `norm`, `mode` and `notes` are optional; configured filter fields must be
 present on every row of that family. Keep restrictions visible in the row or its family notation;
 full statements come from Lean. Families can choose `subject_label`, `subject_field` (default
-`algorithm`) and `definition_label` (default "Algorithm definition"). "Copy link" copies the
+`algorithm`) and `definition_label` (default "Algorithm definition"); a row may override that
+label with `algorithm_definition_label` (e.g. "Isotropy" for a property rather than a law). "Copy link" copies the
 rate's stable URL. Resource lists can describe rows, columns, samples or iterations;
 the display does not assume every family uses a pair of sketch sizes. No runtime or pass-count
-claim is inferred from a theorem name. Only paired proved declarations can supply Rates entries.
+claim is inferred from a theorem name. Only paired proved declarations can supply Rates entries,
+except exact rows.
+
+An **exact row** (`kind = 'exact'`) records an identity, not a rate. Its `theorem` is the one
+proved theorem it cites; it must not be an asymptotic declaration nor the `Asymptotic:` target of
+one (use an ordinary row then). Its `statement_hash` covers that theorem as above, its resources
+carry the exact value (for example `{label = 'Variance', bound = '$2\|\mathbf{A}\|_{\mathsf{F}}^2$'}`),
+and its expanded view has no explicit/asymptotic toggle. A Result id is recorded when the theorem
+has one but is not required. Rows without `kind` keep the paired contract; any other `kind`
+fails. A family may set `resources_label` (default "Resources") for its value column, e.g.
+"Exact value".
 
 `collections.toml` organizes the Explorer independently of Lean import paths. Low-rank results
 are grouped under RSVD, generalized Nyström, PSD Nyström and shared theory. Each group references

@@ -1,6 +1,11 @@
 # Reviewed against the committed NLAlib extraction at b66e36e811709491eb8d5e5a54e891a3c173032d. Publish this library revision before explorer deployment.
 # The low-rank-krylov rows were reviewed against NLAlib branch krylov/block at
 # c04601b0d864e329fd941cc75f44ff68eb513d64 (2026-10-18); publish that revision before deployment.
+# The trace-estimation rows (exact identities, kind = 'exact') were reviewed against NLAlib branch
+# probability/trace-estimation at f1d3e75f60889356bf0d06eb24606a81b2e99be2 (2026-10-18), and
+# re-read with the independent-coordinate row at 24b5d47ac04eb4ee5adb1203e6a888cc2ab287e3 (hashes
+# unchanged), and at a4f8773 after the Hutch++ proofs (hashes unchanged); publish
+# a4f877336325611783c2f3af6bafe51e2fc11ab1 or later before deployment.
 # Compare every changed summary with its exact theorem before updating statement_hash.
 
 [[families]]
@@ -37,6 +42,17 @@ subject_field = 'sketch'
 filters = [{field = 'sketch_category', label = 'Sketch class', order = ['Gaussian', 'Haar', 'Sparse', 'Trig', 'Other']}, {field = 'sketch', label = 'Sketch'}, {field = 'mode', label = 'Guarantee mode'}]
 description = '''Compare sufficient sketch sizes for relative least-squares residual error. The error is the squared Frobenius norm of the residual.'''
 notation = '''For fixed matrices $\mathbf{A}\in\Bbbk^{m\times n}$ and $\mathbf{B}\in\Bbbk^{m\times q}$ over the scalar field permitted by the row, let $r=\operatorname{rank}\mathbf{A}$ and $\operatorname{OPT}_{\mathrm{LS}}^2=\min_{\mathbf{Y}}\|\mathbf{B}-\mathbf{A}\mathbf{Y}\|_{\mathsf{F}}^2=\|(\mathbf{I}-\mathbf{A}\mathbf{A}^{+})\mathbf{B}\|_{\mathsf{F}}^2$. A sketch $\mathbf{S}\in\Bbbk^{s\times m}$ produces $\widehat{\mathbf{X}}=\mathsf{sketchAndSolve}(\mathbf{A},\mathbf{S},\mathbf{B})=(\mathbf{S}\mathbf{A})^{+}\mathbf{S}\mathbf{B}$. For absolute $\varepsilon_0>0$, the rates assume $0<\varepsilon\le\varepsilon_0$. The input matrices are fixed before drawing the sketch; expectations and probabilities concern that draw. Resource thresholds, parameter ranges, rank restrictions, sketch normalization and any ambient-dimension cap are supplied by each reviewed row and its exact theorem. Gaussian and Haar rows use real inputs; the CountSketch tail also permits complex inputs. No full-column-rank assumption or coefficient-error guarantee is inferred.'''
+
+[[families]]
+id = 'trace-estimation'
+title = 'Trace estimation'
+subject_label = 'Probe'
+subject_field = 'probe'
+definition_label = 'Probe law'
+resources_label = 'Exact value'
+filters = [{field = 'probe_class', label = 'Probe class', order = ['Real', 'Real or complex']}, {field = 'probe_law', label = 'Probe law', order = ['Gaussian', 'Rademacher', 'Independent coordinates', 'Sphere', 'Haar frame', 'Any isotropic']}]
+description = '''Exact variances of the Girard–Hutchinson estimate $\mathsf{girardHutchinson}(\mathbf{A},\mathbf{\Omega})=\operatorname{tr}(\mathbf{\Omega}^{\mathsf{H}}\mathbf{A}\mathbf{\Omega})/m$ of $\operatorname{tr}\mathbf{A}$, whose $m$ probes are the columns of $\mathbf{\Omega}$; with one probe $\boldsymbol{\omega}$ it is the quadratic form $\boldsymbol{\omega}^{\mathsf{H}}\mathbf{A}\boldsymbol{\omega}$. These are identities, not rates: each row cites one theorem and has no asymptotic form.'''
+notation = '''A fixed square matrix $\mathbf{A}$ of size $n$, with diagonal entries $a_{ii}$ and symmetric (Hermitian) part $\mathbf{H}=\tfrac12(\mathbf{A}+\mathbf{A}^{\mathsf{H}})$; randomness is over the probes only. Every probe is isotropic, $\mathbb{E}[\boldsymbol{\omega}\boldsymbol{\omega}^{\mathsf{H}}]=\mathbf{I}$, so every estimate has mean $\operatorname{tr}\mathbf{A}$. Real rows state $\operatorname{Var}$ of a real estimate. The $m$-probe row, which also allows complex probes, states the second moment $\mathbb{E}\lvert\cdot-\operatorname{tr}\mathbf{A}\rvert^2$ about the trace: for a complex estimate this is its variance, and for a real one it equals $\operatorname{Var}$. Probe normalizations: a real Gaussian probe has independent $\mathcal{N}(0,1)$ entries; a Rademacher probe has independent random signs; an independent-coordinate probe has independent real entries of mean $0$, variance $1$ and common fourth moment $m_4$; a sphere probe is $\boldsymbol{\omega}=\sqrt{n}\,\mathbf{u}$ for $\mathbf{u}$ uniform on the unit sphere of $\mathbb{R}^n$, so it is uniform on the sphere of radius $\sqrt{n}$. The Haar frame estimator uses $\mathbf{\Omega}=\sqrt{n}\,\mathbf{Q}$ for an $n\times k$ Haar frame $\mathbf{Q}$ (orthonormal columns), so it equals $(n/k)\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})$. General $\mathbf{A}$: the real theorems assume $\mathbf{A}$ symmetric; a real quadratic form sees only $\mathbf{H}=\tfrac12(\mathbf{A}+\mathbf{A}^{\mathsf{T}})$, which has the diagonal and trace of $\mathbf{A}$, and the companion theorems for the real Gaussian, Rademacher and sphere probes state the same variance with $\|\mathbf{H}\|_{\mathsf{F}}$ in place of $\|\mathbf{A}\|_{\mathsf{F}}$ for every real $\mathbf{A}$. No complex probe law is in the library yet.'''
 
 [[guarantees]]
 id = '''distributional-jl'''
@@ -974,3 +990,107 @@ notes = '''Nyström at test matrix $\mathbf{H}^p\mathbf{X}$. Gap $\gamma>0$ betw
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''7f0a7f2024e08b78780319f6922e13b6b36b11776cc322c48d38907f1bbfa7a7'''
+
+[[guarantees]]
+id = 'trace-single-probe'
+family = 'trace-estimation'
+title = '''One probe: $\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega}$'''
+description = '''For a fixed real square $\mathbf{A}$ and one random isotropic real probe $\boldsymbol{\omega}$, the estimate is the quadratic form $\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega}$, the Girard–Hutchinson estimate with $m=1$. Its mean is $\operatorname{tr}\mathbf{A}$. Each row gives its exact variance $\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})$.'''
+definitions = [{ label = 'Quadratic form', declaration = 'NLAlib.quadForm' }, { label = 'Girard–Hutchinson estimate', declaration = 'NLAlib.girardHutchinson' }]
+
+[[guarantees]]
+id = 'trace-several-probes'
+family = 'trace-estimation'
+title = '''Several probes: $\mathsf{girardHutchinson}(\mathbf{A},\mathbf{\Omega})=\operatorname{tr}(\mathbf{\Omega}^{\mathsf{H}}\mathbf{A}\mathbf{\Omega})/m$'''
+description = '''The average of the single-probe estimates over the $m$ columns of the test matrix $\mathbf{\Omega}$, with mean $\operatorname{tr}\mathbf{A}$. With independent probes its variance is the single-probe variance divided by $m$. With the $k$ orthonormal probes $\sqrt{n}\,\mathbf{Q}$ of a Haar frame, which are dependent, it is the variance of $k$ independent sphere probes times $(n-k)/(n-1)$, and $0$ at $k=n$.'''
+definitions = [{ label = 'Girard–Hutchinson estimate', declaration = 'NLAlib.girardHutchinson' }, { label = 'Isotropic random vector', declaration = 'NLAlib.IsIsotropic' }]
+
+[[rates]]
+id = 'trace-real-gaussian'
+kind = 'exact'
+theorem = 'NLAlib.variance_quadForm_of_hasLaw_gaussianVector'
+family = 'trace-estimation'
+algorithm = 'Girard–Hutchinson'
+probe = 'Real Gaussian'
+probe_class = 'Real'
+probe_law = 'Gaussian'
+guarantee = 'trace-single-probe'
+resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=2\|\mathbf{A}\|_{\mathsf{F}}^2$''' }]
+notes = '''Real symmetric $\mathbf{A}$. For any real $\mathbf{A}$ the variance is $2\|\mathbf{H}\|_{\mathsf{F}}^2$, with $\mathbf{H}=\tfrac12(\mathbf{A}+\mathbf{A}^{\mathsf{T}})$: `NLAlib.variance_quadForm_of_hasLaw_gaussianVector_hermitianPart`.'''
+algorithm_definition = 'NLAlib.gaussianVector'
+statement_hash = '6dbdb147df7e9001fc5f80cc62905c450fe685c2a695ec36c28bffdfc7050496'
+
+[[rates]]
+id = 'trace-rademacher'
+kind = 'exact'
+theorem = 'NLAlib.variance_quadForm_of_hasLaw_rademacherVector'
+family = 'trace-estimation'
+algorithm = 'Girard–Hutchinson'
+probe = 'Rademacher'
+probe_class = 'Real'
+probe_law = 'Rademacher'
+guarantee = 'trace-single-probe'
+resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=2\bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-\sum_i a_{ii}^2\bigr)$''' }]
+notes = '''Real symmetric $\mathbf{A}$. For any real $\mathbf{A}$ the variance is $2\bigl(\|\mathbf{H}\|_{\mathsf{F}}^2-\sum_i a_{ii}^2\bigr)$, with $\mathbf{H}=\tfrac12(\mathbf{A}+\mathbf{A}^{\mathsf{T}})$: `NLAlib.variance_quadForm_of_hasLaw_rademacherVector_hermitianPart`. Optimal among real probes with independent coordinates (Hutchinson): for real symmetric $\mathbf{A}$, $\operatorname{Var}(\boldsymbol{\varepsilon}^{\mathsf{T}}\mathbf{A}\boldsymbol{\varepsilon})\le\operatorname{Var}(\mathbf{x}^{\mathsf{T}}\mathbf{A}\mathbf{x})$ for every random vector $\mathbf{x}$ whose coordinates are independent and in $L^4$, each with mean $0$, variance $1$ and the same fourth moment, on any probability space: `NLAlib.variance_quadForm_of_hasLaw_rademacherVector_le`.'''
+algorithm_definition = 'NLAlib.rademacherVector'
+statement_hash = 'a3a9a7ec01bf40dcece01d898cba851686cc9d6a535838d613ea7af874a115a6'
+
+[[rates]]
+id = 'trace-independent-coordinates'
+kind = 'exact'
+theorem = 'NLAlib.variance_quadForm_of_isHermitian'
+family = 'trace-estimation'
+algorithm = 'Girard–Hutchinson'
+probe = 'Independent coordinates, fourth moment m₄'
+probe_class = 'Real'
+probe_law = 'Independent coordinates'
+guarantee = 'trace-single-probe'
+resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=2\|\mathbf{A}\|_{\mathsf{F}}^2+(m_4-3)\sum_i a_{ii}^2$''' }]
+notes = '''Real symmetric $\mathbf{A}$; $\boldsymbol{\omega}$ has independent real coordinates $\omega_i$ in $L^4$ with $\mathbb{E}\,\omega_i=0$, $\mathbb{E}\,\omega_i^2=1$ and $\mathbb{E}\,\omega_i^4=m_4$ for every $i$. The real Gaussian ($m_4=3$) and Rademacher ($m_4=1$) rows are the special cases; since $m_4\ge1$, random signs give the least variance.'''
+statement_hash = 'e0dbdaa69c5301fd5c11bc78917ea6e4ff8ff5968f5202d647cedd8a3c333583'
+
+[[rates]]
+id = 'trace-real-sphere'
+kind = 'exact'
+theorem = 'NLAlib.variance_quadForm_sqrt_smul_of_hasLaw_uniformSphereVector'
+family = 'trace-estimation'
+algorithm = 'Girard–Hutchinson'
+probe = 'Real sphere, radius √n'
+probe_class = 'Real'
+probe_law = 'Sphere'
+guarantee = 'trace-single-probe'
+resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=\dfrac{2n}{n+2}\Bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-\dfrac{(\operatorname{tr}\mathbf{A})^2}{n}\Bigr)$''' }]
+notes = '''Real symmetric $\mathbf{A}$; $\boldsymbol{\omega}=\sqrt{n}\,\mathbf{u}$ with $\mathbf{u}$ uniform on the unit sphere of $\mathbb{R}^n$; every dimension $n$. For any real $\mathbf{A}$, replace $\|\mathbf{A}\|_{\mathsf{F}}$ by $\|\mathbf{H}\|_{\mathsf{F}}$, keeping $\operatorname{tr}\mathbf{A}$: `NLAlib.variance_quadForm_sqrt_smul_of_hasLaw_uniformSphereVector_hermitianPart`.'''
+algorithm_definition = 'NLAlib.uniformSphereVector'
+statement_hash = 'fb4e9202cf44efc3b7dd2d5528b9d6767128a8ef4a9519f94cb4b63d4153b14a'
+
+[[rates]]
+id = 'trace-haar-frame'
+kind = 'exact'
+theorem = 'NLAlib.variance_girardHutchinson_sqrt_smul_of_hasLaw_haarFrame'
+family = 'trace-estimation'
+algorithm = 'Girard–Hutchinson'
+probe = 'Haar frame, k orthonormal probes'
+probe_class = 'Real'
+probe_law = 'Haar frame'
+guarantee = 'trace-several-probes'
+resources = [{ label = 'Variance', bound = '''$\operatorname{Var}\Bigl[\dfrac{n}{k}\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})\Bigr]=\dfrac{2n(n-k)}{k(n-1)(n+2)}\Bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-\dfrac{(\operatorname{tr}\mathbf{A})^2}{n}\Bigr)$''' }]
+notes = '''Real symmetric $\mathbf{A}$; $\mathbf{\Omega}=\sqrt{n}\,\mathbf{Q}$ for an $n\times k$ Haar frame $\mathbf{Q}$, with $1\le k\le n$ and $n\ge2$. The compression $\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})$ itself has variance $\frac{2k(n-k)}{(n-1)n(n+2)}\bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-(\operatorname{tr}\mathbf{A})^2/n\bigr)$ (`NLAlib.variance_trace_conjTranspose_mul_mul_of_hasLaw_haarFrame`), and for any real $\mathbf{A}$ the same with $\|\mathbf{H}\|_{\mathsf{F}}$ (`NLAlib.variance_trace_conjTranspose_mul_mul_of_hasLaw_haarFrame_hermitianPart`).'''
+algorithm_definition = 'NLAlib.haarFrame'
+statement_hash = '85eaeac068930a212a0a0e7379e3b98cce1beaae82d1afe91b2dd3f481faaee5'
+
+[[rates]]
+id = 'trace-independent-probes'
+kind = 'exact'
+theorem = 'NLAlib.integral_norm_girardHutchinson_sub_trace_sq'
+family = 'trace-estimation'
+algorithm = 'Girard–Hutchinson'
+probe = 'm independent probes'
+probe_class = 'Real or complex'
+probe_law = 'Any isotropic'
+guarantee = 'trace-several-probes'
+resources = [{ label = 'Second moment', bound = '''$\mathbb{E}\lvert\mathsf{girardHutchinson}(\mathbf{A},\mathbf{\Omega})-\operatorname{tr}\mathbf{A}\rvert^2=v/m$''' }]
+notes = '''$m\ge1$ independent isotropic probes $\boldsymbol{\omega}_j$ (the columns of $\mathbf{\Omega}$), over $\mathbb{R}$ or $\mathbb{C}$, each with a square-integrable estimate and the same single-probe second moment $\mathbb{E}\lvert\boldsymbol{\omega}_j^{\mathsf{H}}\mathbf{A}\boldsymbol{\omega}_j-\operatorname{tr}\mathbf{A}\rvert^2=v$, for instance a value from a one-probe row. Any square $\mathbf{A}$. The real form with $\operatorname{Var}$ in hypothesis and conclusion is `NLAlib.variance_girardHutchinson`.'''
+algorithm_definition = 'NLAlib.IsIsotropic'
+algorithm_definition_label = 'Isotropy'
+statement_hash = '27db2d2774b2db6b4b19748fa8ab94a86fb831594770bc07373d680ef32a3892'
