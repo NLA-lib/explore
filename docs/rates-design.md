@@ -1,6 +1,6 @@
 # Rates and algorithm-oriented exploration
 
-The dated sections record successive changes. The latest section, **Regression Rates validation**, describes the current completed extension. Earlier dated sections record its preparation and preceding schema changes.
+The dated sections record successive changes. The latest section, **Block Krylov and subspace iteration Rates (2026-10-18)**, describes the current completed extension. Earlier dated sections record its predecessors, preparation and preceding schema changes.
 
 Approved 2026-10-16. Presentation only; no mathematical declarations or import paths change.
 The library checkout has ongoing Lean development, so implementation and validation use its
@@ -283,3 +283,127 @@ stayed within the page at 320, 390 and 800 pixels; no browser or KaTeX errors we
 Desktop and expanded mobile Regression screenshots were inspected. No frontend or validation
 changes were needed for the new family. Publication order remains library merge and fresh
 rolling-release extraction first, explorer metadata merge and deployment second.
+
+
+## Block Krylov and subspace iteration Rates (2026-10-18)
+
+Maintainer request, for the block Krylov round: "add to the explorer rates page too". The scope
+is low-rank approximation only; the Krylov linear-system solvers (CG, MINRES, GMRES) keep no
+Rates rows, as requested earlier. A fourth family, `low-rank-krylov`, follows the existing
+family → guarantee → rows layout with no frontend or validation change. Its resource is depth:
+blocks $q$ for RBKI and block Krylov Nyström, power steps $p$ for subspace iteration and Nyström
+subspace iteration; the notation records Tropp and Webber's product counts ($2q$, $2p+2$, $q$,
+$p+1$). Facets are algorithm, spectral gap (Gapless/Gapped), variant (Basic/Late truncation) and
+norm; sketch (standard Gaussian, unnormalized) and mode (expectation) are constant, so hidden.
+
+Every row resolves to a proved `exists_forall_` corollary paired with its explicit theorem. Only
+one existed (truncated RBKI, Musco–Musco form), so the library branch `krylov/block` adds
+seventeen corollaries in the files of their explicit theorems (`LowRank/Gaussian/BlockKrylov.lean`,
+`BlockKrylovGapless.lean`, `NystromBlockKrylov.lean`), recorded in the library's
+`docs/design/Krylov-Block.md`. Each concludes relative error $1+\varepsilon$ in its theorem's own
+norm and power, with absolute constants before every dimension and $0<\varepsilon\le\varepsilon_0$:
+
+| Guarantee | Rows (algorithm · gap · variant) | Sufficient depth |
+| --- | --- | --- |
+| $\mathbb{E}\lVert\mathbf{A}-\widehat{\mathbf{A}}\rVert_2^2\le(1+\varepsilon)\sigma_r^2$ | RBKI gapless basic (TW 9.1) | $q=O(\log(n+1)/\sqrt{\varepsilon})$ |
+| same | RBKI gapless late (MM ε-form) | $q=O(\log(n/\varepsilon)/\sqrt{\varepsilon})$ |
+| same | RSI gapless basic (TW 9.1) | $p=O(\log(n+1)/\varepsilon)$ |
+| same | RSI gapless late (MM ε-form) | $p=O(\log(n/\varepsilon)/\varepsilon)$ |
+| same | RBKI gapped basic, late (TW 9.2) | $q=O(\log(n/\varepsilon)/\sqrt{\gamma})$ |
+| same | RSI gapped basic, late (TW 9.2) | $p=O(\log(n/\varepsilon)/\gamma)$ |
+| $\mathbb{E}\lVert\mathbf{A}-\widehat{\mathbf{A}}\rVert_{\mathsf{F}}^2\le(1+\varepsilon)\lVert\mathbf{A}-\llbracket\mathbf{A}\rrbracket_r\rVert_{\mathsf{F}}^2$ | RBKI, RSI gapped basic, late | as the gapped spectral rows |
+| $\mathbb{E}\lVert\mathbf{H}-\widehat{\mathbf{H}}\rVert_2\le(1+\varepsilon)\sigma_r(\mathbf{H})$ | NysBKI, NysSI gapless basic (TW 9.1, Nyström-native) | as RBKI, RSI gapless basic |
+| same | NysBKI, NysSI gapped basic | as RBKI, RSI gapped |
+| $\mathbb{E}\lVert\mathbf{H}-\llbracket\widehat{\mathbf{H}}\rrbracket_r\rVert_*\le(1+\varepsilon)\lVert\mathbf{H}-\llbracket\mathbf{H}\rrbracket_r\rVert_*$ | NysBKI, NysSI gapped late | as RBKI, RSI gapped |
+
+Read-back. All inputs are real and fixed before the draw; the test matrix is $n\times\ell$
+standard Gaussian with $\ell\ge r+2$; expectations are of the squared error for general
+matrices and of the unsquared spectral or trace error for Nyström. Singular values are indexed
+from $0$, so $\sigma_r$ is the best rank-$r$ spectral error. Gapped rows take a head of $r\ge1$
+singular values, a tail index $r\le t\le\ell-2$, and
+$\gamma=(\sigma_{r-1}-\sigma_t)/(\sigma_{r-1}+\sigma_t)>0$ (the corollaries assume
+`0 < singularGapRatio A h t`, since at $\gamma=0$ Lean's $x/0=0$ would make the threshold
+vacuous); Nyström gaps use the eigenvalues of $\mathbf{H}$. Tails are bounded through the
+dimension, $\tfrac{t}{\ell-t-1}\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_t\|_{\mathsf{F}}^2\le
+n^2\sigma_r^2$, which is where $\log n$ enters; $n$ is the number of columns. The Tropp–Webber
+gapless forms bound the tail ratio by $1+n^2$, so they need no $\log(1/\varepsilon)$, and their
+corollaries drop the explicit theorems' $\sigma_r>0$ (at $\sigma_r=0$ the $(1+\varepsilon)$ form
+gives error $0$); the $\log(n+1)$ is literal, not a rewritten $\log n$. The untruncated
+Musco–Musco forms are dominated in rate by these and have no row. Not proved, so absent: gapless
+Frobenius bounds (MM Theorem 11), gapless truncated Nyström, and spectral truncated Nyström. No
+probability rows: every theorem is in expectation. Output ranks in the notes ($\le q\ell$,
+$\le\ell$, $\le r$) come from the definitions, not from the rate theorems.
+
+Presentation. Result titles (`results.toml`) name each Result id by algorithm and regime, since
+the first declaration's bold name covered only one form; primaries are the Tropp–Webber
+statements (Theorem 9.1 for gapless, the spectral Theorem 9.2 line for gapped). The low-rank
+collection is retitled "Randomized low-rank approximation" (id unchanged) and gains groups
+"Randomized block Krylov and subspace iteration" and "Block Krylov and subspace iteration Nyström",
+which absorb the round's ten previously unclassified LowRank results and two definitions;
+`generalized-nystrom-tail`, also unclassified, joins Generalized Nyström. The Krylov collection
+lists `blockKrylovMatrix` and `blockKrylovSpace` with the Krylov spaces and cross-lists RBKI and
+NysBKI in a last group. The Sketching fallback group (projection-cost-preserving results) is
+unchanged and outside this pass.
+
+Validation used a local extraction of `krylov/block` at 5fd9e14 (now c04601b, below), which contains the corollaries
+(352 modules, 4043 declarations), with matching source bytes; the strict builder accepted all 50
+rows (18 new; the 32 earlier hashes unchanged), every preferred primary and every collection
+reference, with no LowRank or Krylov fallback group left. All 162 math spans of the new family,
+guarantees and rows render under KaTeX. The 22 Python tests, Node probability tests and
+JavaScript syntax checks pass. No browser pass was made in this session. Deployment order as
+before: merge the library corollaries and wait for the rolling `explore-data` release (the
+header comment of `rates.toml` names the reviewed revision), then merge the explorer metadata.
+
+Review follow-up (2026-10-18). An independent review against 5fd9e14 found no mathematical errors;
+its readability flags are applied in curated text only (statement hashes unchanged). Gapless
+late-truncation rows say their $\log(1/\varepsilon)$ comes from the Musco–Musco proof, not from
+truncation; Tropp–Webber gapless rows say their explicit theorems assume $\sigma_r>0$ (and $q\ge2$
+for RBKI and NysBKI) while the asymptotic forms do not; RSI and NysSI rows name their powered test
+matrix beside the `rsvd`/`nystrom` link; the notation states $\ell\ge t+2$ for gapped rows and that
+this family writes the target rank $r$ where the one- and two-pass family writes $k$. All four
+gapless results carry the Tropp–Webber and Musco–Musco aliases, and `filtered-range-finder-bound`,
+a general filtered range-finder bound, moves to Shared approximation theory.
+
+## Block size and depth as separate resources (2026-10-18)
+
+Maintainer: "for these there is the block size and the iteration depth. this isn't clear in the
+rates page". Each block Krylov and subspace iteration row now lists two resources, in order: block
+size $\ell$ (the theorem's threshold, $\ell=r+2$ for gapless rows and $\ell=t+2$ for the tail index
+$t\ge r$ on gapped rows) and depth (blocks $q$ or power steps $p$, the asymptotic threshold). The
+block size conditions moved out of the row notes, and the family description says that only the
+depth grows with $1/\varepsilon$. No theorem, pairing or statement hash changed.
+
+## Variant labels and algorithm abbreviations (2026-10-18)
+
+Maintainer: the result page's Variant dropdown labelled each form by its explicit declaration's
+full bold name ("The gapped bound for randomized block Krylov iteration, Frobenius norm"), which
+is hard to scan. `results.toml` now takes an optional `variant_labels` list per result, aligned
+with the built forms (primary's form first, then extraction order); `build.py` rejects a list
+whose length differs from the number of forms or that contains an empty or non-string label, and
+rejects the field on an unknown or alias id. The labels reach the site as `variantLabels`, and
+`web/app.js` uses them when present, falling back to the bold name otherwise. Every result with
+more than one form (14) has labels naming only the differing part: norm, truncation, test-matrix
+class, or sampling with replacement.
+
+Collection group titles now carry the algorithm abbreviations: "Randomized SVD (RSVD) / range
+finder", "Generalized Nyström (GN)", "Block Krylov and subspace iteration (RBKI, RSI)", "Nyström
+block Krylov and subspace iteration (NysBKI, NysSI)" and, in Krylov methods, "Randomized block
+Krylov (RBKI, NysBKI)", since that group also holds the NysBKI results. Group ids are unchanged.
+
+## Self-contained docstrings re-reviewed (2026-10-18)
+
+Library commit c04601b on `krylov/block` rewrote the docstrings of `LowRank/Gaussian/BlockKrylov.lean`,
+`BlockKrylovGapless.lean`, `NystromBlockKrylov.lean`, `Filter.lean` and `LowRank/Structural/Filter.lean`
+to state every hypothesis and bound in full, with no statement, name or proof changed. The
+statement hash covers the asymptotic theorem's docstring, so nine gapped rows failed the build:
+`rbki-gapped-frobenius`, `rbki-gapped-late-spectral`, `rbki-gapped-late-frobenius`,
+`rsi-gapped-frobenius`, `rsi-gapped-late-spectral`, `rsi-gapped-late-frobenius`,
+`nyssi-gapped-spectral`, `nyssi-gapped-late-nuclear` and `nysbki-gapped-late-nuclear`. Each row's
+guarantee, resources and notes were compared with the new docstrings of its asymptotic and
+explicit declarations (Gaussian $n\times\ell$ test matrix, head $r=h+1$, tail index $t\ge r$
+with $t+2\le\ell$, $\gamma>0$, $0<\varepsilon\le\varepsilon_0$, depth $C\log(n/\varepsilon)/\sqrt\gamma$
+or $C\log(n/\varepsilon)/\gamma$, and the stated relative bound); all agree, so only the nine
+hashes changed and the other 41 rows are untouched. The `rates.toml` header now names c04601b. In
+the same pass `build.py` gained `cache_busted`: the built pages reference `app.js`, `math.js` and
+`style.css` with a `?v=` content hash, and `<body data-version>` carries the hash of `data.json`,
+which `web/app.js` appends when fetching it, so a deploy is not shadowed by cached assets.

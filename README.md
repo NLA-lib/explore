@@ -27,9 +27,9 @@ with its formula and definition links in an expandable section; rows show resour
 The filters are appropriate to each family. With all families selected, only the
 family selector and search are shown. Selecting a family reveals its configured filters; options
 are drawn from matching rows, and constant or irrelevant fields stay hidden. Its families
-are **Embeddings and sketch properties**, **One- and two-pass low-rank approximation**, and
-**Regression**. Families are configuration,
-so iterative low-rank methods or other future families need no new page template.
+are **Embeddings and sketch properties**, **One- and two-pass low-rank approximation**,
+**Block Krylov and subspace iteration**, and **Regression**. Families are configuration,
+so other future families need no new page template.
 A row is one exact theorem, not a whole Result group. Expand it for the theorem's own assumptions,
 its explicit bound and links to the declaration and source. Expectations of squared norms remain
 distinct from expected norms; JL, embedding and injection guarantees remain distinct.
@@ -41,6 +41,13 @@ Gaussian high-probability row uses a second-moment sufficient rate
 $O((r+1)/(\varepsilon\delta))$; CountSketch uses
 $O(((r+1)^2+(r+1)/\varepsilon)/\delta)$ and supports complex inputs. Haar retains the ambient
 size cap. Per-row notes and full theorem views give the exact domains and sketch conventions.
+
+Block Krylov and subspace iteration compares depth (blocks $q$ or power steps $p$) for expected
+relative error $1+\varepsilon$, with algorithm, spectral-gap, variant and norm filters. Gapless
+rows need $O(\log(n+1)/\sqrt{\varepsilon})$ blocks for RBKI and NysBKI and $O(\log(n+1)/\varepsilon)$
+power steps for RSI and NysSI (late-truncated RBKI and RSI: $\log(n/\varepsilon)$ for $\log(n+1)$);
+gapped rows need $O(\log(n/\varepsilon)/\sqrt{\gamma})$ blocks or $O(\log(n/\varepsilon)/\gamma)$
+power steps for a relative singular gap $\gamma>0$. No rates are listed for Krylov linear-system solvers.
 
 `rates.toml` supplies ordered `families`, ordered `guarantees`, and comparison `rates`.
 A guarantee has `id`, `family`, `title`, `description` and optional `definitions` links, each with
@@ -90,6 +97,12 @@ and result IDs; source paths and line numbers come from each fresh extraction. S
 `results.toml` can set `primary` to an exact explicit declaration belonging to that result.
 Its asymptotic counterpart becomes the overview. This makes headline choice independent of
 source order; the conditional completion identity no longer titles early-truncated GN.
+
+`results.toml` can also set `variant_labels`, one short label per (overview, explicit) form in
+the built order (the primary's form first, then extraction order), for the result page's Variant
+dropdown. Each label names only what differs between the forms (`"Truncated, Frobenius norm"`).
+The build fails unless the list has exactly one nonempty string per form; without it the dropdown
+falls back to each explicit declaration's bold docstring name.
 
 Probability formulas use `$\mathbb{P}[E]$` with square event brackets, including in displayed
 success or failure bounds. `web/math.js` normalizes recognized legacy probability operators and
@@ -160,7 +173,7 @@ CONTRIBUTING §6 records the convention for future docstrings.
 | `build.py` | `data/explore-data.json` (+ `references.bib`) → `site/` |
 | `web/` | the page: `index.html`, `app.js`, `style.css`, fonts, KaTeX 0.16.22 (MIT) |
 | `topics.toml` | titles, order and blurbs of topics and subtopics; where loose files go |
-| `results.toml` | optional title, aliases and LaTeX statement per result id |
+| `results.toml` | optional title, aliases, LaTeX statement, primary and Variant labels per result id |
 | `synonyms.toml` | search synonyms (`pseudoinverse` → `pinv`) |
 | `rates.toml` | families and reviewed theorem-specific rate summaries |
 | `collections.toml` | result and definition groupings independent of source modules |

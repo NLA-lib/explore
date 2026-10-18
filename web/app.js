@@ -17,7 +17,7 @@
 
   let D;
   try {
-    D = await (await fetch(BASE + 'data.json')).json();
+    D = await (await fetch(BASE + 'data.json' + (document.body.dataset.version ? '?v=' + document.body.dataset.version : ''))).json();
   } catch (e) {
     $('#byline').textContent = 'The library data could not be loaded.';
     return;
@@ -134,7 +134,7 @@
     s = esc(s)
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/(^|[^*\w])\*([^*\s](?:[^*]*[^*\s])?)\*(?!\*)/g, '$1<em>$2</em>')
-      .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2">$1</a>')
+      .replace(/\[([^\]]+)\]\((https?:[^)\s]+|(?![a-z][a-z0-9+.-]*:|\/\/)[\w.\/#-]+)\)/gi, '<a href="$2">$1</a>')
       .replace(/\[([A-Z][A-Za-z]+\d{4}[a-z]?)((?:,[^\]]*)?)\]/g, (m, key, rest) => {
         const b = D.bib[key];
         if (!b) return m;
@@ -877,7 +877,7 @@
       let explicit = false;
       const box = h('<section class="result-statement"></section>');
       const choices = forms.length > 1 ? `<label class="variant">Variant <select aria-label="Statement variant">${forms.map((f, k) =>
-        `<option value="${k}"${k === pair ? ' selected' : ''}>${esc(plainTex(decls[f.explicit].nm || short(decls[f.explicit].n)))}</option>`).join('')}</select></label>` : '';
+        `<option value="${k}"${k === pair ? ' selected' : ''}>${esc(plainTex(r.variantLabels?.[k] || decls[f.explicit].nm || short(decls[f.explicit].n)))}</option>`).join('')}</select></label>` : '';
       box.innerHTML = '<div class="label">Statement<span class="opts">' +
         '<button type="button" class="explicit-bound" aria-pressed="false">Explicit bound</button></span></div>' + choices +
         '<div class="selected-statement" aria-live="polite"></div>';

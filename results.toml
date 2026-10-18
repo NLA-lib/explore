@@ -6,6 +6,12 @@
 #   title = "Weyl's inequality"
 #   aliases = ["Weyl's eigenvalue inequality"]          # extra names for the search
 #   latex = "For Hermitian $A, B$: $$\\lambda_{i+j}(A+B) \\le \\lambda_i(A) + \\lambda_j(B).$$"
+#   primary = "NLAlib.some_explicit_theorem"               # headline explicit declaration
+#   variant_labels = ["Spectral norm", "Frobenius norm"]  # Variant dropdown, one per form
+#
+# `variant_labels` must list exactly one nonempty label per (overview, explicit) form, in the
+# order the built site shows them (the primary's form first, then extraction order); each label
+# names only what differs between the forms.
 #
 # Prefer putting the mathematics in the docstring, where it is reviewed with the Lean; use
 # `latex` only when the docstring cannot carry it.
@@ -31,6 +37,7 @@ primary = "NLAlib.integral_frobNorm_sub_earlyTruncatedGeneralizedNystrom_sq_le_o
 title = "Early-truncated randomized SVD"
 aliases = ["Early-truncated RSVD"]
 primary = "NLAlib.integral_frobNorm_sub_earlyTruncatedRSVD_sq_le_one_add_mul_of_hasLaw_gaussianMatrix"
+variant_labels = ["Expected error, Gaussian", "Tail, CountSketch", "Tail, Gaussian", "Tail, sub-Gaussian"]
 
 [generalized-nystrom-expected-error]
 title = "Generalized Nyström: expected error"
@@ -44,19 +51,23 @@ primary = "NLAlib.integral_frobNorm_sub_truncatedSVD_generalizedNystrom_sq_le_on
 [randomized-svd-expected-error]
 title = "Randomized SVD: expected Frobenius error"
 primary = "NLAlib.integral_frobNorm_sub_rsvd_sq_le_of_hasLaw_gaussianMatrix"
+variant_labels = ["Gaussian", "Truncated, Gaussian", "Rotation-invariant"]
 
 [randomized-nystrom-expected-error]
 title = "PSD Nyström: expected error"
 primary = "Matrix.PosSemidef.integral_nuclearNorm_sub_nystrom_le_of_hasLaw_gaussianMatrix"
+variant_labels = ["Gaussian", "Truncated, Gaussian", "Truncated, rotation-invariant", "Rotation-invariant"]
 
 
 [sketch-and-solve-expected-error]
 title = "Sketch-and-solve: expected relative residual"
 primary = "NLAlib.integral_frobNorm_sub_mul_sketchAndSolve_sq_le_one_add_mul_of_hasLaw_gaussianMatrix"
+variant_labels = ["Gaussian", "Haar"]
 
 [sketch-and-solve-ls]
 title = "Sketch-and-solve: relative residual with high probability"
 primary = "NLAlib.measureReal_frobNorm_sub_mul_sketchAndSolve_sq_gt_le_of_hasLaw_gaussianMatrix"
+variant_labels = ["Gaussian", "CountSketch"]
 
 # Krylov: titles for ids whose declarations' bold names are generic or differ
 [krylov-space-dimension]
@@ -107,3 +118,60 @@ primary = "Matrix.IsHermitian.lanczosFA_inv_eq_cgIterate"
 
 [lanczos-fa-exactness]
 title = "Exactness of Lanczos-FA"
+
+# Block Krylov and subspace iteration: one id per algorithm and regime; the bold names of the
+# first declarations name only one of several forms.
+[rbki-gapless-error]
+title = "Randomized block Krylov iteration: gapless bounds"
+aliases = ["RBKI gapless", "block Krylov gapless", "Tropp–Webber Theorem 9.1", "Musco–Musco"]
+primary = "NLAlib.integral_specNorm_sub_rbki_sq_le_mul_exp_of_hasLaw_gaussianMatrix"
+variant_labels = ["Untruncated", "Truncated, (1 + ε) form"]
+
+[rbki-gapped-error]
+title = "Randomized block Krylov iteration: gapped bounds"
+aliases = ["RBKI gapped", "block Krylov gapped", "Tropp–Webber Theorem 9.2"]
+primary = "NLAlib.integral_specNorm_sub_rbki_sq_le_singularGapRatio_of_hasLaw_gaussianMatrix"
+variant_labels = ["Spectral norm", "Frobenius norm", "Truncated, spectral norm", "Truncated, Frobenius norm"]
+
+[rsi-gapless-error]
+title = "Randomized subspace iteration: gapless bounds"
+aliases = ["RSI gapless", "subspace iteration gapless", "power iteration", "Tropp–Webber Theorem 9.1", "Musco–Musco"]
+primary = "NLAlib.integral_specNorm_sub_rsvd_pow_mul_sq_le_mul_rpow_of_hasLaw_gaussianMatrix"
+variant_labels = ["Untruncated", "Truncated, (1 + ε) form"]
+
+[rsi-gapped-error]
+title = "Randomized subspace iteration: gapped bounds"
+aliases = ["RSI gapped", "subspace iteration gapped"]
+primary = "NLAlib.integral_specNorm_sub_rsvd_pow_mul_sq_le_singularGapRatio_of_hasLaw_gaussianMatrix"
+variant_labels = ["Spectral norm", "Frobenius norm", "Truncated, spectral norm", "Truncated, Frobenius norm"]
+
+[nysbki-gapless-error]
+title = "Block Krylov Nyström: gapless bounds"
+aliases = ["NysBKI gapless", "Tropp–Webber Theorem 9.1", "Musco–Musco"]
+primary = "Matrix.PosSemidef.integral_specNorm_sub_nystromBKI_le_mul_exp_of_hasLaw_gaussianMatrix"
+
+[nysbki-gapped-error]
+title = "Block Krylov Nyström: gapped bounds"
+aliases = ["NysBKI gapped"]
+primary = "Matrix.PosSemidef.integral_specNorm_sub_nystromBKI_le_singularGapRatio_of_hasLaw_gaussianMatrix"
+variant_labels = ["Spectral norm", "Truncated, trace norm"]
+
+[nyssi-gapless-error]
+title = "Nyström subspace iteration: gapless bounds"
+aliases = ["NysSI gapless", "Tropp–Webber Theorem 9.1", "Musco–Musco"]
+primary = "Matrix.PosSemidef.integral_specNorm_sub_nystrom_pow_mul_le_mul_rpow_of_hasLaw_gaussianMatrix"
+
+[nyssi-gapped-error]
+title = "Nyström subspace iteration: gapped bounds"
+aliases = ["NysSI gapped"]
+primary = "Matrix.PosSemidef.integral_specNorm_sub_nystrom_pow_mul_le_singularGapRatio_of_hasLaw_gaussianMatrix"
+variant_labels = ["Spectral norm", "Truncated, trace norm"]
+
+[randomized-svd-tail]
+variant_labels = ["CountSketch", "Sub-Gaussian"]
+
+[srht-osi]
+variant_labels = ["Without replacement", "With replacement"]
+
+[srht-ose]
+variant_labels = ["Without replacement", "With replacement"]
