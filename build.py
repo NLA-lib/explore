@@ -993,11 +993,12 @@ def build(data, bib, out):
         shutil.rmtree(out)
     shutil.copytree(ROOT / 'web', out)
     (out / 'data.json').write_text(json.dumps(site, ensure_ascii=False, separators=(',', ':')))
+    page = cache_busted((ROOT / 'web' / 'index.html').read_text(), out)
+    (out / 'index.html').write_text(page)
     # the Books page is the same app one directory down, at books/
-    page = (ROOT / 'web' / 'index.html').read_text()
     page = re.sub(r'(href|src)="(?!data:|https?:|#)([^"]+)"', r'\1="../\2"', page)
     page = page.replace('".././"', '"../"')
-    page = page.replace('<body>', '<body data-page="books" data-base="../">')
+    page = page.replace('<body ', '<body data-page="books" data-base="../" ', 1)
     (out / 'books').mkdir()
     (out / 'books' / 'index.html').write_text(page)
     rates_html = page.replace('data-page="books"', 'data-page="rates"')
@@ -1007,6 +1008,17 @@ def build(data, bib, out):
     n_def = sum(1 for d in decls if d['kind'] in DEF_KINDS)
     print(f'{len(modules)} modules, {len(decls)} declarations, {len(out_results)} results, '
           f'{n_def} definitions -> {out}/ ({(out / "data.json").stat().st_size // 1024} KB data)')
+
+
+def cache_busted(page, out):
+    """Append a content hash to the page's local scripts, stylesheets and its data.json fetch.
+
+    Browsers keep the previous deploy's app.js or data.json otherwise, and show stale text."""
+    def version(name):
+        return hashlib.sha256((out / name).read_bytes()).hexdigest()[:10]
+    page = re.sub(r'(href|src)="((?:app|math)\.js|style\.css)"',
+                  lambda m: f'{m[1]}="{m[2]}?v={version(m[2])}"', page)
+    return page.replace('<body>', f'<body data-version="{version("data.json")}">', 1)
 
 
 def whole_definitions(decls, src):

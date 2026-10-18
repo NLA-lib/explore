@@ -345,7 +345,7 @@ lists `blockKrylovMatrix` and `blockKrylovSpace` with the Krylov spaces and cros
 NysBKI in a last group. The Sketching fallback group (projection-cost-preserving results) is
 unchanged and outside this pass.
 
-Validation used a local extraction of `krylov/block` at 5fd9e14, which contains the corollaries
+Validation used a local extraction of `krylov/block` at 5fd9e14 (now c04601b, below), which contains the corollaries
 (352 modules, 4043 declarations), with matching source bytes; the strict builder accepted all 50
 rows (18 new; the 32 earlier hashes unchanged), every preferred primary and every collection
 reference, with no LowRank or Krylov fallback group left. All 162 math spans of the new family,
@@ -389,3 +389,21 @@ Collection group titles now carry the algorithm abbreviations: "Randomized SVD (
 finder", "Generalized Nyström (GN)", "Block Krylov and subspace iteration (RBKI, RSI)", "Nyström
 block Krylov and subspace iteration (NysBKI, NysSI)" and, in Krylov methods, "Randomized block
 Krylov (RBKI, NysBKI)", since that group also holds the NysBKI results. Group ids are unchanged.
+
+## Self-contained docstrings re-reviewed (2026-10-18)
+
+Library commit c04601b on `krylov/block` rewrote the docstrings of `LowRank/Gaussian/BlockKrylov.lean`,
+`BlockKrylovGapless.lean`, `NystromBlockKrylov.lean`, `Filter.lean` and `LowRank/Structural/Filter.lean`
+to state every hypothesis and bound in full, with no statement, name or proof changed. The
+statement hash covers the asymptotic theorem's docstring, so nine gapped rows failed the build:
+`rbki-gapped-frobenius`, `rbki-gapped-late-spectral`, `rbki-gapped-late-frobenius`,
+`rsi-gapped-frobenius`, `rsi-gapped-late-spectral`, `rsi-gapped-late-frobenius`,
+`nyssi-gapped-spectral`, `nyssi-gapped-late-nuclear` and `nysbki-gapped-late-nuclear`. Each row's
+guarantee, resources and notes were compared with the new docstrings of its asymptotic and
+explicit declarations (Gaussian $n\times\ell$ test matrix, head $r=h+1$, tail index $t\ge r$
+with $t+2\le\ell$, $\gamma>0$, $0<\varepsilon\le\varepsilon_0$, depth $C\log(n/\varepsilon)/\sqrt\gamma$
+or $C\log(n/\varepsilon)/\gamma$, and the stated relative bound); all agree, so only the nine
+hashes changed and the other 41 rows are untouched. The `rates.toml` header now names c04601b. In
+the same pass `build.py` gained `cache_busted`: the built pages reference `app.js`, `math.js` and
+`style.css` with a `?v=` content hash, and `<body data-version>` carries the hash of `data.json`,
+which `web/app.js` appends when fetching it, so a deploy is not shadowed by cached assets.

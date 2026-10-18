@@ -139,6 +139,38 @@ class BuildTests(unittest.TestCase):
                 self.assertFalse(b.validate_sources({}, tmp))
             self.assertIn('skipping definition body enrichment', err.getvalue())
 
+    def test_cache_busted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            for name, text in [('app.js', 'a'), ('math.js', 'm'), ('style.css', 's'), ('data.json', '{}')]:
+                (out / name).write_text(text)
+            v = {name: hashlib.sha256((out / name).read_bytes()).hexdigest()[:10]
+                 for name in ('app.js', 'math.js', 'style.css', 'data.json')}
+            page = b.cache_busted('<link href="style.css"><script src="vendor/katex/katex.min.js"></script>'
+                                  '<script src="math.js"></script><script src="app.js"></script>'
+                                  '<a href="https://x/app.js"></a><body>', out)
+            self.assertIn(f'href="style.css?v={v["style.css"]}"', page)
+            self.assertIn(f'src="math.js?v={v["math.js"]}"', page)
+            self.assertIn(f'src="app.js?v={v["app.js"]}"', page)
+            self.assertIn('src="vendor/katex/katex.min.js"', page)
+            self.assertIn('href="https://x/app.js"', page)
+            self.assertIn(f'<body data-version="{v["data.json"]}">', page)
+
+    def test_built_pages_are_cache_busted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / 'site'
+            with patch.object(b, 'load_toml', side_effect=lambda name: {}):
+                b.build(dict(decls=[decl('N.x', 'X.')], modules=[dict(name='NLAlib.Test', path='NLAlib/Test.lean')]), {}, out)
+            data_v = hashlib.sha256((out / 'data.json').read_bytes()).hexdigest()[:10]
+            app_v = hashlib.sha256((out / 'app.js').read_bytes()).hexdigest()[:10]
+            main = (out / 'index.html').read_text()
+            self.assertIn(f'src="app.js?v={app_v}"', main)
+            self.assertIn(f'<body data-version="{data_v}">', main)
+            for sub in ('books', 'rates'):
+                page = (out / sub / 'index.html').read_text()
+                self.assertIn(f'src="../app.js?v={app_v}"', page)
+                self.assertIn(f'<body data-page="{sub}" data-base="../" data-version="{data_v}">', page)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,6 +1,6 @@
 # Reviewed against the committed NLAlib extraction at b66e36e811709491eb8d5e5a54e891a3c173032d. Publish this library revision before explorer deployment.
 # The low-rank-krylov rows were reviewed against NLAlib branch krylov/block at
-# 5fd9e1462dc181a1ce539b46c65abad403646322 (2026-10-18); publish that revision before deployment.
+# c04601b0d864e329fd941cc75f44ff68eb513d64 (2026-10-18); publish that revision before deployment.
 # Compare every changed summary with its exact theorem before updating statement_hash.
 
 [[families]]
@@ -735,7 +735,7 @@ resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''08bac47f1a9627da1e3c422da6eca0b9572904de1cb425f3de9ad86104a4e186'''
+statement_hash = '''131aa7148e218099e2f75c6c9b8f39884f0dfa8cf063e2fc7b991eeed00e4169'''
 
 [[rates]]
 id = '''rsi-gapless-spectral'''
@@ -803,7 +803,7 @@ resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''3c2d0aa0c63df197735f6789671e6a0609f45051c99cce06c8e0c8a645ec40fc'''
+statement_hash = '''3022f5c42a9b3f10c869bebc210c03fe2f7e579ee3acdcf5e8e059439f289aac'''
 
 [[rates]]
 id = '''rbki-gapped-frobenius'''
@@ -820,7 +820,7 @@ resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le q\ell$.'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''c4bd0fe86d4de6f71714c419b5ec65ef6f5b616bed1cbbe5a44f836505c2ad6d'''
+statement_hash = '''41875926845332d5c0c7906fe270b70aed50500fb7f8ad712e93d0a4c082e5dc'''
 
 [[rates]]
 id = '''rbki-gapped-late-frobenius'''
@@ -837,7 +837,7 @@ resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''317c8cd79bcad43903ad1cda480db704fec0c0f3ba5657c7a01a997ad175a1fe'''
+statement_hash = '''98956df4358f328f985454b04238dad8aec52e07f5af27523d633e0df3ce1637'''
 
 [[rates]]
 id = '''rsi-gapped-frobenius'''
@@ -854,7 +854,7 @@ resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''9545c8c3a2f0e8df19d82b887a4543c3562d389fb1a3af64eb7f1d4ad8042f38'''
+statement_hash = '''5ead1af2add58f19fecfa31b6292622e9244f8f9b3ee0334518822d460dc5872'''
 
 [[rates]]
 id = '''rsi-gapped-late-frobenius'''
@@ -871,7 +871,7 @@ resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''7434953d88dfda7b320937690ec11655d7869041d23fc285ecdbded55b3a6fad'''
+statement_hash = '''b5f458693bcfd34536e45cd7f60106723b5f72f92593d22b01fdf7b0105a1fc6'''
 
 [[rates]]
 id = '''nysbki-gapless-spectral'''
@@ -939,7 +939,7 @@ resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for
 notes = '''Nyström at test matrix $\mathbf{H}^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''e2fd3c918cca084d8dda20c350eadc7227eecfc652652926816e03a2af411d80'''
+statement_hash = '''31665e3f1c34ea4081a13b5ab074f9aeb667e5b4669496004cb877218206b374'''
 
 [[rates]]
 id = '''nysbki-gapped-late-nuclear'''
@@ -956,7 +956,7 @@ resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.nystromBKI'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''71b56c2412e6f73fb2094fb0e22b9a64586c81c89b6a83cdf28c2f7b970a0941'''
+statement_hash = '''eedebb2f043a82e9fa19e934cf1840daf20c2d86ab53ddebe1e6fc88555b4ae9'''
 
 [[rates]]
 id = '''nyssi-gapped-late-nuclear'''
@@ -973,4 +973,4 @@ resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for
 notes = '''Nyström at test matrix $\mathbf{H}^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''4bb6e86c33afe8be3389a6d9c1140964f9ca5f7b612d0ad2f298838873aa0faf'''
+statement_hash = '''7f0a7f2024e08b78780319f6922e13b6b36b11776cc322c48d38907f1bbfa7a7'''

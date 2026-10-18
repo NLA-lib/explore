@@ -17,7 +17,7 @@
 
   let D;
   try {
-    D = await (await fetch(BASE + 'data.json')).json();
+    D = await (await fetch(BASE + 'data.json' + (document.body.dataset.version ? '?v=' + document.body.dataset.version : ''))).json();
   } catch (e) {
     $('#byline').textContent = 'The library data could not be loaded.';
     return;
