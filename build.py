@@ -559,16 +559,16 @@ def rates_page(cfg, decls, index, targets):
     families = cfg.get('families', [])
     family_ids = unique_ids(families, 'rate family')
     reserved_filters = {'id', 'ids', 'theorem', 'family', 'statement_hash', 'hash', 'resources',
-                        'overview', 'explicit', 'result', 'guarantee', 'notes',
+                        'overview', 'explicit', 'result', 'guarantee', 'notes', 'kind',
                         'doc', 'signature', 'statement', 'source', 'title', 'description', 'filters',
                         'algorithm_definition', 'sketch_definition', 'algorithm_definition_index',
-                        'sketch_definition_index'}
+                        'sketch_definition_index', 'algorithm_definition_label'}
     family_filters = {}
     family_subjects = {}
     out_families = []
     for family in families:
         required_text(family, ['title', 'description'], 'rate family')
-        for label in ('subject_label', 'definition_label', 'notation'):
+        for label in ('subject_label', 'definition_label', 'notation', 'resources_label'):
             if label in family:
                 required_text(family, [label], f'rate family {family["id"]}')
         subject = family.get('subject_field', 'algorithm')
@@ -621,6 +621,8 @@ def rates_page(cfg, decls, index, targets):
         out_guarantees.append({**guarantee, 'definitions': resolved_links})
     entries = cfg.get('rates', [])
     unique_ids(entries, 'rate')
+    # explicit theorems that have an asymptotic form: an exact row must not cite one
+    paired = set(targets.values())
     out = []
     for rate in entries:
         required_text(rate, ['theorem', 'family', 'algorithm', 'guarantee', 'statement_hash'], f'rate {rate["id"]}')
@@ -628,6 +630,9 @@ def rates_page(cfg, decls, index, targets):
             raise ValueError(f'rate {rate["id"]}: invalid notes')
         if rate['family'] not in family_ids:
             raise ValueError(f'rate {rate["id"]}: unknown family {rate["family"]}')
+        exact = 'kind' in rate
+        if exact and rate['kind'] != 'exact':
+            raise ValueError(f'rate {rate["id"]}: unknown kind {rate["kind"]!r}')
         for key, value in rate.items():
             if key != 'resources' and (not isinstance(value, str) or (key != 'notes' and not value.strip())):
                 raise ValueError(f'rate {rate["id"]}: empty or invalid scalar metadata {key}')
@@ -638,6 +643,8 @@ def rates_page(cfg, decls, index, targets):
             raise ValueError(f'rate {rate["id"]}: unknown guarantee {rate["guarantee"]}')
         if guarantee_family[rate['guarantee']] != rate['family']:
             raise ValueError(f'rate {rate["id"]}: guarantee family mismatch')
+        if 'algorithm_definition_label' in rate and 'algorithm_definition' not in rate:
+            raise ValueError(f'rate {rate["id"]}: algorithm_definition_label without algorithm_definition')
         definition_links = {}
         for field in ('algorithm_definition', 'sketch_definition'):
             if field in rate:
@@ -646,11 +653,20 @@ def rates_page(cfg, decls, index, targets):
                     raise ValueError(f'rate {rate["id"]}: unknown definition {rate[field]}')
                 definition_links[field + '_index'] = linked
         i = index.get(rate['theorem'])
-        if i is None or i not in targets:
-            raise ValueError(f'rate {rate["id"]}: missing asymptotic theorem {rate["theorem"]}')
-        j = targets[i]
+        if exact:
+            # an exact identity: one theorem, no asymptotic declaration on either side
+            if i is None or decls[i]['kind'] != 'theorem':
+                raise ValueError(f'rate {rate["id"]}: missing exact theorem {rate["theorem"]}')
+            if i in targets or i in paired:
+                raise ValueError(f'rate {rate["id"]}: exact row cites a theorem with an asymptotic pairing; '
+                                 'use an asymptotic row')
+            j = i
+        else:
+            if i is None or i not in targets:
+                raise ValueError(f'rate {rate["id"]}: missing asymptotic theorem {rate["theorem"]}')
+            j = targets[i]
         d = decls[i]
-        if not d['_results']:
+        if not exact and not d['_results']:
             raise ValueError(f'rate {rate["id"]}: missing result membership')
         if d.get('sorry') or decls[j].get('sorry'):
             raise ValueError(f'rate {rate["id"]}: unproved declaration')
@@ -665,7 +681,8 @@ def rates_page(cfg, decls, index, targets):
             if not isinstance(resource, dict):
                 raise ValueError(f'rate {rate["id"]}: invalid resource')
             required_text(resource, ['label', 'bound'], f'rate {rate["id"]} resource')
-        out.append({**rate, **definition_links, 'overview': i, 'explicit': j, 'result': d['_results'][0]})
+        out.append({**rate, **definition_links, 'overview': i, 'explicit': j,
+                    'result': d['_results'][0] if d['_results'] else None})
     return {'families': out_families, 'guarantees': out_guarantees, 'entries': out}
 
 

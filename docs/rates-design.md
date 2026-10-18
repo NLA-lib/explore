@@ -1,6 +1,6 @@
 # Rates and algorithm-oriented exploration
 
-The dated sections record successive changes. The latest section, **Block Krylov and subspace iteration Rates (2026-10-18)**, describes the current completed extension. Earlier dated sections record its predecessors, preparation and preceding schema changes.
+The dated sections record successive changes. The latest sections, **Exact rows: trace estimation (2026-10-18)** with its two dated follow-ups, describe the current completed extension. Earlier dated sections record its predecessors, preparation and preceding schema changes.
 
 Approved 2026-10-16. Presentation only; no mathematical declarations or import paths change.
 The library checkout has ongoing Lean development, so implementation and validation use its
@@ -407,3 +407,108 @@ hashes changed and the other 41 rows are untouched. The `rates.toml` header now 
 the same pass `build.py` gained `cache_busted`: the built pages reference `app.js`, `math.js` and
 `style.css` with a `?v=` content hash, and `<body data-version>` carries the hash of `data.json`,
 which `web/app.js` appends when fetching it, so a deploy is not shadowed by cached assets.
+
+## Exact rows: trace estimation (2026-10-18)
+
+Maintainer: "make an entry in the rates section with the exact variance of the various quadratic
+form type stuff." These are identities, not sufficient rates, so the contract gains one row kind.
+A row with `kind = 'exact'` cites a single proved theorem in `theorem` and pairs no asymptotic
+form: `build.py` rejects an exact row whose theorem is an asymptotic declaration or the
+`Asymptotic:` target of one (that statement belongs in an ordinary paired row), a missing or
+non-theorem declaration, an unproved one and any other `kind` value. Its `statement_hash` is
+computed exactly as before, over that theorem's signature and docstring, so a statement change
+still forces review. Its resources carry the value (label "Variance" or "Second moment", bound the
+formula). A Result id is recorded when present but not required: the Haar frame estimator theorem
+has none at f1d3e75. Rows without `kind` are unchanged, including the result-membership check.
+`kind` is a reserved field. A family may set `resources_label` (here "Exact value") for the value
+column. In `web/app.js` an exact row's expanded view has no "Explicit bound" toggle and links one
+"Theorem"; its notes are headed "Hypotheses"; the count line says rows rather than rates.
+
+The `trace-estimation` family ("Trace estimation") leads with the probe and filters by probe class
+(Real, Real or complex) and probe law. Its notation states the estimator
+$\operatorname{tr}(\mathbf{\Omega}^{\mathsf{H}}\mathbf{A}\mathbf{\Omega})/m$, the probe
+normalizations (independent $\mathcal N(0,1)$ entries, random signs, independent coordinates with
+fourth moment $m_4$, spheres of radius $\sqrt n$, the Haar frame scaled to $\sqrt n\,\mathbf{Q}$, i.e. the estimator
+$(n/k)\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})$), and the convention for
+general $\mathbf{A}$. Two guarantees group the rows: one probe, and several probes.
+
+| Row | Exact value | Theorem |
+| --- | --- | --- |
+| Real Gaussian | $\operatorname{Var}=2\|\mathbf{A}\|_{\mathsf{F}}^2$ | `variance_quadForm_of_hasLaw_gaussianVector` |
+| Rademacher | $\operatorname{Var}=2(\|\mathbf{A}\|_{\mathsf{F}}^2-\sum_i a_{ii}^2)$ | `variance_quadForm_of_hasLaw_rademacherVector` |
+| Independent coordinates, fourth moment $m_4$ | $\operatorname{Var}=2\|\mathbf{A}\|_{\mathsf{F}}^2+(m_4-3)\sum_i a_{ii}^2$ | `variance_quadForm_of_isHermitian` |
+| Real sphere, radius $\sqrt n$ | $\operatorname{Var}=\frac{2n}{n+2}(\|\mathbf{A}\|_{\mathsf{F}}^2-(\operatorname{tr}\mathbf{A})^2/n)$ | `variance_quadForm_sqrt_smul_of_hasLaw_uniformSphereVector` |
+| Haar frame, $k$ probes | $\operatorname{Var}=\frac{2n(n-k)}{k(n-1)(n+2)}(\|\mathbf{A}\|_{\mathsf{F}}^2-(\operatorname{tr}\mathbf{A})^2/n)$ | `variance_girardHutchinson_sqrt_smul_of_hasLaw_haarFrame` |
+| $m$ independent probes | $\mathbb{E}\lvert\cdot-\operatorname{tr}\mathbf{A}\rvert^2=v/m$ | `integral_norm_girardHutchinson_sub_trace_sq` |
+
+Read-back against f1d3e75. The real single-probe theorems and the Haar frame theorem assume real
+symmetric $\mathbf{A}$ and state `Var`. The rows say so. For the real Gaussian, Rademacher and
+sphere probes the notes name the `_hermitianPart` companions, which hold for every real
+$\mathbf{A}$ with $\|\mathbf{H}\|_{\mathsf{F}}$, $\mathbf{H}=\frac12(\mathbf{A}+\mathbf{A}^{\mathsf{T}})$,
+in place of $\|\mathbf{A}\|_{\mathsf{F}}$; the diagonal and trace stay those of $\mathbf{A}$. No
+such companion exists for the Haar frame estimator. Its notes instead name the compression
+theorems for $\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})$ (symmetric and
+`_hermitianPart`), whose factor $2k(n-k)/((n-1)n(n+2))$ times $(n/k)^2$ is the row's. That row
+also needs $1\le k\le n$ and $n\ge2$. The $m$-probe theorem is over any `RCLike` field and states
+the second moment $\int\lvert\cdot-\operatorname{tr}\mathbf{A}\rvert^2$, not `variance`, with
+hypotheses: independent isotropic columns, square-integrable single-probe estimates, and a
+common single-probe second moment $v$. The notes name the real `Var` form
+`variance_girardHutchinson`. There is no Probability collection, so `collections.toml` is
+unchanged. `results.toml` titles the three single-probe Result ids "Girard–Hutchinson variance: …
+probe". Before this change the f1d3e75 extraction did not build: commit 0f5af31 adds a third
+`randomized-svd-tail` form, the constant-factor sub-Gaussian range finder. Its `variant_labels`
+gain "Sub-Gaussian, constant factor". That form has no Rates row.
+
+Validation: a local extraction of `probability/trace-estimation` at f1d3e75 (354 modules, 4095
+declarations) builds with 58 rows (8 new; the 50 earlier hashes unchanged), against both the live
+checkout and a `git archive` of f1d3e75 as `--src`. 29 Python tests pass (two new: exact-row
+resolution, hashing and optional Result id; rejection of paired theorems, unknown kinds, a
+`kind` filter and an invalid `resources_label`). The Node probability tests and the JavaScript
+syntax check pass. All 159 math spans of the family, guarantees, rows and cited statements render
+under KaTeX. No browser pass was made. Deployment: merge the library branch and wait for the
+rolling `explore-data` release, then merge this metadata.
+
+## Complex probes withdrawn (2026-10-18)
+
+Maintainer: "Let's actually remove the complex distributions for now until we think about this
+more carefully. use girardHutchinson". The complex Gaussian, Steinhaus and complex sphere rows,
+their result titles and the Complex filter value are removed with their library definitions. The
+open question is the complex Gaussian's normalization: the random-matrix convention
+$\mathrm{CN}(0,1)$ with $\mathbb{E}\lvert z\rvert^2=1$ against Mathlib's `stdGaussian ℂ` with
+$\mathbb{E}\lvert z\rvert^2=2$. The withdrawn rows cited
+`integral_norm_quadForm_sub_trace_sq_of_hasLaw_complexGaussianVector`,
+`integral_norm_quadForm_sub_trace_sq_of_hasLaw_steinhausVector` and
+`integral_norm_quadForm_sqrt_smul_sub_trace_sq_of_hasLaw_complexUniformSphereVector` (library
+commit 2a4a254 withdraws the laws). The family then had five rows; the $m$-probe row still allows
+complex isotropic probes, and the notation says no complex probe law is in the library yet.
+
+## Trace estimation review follow-ups (2026-10-18)
+
+An independent review of the real, Haar frame and $m$-probe rows against f1d3e75 found no
+mathematical errors. Its follow-ups, applied against library commit 24b5d47 (2a4a254 withdraws the
+complex laws; 24b5d47 adds a Hutch++ statement skeleton with `sorry`, which has no row):
+
+- Rate search also matches the family's subject field (`e[family.subject_field]`, here the probe),
+  so "orthonormal", "radius" and "independent coordinates" find their rows.
+- A row may set `algorithm_definition_label`, overriding the family's `definition_label` for its
+  definition link; `build.py` requires `algorithm_definition` beside it and reserves the field.
+  The $m$-probe row labels its `NLAlib.IsIsotropic` link "Isotropy", a property rather than a law.
+- The Rademacher row's notes state its optimality among real probes with independent coordinates
+  in $L^4$, each of mean $0$, variance $1$ and the same fourth moment
+  (`variance_quadForm_of_hasLaw_rademacherVector_le`, an inequality, hence notes only).
+- New exact row **Independent coordinates, fourth moment $m_4$** (probe law "Independent
+  coordinates", between Rademacher and Sphere in the filter order) cites
+  `variance_quadForm_of_isHermitian`: for independent real coordinates in $L^4$ with mean $0$,
+  variance $1$ and common fourth moment $m_4$, and real symmetric $\mathbf{A}$,
+  $\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=2\|\mathbf{A}\|_{\mathsf{F}}^2+(m_4-3)\sum_i a_{ii}^2$.
+  It has no Result id and no definition link (no probe law is involved).
+- The one-probe guarantee now states the real form $\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega}$,
+  since every one-probe row is real; README and the trace section above drop the withdrawn complex
+  rows.
+
+No existing `statement_hash` changed: the build at 24b5d47 reports no mismatch, so the
+Moments.lean docstring edits in 2a4a254 do not touch the cited theorems. Validation: the 24b5d47
+extraction (354 modules, 4098 declarations) builds with 56 rows, six in this family; 29 Python
+tests pass (the definition-link test covers the row label), the Node probability tests and the
+JavaScript syntax check pass, and all 250 math spans of the family, guarantees, rows and the 13
+cited statements render under KaTeX. No browser pass was made.
