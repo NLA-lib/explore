@@ -134,7 +134,7 @@
     s = esc(s)
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/(^|[^*\w])\*([^*\s](?:[^*]*[^*\s])?)\*(?!\*)/g, '$1<em>$2</em>')
-      .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2">$1</a>')
+      .replace(/\[([^\]]+)\]\((https?:[^)\s]+|(?![a-z][a-z0-9+.-]*:|\/\/)[\w.\/#-]+)\)/gi, '<a href="$2">$1</a>')
       .replace(/\[([A-Z][A-Za-z]+\d{4}[a-z]?)((?:,[^\]]*)?)\]/g, (m, key, rest) => {
         const b = D.bib[key];
         if (!b) return m;
