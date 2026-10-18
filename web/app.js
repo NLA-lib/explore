@@ -877,7 +877,7 @@
       let explicit = false;
       const box = h('<section class="result-statement"></section>');
       const choices = forms.length > 1 ? `<label class="variant">Variant <select aria-label="Statement variant">${forms.map((f, k) =>
-        `<option value="${k}"${k === pair ? ' selected' : ''}>${esc(plainTex(decls[f.explicit].nm || short(decls[f.explicit].n)))}</option>`).join('')}</select></label>` : '';
+        `<option value="${k}"${k === pair ? ' selected' : ''}>${esc(plainTex(r.variantLabels?.[k] || decls[f.explicit].nm || short(decls[f.explicit].n)))}</option>`).join('')}</select></label>` : '';
       box.innerHTML = '<div class="label">Statement<span class="opts">' +
         '<button type="button" class="explicit-bound" aria-pressed="false">Explicit bound</button></span></div>' + choices +
         '<div class="selected-statement" aria-live="polite"></div>';

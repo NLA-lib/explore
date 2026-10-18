@@ -9,7 +9,8 @@ Inputs:
   --bib                   NLAlib's docs/references.bib at the same commit (optional)
   topics.toml             titles, order and blurbs for the library's directories (optional per
                           directory: a directory without an entry gets a title from its name)
-  results.toml            per `Result:` id overrides: title, aliases, latex (all optional)
+  results.toml            per `Result:` id overrides: title, aliases, latex, primary,
+                          variant_labels (all optional)
   synonyms.toml           search synonyms, mathematical words to library names
   books.toml              key books: chapters, sections and numbered results, for the Books page
 
@@ -852,8 +853,9 @@ def build(data, bib, out):
         d['_results'] = list(dict.fromkeys(alias.get(x, x) for x in d['_results']))
 
     for configured_id, cfg in results_cfg.items():
-        if 'primary' in cfg and configured_id not in results:
-            raise ValueError(f'result {configured_id}: primary configured for unknown or alias result')
+        for field in ('primary', 'variant_labels'):
+            if field in cfg and configured_id not in results:
+                raise ValueError(f'result {configured_id}: {field} configured for unknown or alias result')
     out_results = {}
     for rid, r in results.items():
         cfg = results_cfg.get(rid, {})
@@ -878,6 +880,15 @@ def build(data, bib, out):
                             'ids': r.get('ids', []), 'overview': pair['overview'],
                             'explicit': pair['explicit'], 'forms': forms,
                             'decls': r['decls'], 'module': decls[primary]['module']}
+        if 'variant_labels' in cfg:
+            # curated Variant dropdown labels, one per form in the built order above
+            labels = cfg['variant_labels']
+            if not isinstance(labels, list) or len(labels) != len(forms):
+                raise ValueError(f'result {rid}: variant_labels must list one label per form '
+                                 f'({len(forms)} forms)')
+            if not all(isinstance(x, str) and x.strip() for x in labels):
+                raise ValueError(f'result {rid}: variant_labels must be nonempty strings')
+            out_results[rid]['variantLabels'] = [x.strip() for x in labels]
 
     # --- graph nodes: a result (all its declarations together) or a documented definition.
     # Every other declaration is a helper; dependencies are collapsed through helpers.

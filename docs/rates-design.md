@@ -372,3 +372,20 @@ size $\ell$ (the theorem's threshold, $\ell=r+2$ for gapless rows and $\ell=t+2$
 $t\ge r$ on gapped rows) and depth (blocks $q$ or power steps $p$, the asymptotic threshold). The
 block size conditions moved out of the row notes, and the family description says that only the
 depth grows with $1/\varepsilon$. No theorem, pairing or statement hash changed.
+
+## Variant labels and algorithm abbreviations (2026-10-18)
+
+Maintainer: the result page's Variant dropdown labelled each form by its explicit declaration's
+full bold name ("The gapped bound for randomized block Krylov iteration, Frobenius norm"), which
+is hard to scan. `results.toml` now takes an optional `variant_labels` list per result, aligned
+with the built forms (primary's form first, then extraction order); `build.py` rejects a list
+whose length differs from the number of forms or that contains an empty or non-string label, and
+rejects the field on an unknown or alias id. The labels reach the site as `variantLabels`, and
+`web/app.js` uses them when present, falling back to the bold name otherwise. Every result with
+more than one form (14) has labels naming only the differing part: norm, truncation, test-matrix
+class, or sampling with replacement.
+
+Collection group titles now carry the algorithm abbreviations: "Randomized SVD (RSVD) / range
+finder", "Generalized Nyström (GN)", "Block Krylov and subspace iteration (RBKI, RSI)", "Nyström
+block Krylov and subspace iteration (NysBKI, NysSI)" and, in Krylov methods, "Randomized block
+Krylov (RBKI, NysBKI)", since that group also holds the NysBKI results. Group ids are unchanged.

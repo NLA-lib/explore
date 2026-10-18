@@ -8,13 +8,13 @@ description = "Browse by method: randomized SVD, generalized Nyström and PSD Ny
 
 [[collections.groups]]
 id = "rsvd"
-title = "Randomized SVD / range finder"
+title = "Randomized SVD (RSVD) / range finder"
 definitions = ["NLAlib.rsvd", "NLAlib.earlyTruncatedRSVD"]
 results = ["randomized-svd-expected-error", "randomized-svd-average-spectral-error", "randomized-svd-tail", "randomized-svd-deviation-bound", "etrsvd", "range-finder-structural-bound", "truncated-range-finder-structural-bound"]
 
 [[collections.groups]]
 id = "gn"
-title = "Generalized Nyström"
+title = "Generalized Nyström (GN)"
 definitions = ["NLAlib.generalizedNystrom", "NLAlib.earlyTruncatedGeneralizedNystrom"]
 results = ["generalized-nystrom-expected-error", "tgn-expected-error", "etgn", "generalized-nystrom-tail"]
 
@@ -26,13 +26,13 @@ results = ["randomized-nystrom-expected-error", "randomized-nystrom-tail", "nyst
 
 [[collections.groups]]
 id = "block-krylov"
-title = "Randomized block Krylov and subspace iteration"
+title = "Block Krylov and subspace iteration (RBKI, RSI)"
 definitions = ["NLAlib.rbki"]
 results = ["rbki-gapless-error", "rbki-gapped-error", "rsi-gapless-error", "rsi-gapped-error"]
 
 [[collections.groups]]
 id = "block-krylov-nystrom"
-title = "Block Krylov and subspace iteration Nyström"
+title = "Nyström block Krylov and subspace iteration (NysBKI, NysSI)"
 definitions = ["NLAlib.nystromBKI"]
 results = ["nysbki-gapless-error", "nysbki-gapped-error", "nyssi-gapless-error", "nyssi-gapped-error", "gram-correspondence"]
 
@@ -157,6 +157,6 @@ results = ["lanczos-fa-formula", "lanczos-fa-interpolation", "lanczos-fa-exactne
 
 [[collections.groups]]
 id = "block-krylov-low-rank"
-title = "Randomized block Krylov (low-rank approximation)"
+title = "Randomized block Krylov (RBKI, NysBKI)"
 definitions = ["NLAlib.rbki", "NLAlib.nystromBKI"]
 results = ["rbki-gapless-error", "rbki-gapped-error", "nysbki-gapless-error", "nysbki-gapped-error"]

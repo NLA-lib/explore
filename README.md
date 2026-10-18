@@ -98,6 +98,12 @@ and result IDs; source paths and line numbers come from each fresh extraction. S
 Its asymptotic counterpart becomes the overview. This makes headline choice independent of
 source order; the conditional completion identity no longer titles early-truncated GN.
 
+`results.toml` can also set `variant_labels`, one short label per (overview, explicit) form in
+the built order (the primary's form first, then extraction order), for the result page's Variant
+dropdown. Each label names only what differs between the forms (`"Truncated, Frobenius norm"`).
+The build fails unless the list has exactly one nonempty string per form; without it the dropdown
+falls back to each explicit declaration's bold docstring name.
+
 Probability formulas use `$\mathbb{P}[E]$` with square event brackets, including in displayed
 success or failure bounds. `web/math.js` normalizes recognized legacy probability operators and
 round event delimiters at rendering time, preserving event contents, conditional bars, subscripts
@@ -167,7 +173,7 @@ CONTRIBUTING §6 records the convention for future docstrings.
 | `build.py` | `data/explore-data.json` (+ `references.bib`) → `site/` |
 | `web/` | the page: `index.html`, `app.js`, `style.css`, fonts, KaTeX 0.16.22 (MIT) |
 | `topics.toml` | titles, order and blurbs of topics and subtopics; where loose files go |
-| `results.toml` | optional title, aliases and LaTeX statement per result id |
+| `results.toml` | optional title, aliases, LaTeX statement, primary and Variant labels per result id |
 | `synonyms.toml` | search synonyms (`pseudoinverse` → `pinv`) |
 | `rates.toml` | families and reviewed theorem-specific rate summaries |
 | `collections.toml` | result and definition groupings independent of source modules |
