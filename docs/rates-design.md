@@ -363,3 +363,12 @@ matrix beside the `rsvd`/`nystrom` link; the notation states $\ell\ge t+2$ for g
 this family writes the target rank $r$ where the one- and two-pass family writes $k$. All four
 gapless results carry the Tropp–Webber and Musco–Musco aliases, and `filtered-range-finder-bound`,
 a general filtered range-finder bound, moves to Shared approximation theory.
+
+## Block size and depth as separate resources (2026-10-18)
+
+Maintainer: "for these there is the block size and the iteration depth. this isn't clear in the
+rates page". Each block Krylov and subspace iteration row now lists two resources, in order: block
+size $\ell$ (the theorem's threshold, $\ell=r+2$ for gapless rows and $\ell=t+2$ for the tail index
+$t\ge r$ on gapped rows) and depth (blocks $q$ or power steps $p$, the asymptotic threshold). The
+block size conditions moved out of the row notes, and the family description says that only the
+depth grows with $1/\varepsilon$. No theorem, pairing or statement hash changed.
