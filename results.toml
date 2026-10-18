@@ -107,3 +107,45 @@ primary = "Matrix.IsHermitian.lanczosFA_inv_eq_cgIterate"
 
 [lanczos-fa-exactness]
 title = "Exactness of Lanczos-FA"
+
+# Block Krylov and subspace iteration: one id per algorithm and regime; the bold names of the
+# first declarations name only one of several forms.
+[rbki-gapless-error]
+title = "Randomized block Krylov iteration: gapless bounds"
+aliases = ["RBKI gapless", "block Krylov gapless", "Tropp–Webber Theorem 9.1", "Musco–Musco"]
+primary = "NLAlib.integral_specNorm_sub_rbki_sq_le_mul_exp_of_hasLaw_gaussianMatrix"
+
+[rbki-gapped-error]
+title = "Randomized block Krylov iteration: gapped bounds"
+aliases = ["RBKI gapped", "block Krylov gapped", "Tropp–Webber Theorem 9.2"]
+primary = "NLAlib.integral_specNorm_sub_rbki_sq_le_singularGapRatio_of_hasLaw_gaussianMatrix"
+
+[rsi-gapless-error]
+title = "Randomized subspace iteration: gapless bounds"
+aliases = ["RSI gapless", "subspace iteration gapless", "power iteration", "Tropp–Webber Theorem 9.1", "Musco–Musco"]
+primary = "NLAlib.integral_specNorm_sub_rsvd_pow_mul_sq_le_mul_rpow_of_hasLaw_gaussianMatrix"
+
+[rsi-gapped-error]
+title = "Randomized subspace iteration: gapped bounds"
+aliases = ["RSI gapped", "subspace iteration gapped"]
+primary = "NLAlib.integral_specNorm_sub_rsvd_pow_mul_sq_le_singularGapRatio_of_hasLaw_gaussianMatrix"
+
+[nysbki-gapless-error]
+title = "Block Krylov Nyström: gapless bounds"
+aliases = ["NysBKI gapless", "Tropp–Webber Theorem 9.1", "Musco–Musco"]
+primary = "Matrix.PosSemidef.integral_specNorm_sub_nystromBKI_le_mul_exp_of_hasLaw_gaussianMatrix"
+
+[nysbki-gapped-error]
+title = "Block Krylov Nyström: gapped bounds"
+aliases = ["NysBKI gapped"]
+primary = "Matrix.PosSemidef.integral_specNorm_sub_nystromBKI_le_singularGapRatio_of_hasLaw_gaussianMatrix"
+
+[nyssi-gapless-error]
+title = "Nyström subspace iteration: gapless bounds"
+aliases = ["NysSI gapless", "Tropp–Webber Theorem 9.1", "Musco–Musco"]
+primary = "Matrix.PosSemidef.integral_specNorm_sub_nystrom_pow_mul_le_mul_rpow_of_hasLaw_gaussianMatrix"
+
+[nyssi-gapped-error]
+title = "Nyström subspace iteration: gapped bounds"
+aliases = ["NysSI gapped"]
+primary = "Matrix.PosSemidef.integral_specNorm_sub_nystrom_pow_mul_le_singularGapRatio_of_hasLaw_gaussianMatrix"

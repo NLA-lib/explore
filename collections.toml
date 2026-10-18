@@ -3,8 +3,8 @@
 [[collections]]
 id = "low-rank-one-two-pass"
 topic = "LowRank"
-title = "One- and two-pass low-rank approximation"
-description = "Browse by method: randomized SVD, generalized Nyström and PSD Nyström, with their early- and late-truncated variants. Compare sample requirements on the [Rates page](rates/)."
+title = "Randomized low-rank approximation"
+description = "Browse by method: randomized SVD, generalized Nyström and PSD Nyström, with their early- and late-truncated variants, then the multi-pass methods, randomized block Krylov and subspace iteration and their Nyström forms. Compare sample sizes and depths on the [Rates page](rates/)."
 
 [[collections.groups]]
 id = "rsvd"
@@ -16,7 +16,7 @@ results = ["randomized-svd-expected-error", "randomized-svd-average-spectral-err
 id = "gn"
 title = "Generalized Nyström"
 definitions = ["NLAlib.generalizedNystrom", "NLAlib.earlyTruncatedGeneralizedNystrom"]
-results = ["generalized-nystrom-expected-error", "tgn-expected-error", "etgn"]
+results = ["generalized-nystrom-expected-error", "tgn-expected-error", "etgn", "generalized-nystrom-tail"]
 
 [[collections.groups]]
 id = "nystrom"
@@ -25,10 +25,22 @@ definitions = ["NLAlib.nystrom"]
 results = ["randomized-nystrom-expected-error", "randomized-nystrom-tail", "nystrom-structural-bound", "nystrom-two-eigenvalue-instance"]
 
 [[collections.groups]]
+id = "block-krylov"
+title = "Randomized block Krylov and subspace iteration"
+definitions = ["NLAlib.rbki"]
+results = ["rbki-gapless-error", "rbki-gapped-error", "rsi-gapless-error", "rsi-gapped-error"]
+
+[[collections.groups]]
+id = "block-krylov-nystrom"
+title = "Block Krylov and subspace iteration Nyström"
+definitions = ["NLAlib.nystromBKI"]
+results = ["nysbki-gapless-error", "nysbki-gapped-error", "nyssi-gapless-error", "nyssi-gapped-error", "gram-correspondence"]
+
+[[collections.groups]]
 id = "shared"
 title = "Shared approximation theory"
 definitions = ["NLAlib.obliqueProjector", "NLAlib.IsProjectionCostPreserving"]
-results = ["early-truncation-structural-bound", "early-truncation-pcp-bound", "truncation-lemma", "truncated-gram-correspondence", "perturbed-truncation", "reverse-eckart-young", "gaussian-haar-range-transfer"]
+results = ["filtered-range-finder-bound", "early-truncation-structural-bound", "early-truncation-pcp-bound", "truncation-lemma", "truncated-gram-correspondence", "perturbed-truncation", "reverse-eckart-young", "gaussian-haar-range-transfer"]
 
 [[collections]]
 id = "sketching"
@@ -99,12 +111,12 @@ results = ["normal-equations", "least-squares-pseudoinverse", "minimum-norm-leas
 id = "krylov"
 topic = "Krylov"
 title = "Krylov methods"
-description = "Browse by algorithm: the Lanczos and Arnoldi processes, CG, MINRES and GMRES with their preconditioned variants and recurrences, and Lanczos for matrix functions; the Krylov spaces they share come first."
+description = "Browse by algorithm: the Lanczos and Arnoldi processes, CG, MINRES and GMRES with their preconditioned variants and recurrences, and Lanczos for matrix functions; the Krylov spaces they share, block Krylov spaces included, come first. Randomized block Krylov iteration for low-rank approximation is listed last and belongs to the low-rank collection."
 
 [[collections.groups]]
 id = "krylov-spaces"
 title = "Krylov spaces"
-definitions = ["NLAlib.krylovMatrix", "NLAlib.krylovSpace", "NLAlib.krylovGrade"]
+definitions = ["NLAlib.krylovMatrix", "NLAlib.krylovSpace", "NLAlib.krylovGrade", "NLAlib.blockKrylovMatrix", "NLAlib.blockKrylovSpace"]
 results = ["krylov-space-dimension", "krylov-space-polynomial"]
 
 [[collections.groups]]
@@ -142,3 +154,9 @@ id = "lanczos-fa"
 title = "Lanczos for matrix functions"
 definitions = ["NLAlib.lanczosFA", "NLAlib.compressedCfc", "NLAlib.IsStieltjes", "NLAlib.HasStieltjesMeasure"]
 results = ["lanczos-fa-formula", "lanczos-fa-interpolation", "lanczos-fa-exactness", "lanczos-fa-uniform-bound", "lanczos-fa-recurrence", "lanczos-fa-cg", "lanczos-fa-near-optimality", "lanczos-fa-kernel-near-optimality", "lanczos-fa-near-optimality-lower-bound"]
+
+[[collections.groups]]
+id = "block-krylov-low-rank"
+title = "Randomized block Krylov (low-rank approximation)"
+definitions = ["NLAlib.rbki", "NLAlib.nystromBKI"]
+results = ["rbki-gapless-error", "rbki-gapped-error", "nysbki-gapless-error", "nysbki-gapped-error"]

@@ -1,4 +1,6 @@
 # Reviewed against the committed NLAlib extraction at b66e36e811709491eb8d5e5a54e891a3c173032d. Publish this library revision before explorer deployment.
+# The low-rank-krylov rows were reviewed against NLAlib branch krylov/block at
+# 5fd9e1462dc181a1ce539b46c65abad403646322 (2026-10-18); publish that revision before deployment.
 # Compare every changed summary with its exact theorem before updating statement_hash.
 
 [[families]]
@@ -18,6 +20,14 @@ subject_label = '''Algorithm / sketch'''
 filters = [{field = 'algorithm', label = 'Algorithm'}, {field = 'variant', label = 'Variant'}, {field = 'sketch_category', label = 'Sketch class', order = ['Gaussian', 'Haar', 'Sparse', 'Trig', 'Other']}, {field = 'sketch', label = 'Sketch'}, {field = 'norm', label = 'Norm'}, {field = 'mode', label = 'Guarantee mode'}]
 description = '''Compare sufficient sketch sizes for relative error $1+\varepsilon$, for sufficiently small positive $\varepsilon$. $\operatorname{OPT}_k$ is the best rank-$k$ error in the indicated norm; the basic outputs may have rank larger than $k$.'''
 notation = '''Real matrices and $0<\varepsilon\le\varepsilon_0$ for an absolute $\varepsilon_0>0$; rates give sufficient sample thresholds with absolute constants. Gaussian sketches have standard independent entries, with independent range and co-range sketches for generalized Nyström. Nyström requires $\mathbf{H}\succeq0$. Rotation-invariant sketches have a left unitarily invariant probability law and full column rank almost surely. $\widehat{\mathbf{A}}$ or $\widehat{\mathbf{H}}$ is the named algorithm output; late truncation takes its best rank-$k$ approximation, while early truncation truncates the sketch first. $\operatorname{OPT}_{\mathsf{F},k}^2=\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_k\|_{\mathsf{F}}^2$ and $\operatorname{OPT}_{*,k}=\|\mathbf{H}-\llbracket\mathbf{H}\rrbracket_k\|_*$. Frobenius guarantees take the expectation of the squared error.'''
+
+[[families]]
+id = '''low-rank-krylov'''
+title = '''Block Krylov and subspace iteration'''
+subject_label = '''Algorithm'''
+filters = [{field = 'algorithm', label = 'Algorithm', order = ['Randomized block Krylov (RBKI)', 'Randomized subspace iteration (RSI)', 'Block Krylov Nyström (NysBKI)', 'Nyström subspace iteration (NysSI)']}, {field = 'gap', label = 'Spectral gap', order = ['Gapless', 'Gapped']}, {field = 'variant', label = 'Variant', order = ['Basic', 'Late truncation']}, {field = 'norm', label = 'Norm', order = ['Spectral squared', 'Frobenius squared', 'Spectral', 'Nuclear']}]
+description = '''Compare the sufficient depth for expected relative error $1+\varepsilon$ against the best rank-$r$ error, for sufficiently small positive $\varepsilon$: blocks $q$ for block Krylov methods, power steps $p$ for subspace iteration. Gapless rates hold for every input; gapped rates assume a positive relative singular gap $\gamma$.'''
+notation = '''Real matrices $\mathbf{A}\in\mathbb{R}^{m\times n}$; Nyström rows take positive semidefinite $\mathbf{H}\in\mathbb{R}^{n\times n}$. The test matrix $\mathbf{X}\in\mathbb{R}^{n\times\ell}$ has independent standard Gaussian entries, unnormalized, and the block size satisfies $\ell\ge r+2$ for target rank $r$ (gapped rows: $\ell\ge t+2$ for their tail index $t\ge r$). This family writes the target rank $r$, as its theorems do; the one- and two-pass family writes $k$. Rates are sufficient thresholds $q\ge C\cdot(\ldots)$ or $p\ge C\cdot(\ldots)$ with absolute constants, for $0<\varepsilon\le\varepsilon_0$ with an absolute $\varepsilon_0>0$; $n$ is the number of columns of $\mathbf{A}$ (the size of $\mathbf{H}$). RBKI with $q$ blocks returns $\mathbf{P}\mathbf{A}$, with $\mathbf{P}$ the orthogonal projector onto the range of $\mathbf{A}[\mathbf{X},\,\mathbf{A}^{\mathsf{T}}\mathbf{A}\mathbf{X},\dots,(\mathbf{A}^{\mathsf{T}}\mathbf{A})^{q-1}\mathbf{X}]$ ($2q$ products with $\mathbf{A}$ or $\mathbf{A}^{\mathsf{T}}$ in Tropp and Webber's count). RSI with $p$ power steps is the randomized SVD with test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$ ($2p+2$ products). NysBKI is Nyström with the block Krylov matrix $[\mathbf{X},\mathbf{H}\mathbf{X},\dots,\mathbf{H}^{q-1}\mathbf{X}]$ ($q$ products); NysSI is Nyström with $\mathbf{H}^p\mathbf{X}$ ($p+1$ products). Late truncation returns the best rank-$r$ approximation of the output. Singular values are indexed from $0$, so $\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_r\|_2=\sigma_r(\mathbf{A})$. Gapped rows fix a head of $r\ge1$ singular values and a tail index $t$ with $r\le t\le\ell-2$, and assume $\gamma=(\sigma_{r-1}-\sigma_t)/(\sigma_{r-1}+\sigma_t)>0$; for Nyström rows these are singular values (eigenvalues) of $\mathbf{H}$. Spectral and Frobenius errors of general matrices are squared; Nyström spectral errors are not.'''
 
 [[families]]
 id = 'regression'
@@ -630,3 +640,337 @@ algorithm_definition = '''NLAlib.sketchAndSolve'''
 sketch_definition = '''NLAlib.countSketch'''
 statement_hash = '''404998880bc5588f76c55ce8d346ecf51efc00248bca3dc503a69ddf05d133a5'''
 resources = [{label = 'Sketch rows s', bound = '''$O(((r+1)^2+(r+1)/\varepsilon)/\delta)$ suffices'''}]
+
+[[guarantees]]
+id = '''krylov-expected-relative-spectral'''
+family = '''low-rank-krylov'''
+title = '''$(1+\varepsilon)$ low-rank approximation · expected squared spectral error'''
+description = '''For every fixed real matrix $\mathbf{A}$, the named output $\widehat{\mathbf{A}}$ satisfies $\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_2^2\le(1+\varepsilon)\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_r\|_2^2=(1+\varepsilon)\,\sigma_r(\mathbf{A})^2$, with singular values indexed from $0$. The expectation is of the squared error, over the Gaussian test matrix. Untruncated outputs may have rank larger than $r$; row-specific gap and block-size conditions apply.'''
+definitions = [{ label = '''Best rank-r truncation''', declaration = '''NLAlib.truncatedSVD''' }, { label = '''Relative singular gap (gapped rows)''', declaration = '''NLAlib.singularGapRatio''' }]
+
+[[guarantees]]
+id = '''krylov-expected-relative-frobenius'''
+family = '''low-rank-krylov'''
+title = '''$(1+\varepsilon)$ low-rank approximation · expected squared Frobenius error'''
+description = '''For every fixed real matrix $\mathbf{A}$, the named output $\widehat{\mathbf{A}}$ satisfies $\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_{\mathsf{F}}^2\le(1+\varepsilon)\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_r\|_{\mathsf{F}}^2$. The expectation is of the squared error, over the Gaussian test matrix. Only gapped Frobenius rates are proved; row-specific gap and block-size conditions apply.'''
+definitions = [{ label = '''Best rank-r truncation''', declaration = '''NLAlib.truncatedSVD''' }, { label = '''Relative singular gap''', declaration = '''NLAlib.singularGapRatio''' }]
+
+[[guarantees]]
+id = '''krylov-expected-relative-psd-spectral'''
+family = '''low-rank-krylov'''
+title = '''$(1+\varepsilon)$ PSD low-rank approximation · expected spectral error'''
+description = '''For every fixed real positive semidefinite matrix $\mathbf{H}$, the named Nyström output $\widehat{\mathbf{H}}$ satisfies $\mathbb{E}\|\mathbf{H}-\widehat{\mathbf{H}}\|_2\le(1+\varepsilon)\|\mathbf{H}-\llbracket\mathbf{H}\rrbracket_r\|_2=(1+\varepsilon)\,\sigma_r(\mathbf{H})$, with indices from $0$. The spectral error is not squared; the expectation is over the Gaussian test matrix. Row-specific gap and block-size conditions apply.'''
+definitions = [{ label = '''Nyström''', declaration = '''NLAlib.nystrom''' }, { label = '''Best rank-r truncation''', declaration = '''NLAlib.truncatedSVD''' }, { label = '''Relative singular gap (gapped rows)''', declaration = '''NLAlib.singularGapRatio''' }]
+
+[[guarantees]]
+id = '''krylov-expected-relative-psd-nuclear'''
+family = '''low-rank-krylov'''
+title = '''$(1+\varepsilon)$ PSD low-rank approximation · expected nuclear error'''
+description = '''For every fixed real positive semidefinite matrix $\mathbf{H}$, the rank-$r$ truncation $\llbracket\widehat{\mathbf{H}}\rrbracket_r$ of the named Nyström output satisfies $\mathbb{E}\|\mathbf{H}-\llbracket\widehat{\mathbf{H}}\rrbracket_r\|_*\le(1+\varepsilon)\|\mathbf{H}-\llbracket\mathbf{H}\rrbracket_r\|_*$. The expectation is over the Gaussian test matrix. Only gapped rates for the late-truncated outputs are proved; row-specific gap and block-size conditions apply.'''
+definitions = [{ label = '''Nyström''', declaration = '''NLAlib.nystrom''' }, { label = '''Best rank-r truncation''', declaration = '''NLAlib.truncatedSVD''' }, { label = '''Relative singular gap''', declaration = '''NLAlib.singularGapRatio''' }]
+
+[[rates]]
+id = '''rbki-gapless-spectral'''
+theorem = '''NLAlib.exists_forall_integral_specNorm_sub_rbki_sq_le_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Randomized block Krylov (RBKI)'''
+gap = '''Gapless'''
+variant = '''Basic'''
+sketch = '''Gaussian'''
+norm = '''Spectral squared'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-spectral'''
+resources = [{ label = '''Blocks q''', bound = '''$O(\log(n+1)/\sqrt{\varepsilon})$ suffices''' }]
+notes = '''No gap assumption. $\ell\ge r+2$; output rank $\le q\ell$. Tropp–Webber form; its explicit theorem assumes $\sigma_r>0$ and $q\ge2$, the asymptotic form does not.'''
+algorithm_definition = '''NLAlib.rbki'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''a9f02f5fb0fe172248db2a93a89aefb80e703f4a0584b88ff3b78b8dcdab1ab4'''
+
+[[rates]]
+id = '''rbki-gapless-late-spectral'''
+theorem = '''NLAlib.exists_forall_integral_specNorm_sub_truncatedSVD_rbki_sq_le_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Randomized block Krylov (RBKI)'''
+gap = '''Gapless'''
+variant = '''Late truncation'''
+sketch = '''Gaussian'''
+norm = '''Spectral squared'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-spectral'''
+resources = [{ label = '''Blocks q''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\varepsilon})$ suffices''' }]
+notes = '''No gap assumption. $\ell\ge r+2$; output rank $\le r$. Musco–Musco form: the $\log(1/\varepsilon)$ reflects that proof, not a cost of truncation (the Tropp–Webber form is proved only for the untruncated output).'''
+algorithm_definition = '''NLAlib.rbki'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''f0cb81cd4741c2bb1f8cfe07b30843bc6b9af15e6cca64ac17f3f1b46c6d10b0'''
+
+[[rates]]
+id = '''rbki-gapped-spectral'''
+theorem = '''NLAlib.exists_forall_integral_specNorm_sub_rbki_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Randomized block Krylov (RBKI)'''
+gap = '''Gapped'''
+variant = '''Basic'''
+sketch = '''Gaussian'''
+norm = '''Spectral squared'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-spectral'''
+resources = [{ label = '''Blocks q''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
+notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t\le\ell-2$. Output rank $\le q\ell$.'''
+algorithm_definition = '''NLAlib.rbki'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''6bad0d167b24251afa8c48321a4505b8cac76078b584af0cd6fb311a0ec6f2ae'''
+
+[[rates]]
+id = '''rbki-gapped-late-spectral'''
+theorem = '''NLAlib.exists_forall_integral_specNorm_sub_truncatedSVD_rbki_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Randomized block Krylov (RBKI)'''
+gap = '''Gapped'''
+variant = '''Late truncation'''
+sketch = '''Gaussian'''
+norm = '''Spectral squared'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-spectral'''
+resources = [{ label = '''Blocks q''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
+notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t\le\ell-2$. Output rank $\le r$.'''
+algorithm_definition = '''NLAlib.rbki'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''08bac47f1a9627da1e3c422da6eca0b9572904de1cb425f3de9ad86104a4e186'''
+
+[[rates]]
+id = '''rsi-gapless-spectral'''
+theorem = '''NLAlib.exists_forall_integral_specNorm_sub_rsvd_pow_mul_sq_le_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Randomized subspace iteration (RSI)'''
+gap = '''Gapless'''
+variant = '''Basic'''
+sketch = '''Gaussian'''
+norm = '''Spectral squared'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-spectral'''
+resources = [{ label = '''Power steps p''', bound = '''$O(\log(n+1)/\varepsilon)$ suffices''' }]
+notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. No gap assumption. $\ell\ge r+2$; output rank $\le\ell$. Tropp–Webber form; its explicit theorem assumes $\sigma_r>0$, the asymptotic form does not.'''
+algorithm_definition = '''NLAlib.rsvd'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''8648dbd3248a0d7e317ab4288c8cafd36b3b5a29b6664be1eb6469ca3625c418'''
+
+[[rates]]
+id = '''rsi-gapless-late-spectral'''
+theorem = '''NLAlib.exists_forall_integral_specNorm_sub_truncatedSVD_rsvd_pow_mul_sq_le_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Randomized subspace iteration (RSI)'''
+gap = '''Gapless'''
+variant = '''Late truncation'''
+sketch = '''Gaussian'''
+norm = '''Spectral squared'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-spectral'''
+resources = [{ label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\varepsilon)$ suffices''' }]
+notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. No gap assumption. $\ell\ge r+2$; output rank $\le r$. Musco–Musco form: the $\log(1/\varepsilon)$ reflects that proof, not a cost of truncation (the Tropp–Webber form is proved only for the untruncated output).'''
+algorithm_definition = '''NLAlib.rsvd'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''1b15bc4016cad0c6fc8efc709e967a8345790decf29e2988cb5a4990a9881dfb'''
+
+[[rates]]
+id = '''rsi-gapped-spectral'''
+theorem = '''NLAlib.exists_forall_integral_specNorm_sub_rsvd_pow_mul_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Randomized subspace iteration (RSI)'''
+gap = '''Gapped'''
+variant = '''Basic'''
+sketch = '''Gaussian'''
+norm = '''Spectral squared'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-spectral'''
+resources = [{ label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
+notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t\le\ell-2$. Output rank $\le\ell$.'''
+algorithm_definition = '''NLAlib.rsvd'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''b800a0f09bb90cb1328067b3f210d234cbb1a1091c4b870b6d7a6ff482f92c77'''
+
+[[rates]]
+id = '''rsi-gapped-late-spectral'''
+theorem = '''NLAlib.exists_forall_integral_specNorm_sub_truncatedSVD_rsvd_pow_mul_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Randomized subspace iteration (RSI)'''
+gap = '''Gapped'''
+variant = '''Late truncation'''
+sketch = '''Gaussian'''
+norm = '''Spectral squared'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-spectral'''
+resources = [{ label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
+notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t\le\ell-2$. Output rank $\le r$.'''
+algorithm_definition = '''NLAlib.rsvd'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''3c2d0aa0c63df197735f6789671e6a0609f45051c99cce06c8e0c8a645ec40fc'''
+
+[[rates]]
+id = '''rbki-gapped-frobenius'''
+theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_rbki_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Randomized block Krylov (RBKI)'''
+gap = '''Gapped'''
+variant = '''Basic'''
+sketch = '''Gaussian'''
+norm = '''Frobenius squared'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-frobenius'''
+resources = [{ label = '''Blocks q''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
+notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t\le\ell-2$. Output rank $\le q\ell$.'''
+algorithm_definition = '''NLAlib.rbki'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''c4bd0fe86d4de6f71714c419b5ec65ef6f5b616bed1cbbe5a44f836505c2ad6d'''
+
+[[rates]]
+id = '''rbki-gapped-late-frobenius'''
+theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_truncatedSVD_rbki_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Randomized block Krylov (RBKI)'''
+gap = '''Gapped'''
+variant = '''Late truncation'''
+sketch = '''Gaussian'''
+norm = '''Frobenius squared'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-frobenius'''
+resources = [{ label = '''Blocks q''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
+notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t\le\ell-2$. Output rank $\le r$.'''
+algorithm_definition = '''NLAlib.rbki'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''317c8cd79bcad43903ad1cda480db704fec0c0f3ba5657c7a01a997ad175a1fe'''
+
+[[rates]]
+id = '''rsi-gapped-frobenius'''
+theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_rsvd_pow_mul_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Randomized subspace iteration (RSI)'''
+gap = '''Gapped'''
+variant = '''Basic'''
+sketch = '''Gaussian'''
+norm = '''Frobenius squared'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-frobenius'''
+resources = [{ label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
+notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t\le\ell-2$. Output rank $\le\ell$.'''
+algorithm_definition = '''NLAlib.rsvd'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''9545c8c3a2f0e8df19d82b887a4543c3562d389fb1a3af64eb7f1d4ad8042f38'''
+
+[[rates]]
+id = '''rsi-gapped-late-frobenius'''
+theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_truncatedSVD_rsvd_pow_mul_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Randomized subspace iteration (RSI)'''
+gap = '''Gapped'''
+variant = '''Late truncation'''
+sketch = '''Gaussian'''
+norm = '''Frobenius squared'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-frobenius'''
+resources = [{ label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
+notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t\le\ell-2$. Output rank $\le r$.'''
+algorithm_definition = '''NLAlib.rsvd'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''7434953d88dfda7b320937690ec11655d7869041d23fc285ecdbded55b3a6fad'''
+
+[[rates]]
+id = '''nysbki-gapless-spectral'''
+theorem = '''NLAlib.exists_forall_integral_specNorm_sub_nystromBKI_le_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Block Krylov Nyström (NysBKI)'''
+gap = '''Gapless'''
+variant = '''Basic'''
+sketch = '''Gaussian'''
+norm = '''Spectral'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-psd-spectral'''
+resources = [{ label = '''Blocks q''', bound = '''$O(\log(n+1)/\sqrt{\varepsilon})$ suffices''' }]
+notes = '''No gap assumption. $\ell\ge r+2$; output rank $\le q\ell$. Tropp–Webber form; its explicit theorem assumes $\sigma_r(\mathbf{H})>0$ and $q\ge2$, the asymptotic form does not.'''
+algorithm_definition = '''NLAlib.nystromBKI'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''43ac0f8d7a55cfc0ff3abffea80ae5b4ce2bcf721ad1dbef49ae75478769283c'''
+
+[[rates]]
+id = '''nysbki-gapped-spectral'''
+theorem = '''NLAlib.exists_forall_integral_specNorm_sub_nystromBKI_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Block Krylov Nyström (NysBKI)'''
+gap = '''Gapped'''
+variant = '''Basic'''
+sketch = '''Gaussian'''
+norm = '''Spectral'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-psd-spectral'''
+resources = [{ label = '''Blocks q''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
+notes = '''Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t\le\ell-2$. Output rank $\le q\ell$.'''
+algorithm_definition = '''NLAlib.nystromBKI'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''322170ebca8afe82a02574dc583fb6717de6d20f060d004cd163ed417c613d19'''
+
+[[rates]]
+id = '''nyssi-gapless-spectral'''
+theorem = '''NLAlib.exists_forall_integral_specNorm_sub_nystrom_pow_mul_le_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Nyström subspace iteration (NysSI)'''
+gap = '''Gapless'''
+variant = '''Basic'''
+sketch = '''Gaussian'''
+norm = '''Spectral'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-psd-spectral'''
+resources = [{ label = '''Power steps p''', bound = '''$O(\log(n+1)/\varepsilon)$ suffices''' }]
+notes = '''Nyström at test matrix $\mathbf{H}^p\mathbf{X}$. No gap assumption. $\ell\ge r+2$; output rank $\le\ell$. Tropp–Webber form; its explicit theorem assumes $\sigma_r(\mathbf{H})>0$, the asymptotic form does not.'''
+algorithm_definition = '''NLAlib.nystrom'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''8bfdc7d76d32540a3e5e74c9f4798ca94edd24073c1d1642b79f7cb7398e5b4b'''
+
+[[rates]]
+id = '''nyssi-gapped-spectral'''
+theorem = '''NLAlib.exists_forall_integral_specNorm_sub_nystrom_pow_mul_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Nyström subspace iteration (NysSI)'''
+gap = '''Gapped'''
+variant = '''Basic'''
+sketch = '''Gaussian'''
+norm = '''Spectral'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-psd-spectral'''
+resources = [{ label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
+notes = '''Nyström at test matrix $\mathbf{H}^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t\le\ell-2$. Output rank $\le\ell$.'''
+algorithm_definition = '''NLAlib.nystrom'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''e2fd3c918cca084d8dda20c350eadc7227eecfc652652926816e03a2af411d80'''
+
+[[rates]]
+id = '''nysbki-gapped-late-nuclear'''
+theorem = '''NLAlib.exists_forall_integral_nuclearNorm_sub_truncatedSVD_nystromBKI_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Block Krylov Nyström (NysBKI)'''
+gap = '''Gapped'''
+variant = '''Late truncation'''
+sketch = '''Gaussian'''
+norm = '''Nuclear'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-psd-nuclear'''
+resources = [{ label = '''Blocks q''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
+notes = '''Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t\le\ell-2$. Output rank $\le r$.'''
+algorithm_definition = '''NLAlib.nystromBKI'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''71b56c2412e6f73fb2094fb0e22b9a64586c81c89b6a83cdf28c2f7b970a0941'''
+
+[[rates]]
+id = '''nyssi-gapped-late-nuclear'''
+theorem = '''NLAlib.exists_forall_integral_nuclearNorm_sub_truncatedSVD_nystrom_pow_mul_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
+family = '''low-rank-krylov'''
+algorithm = '''Nyström subspace iteration (NysSI)'''
+gap = '''Gapped'''
+variant = '''Late truncation'''
+sketch = '''Gaussian'''
+norm = '''Nuclear'''
+mode = '''Expectation'''
+guarantee = '''krylov-expected-relative-psd-nuclear'''
+resources = [{ label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
+notes = '''Nyström at test matrix $\mathbf{H}^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t\le\ell-2$. Output rank $\le r$.'''
+algorithm_definition = '''NLAlib.nystrom'''
+sketch_definition = '''NLAlib.gaussianMatrix'''
+statement_hash = '''4bb6e86c33afe8be3389a6d9c1140964f9ca5f7b612d0ad2f298838873aa0faf'''
