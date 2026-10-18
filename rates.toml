@@ -4,7 +4,8 @@
 # The trace-estimation rows (exact identities, kind = 'exact') were reviewed against NLAlib branch
 # probability/trace-estimation at f1d3e75f60889356bf0d06eb24606a81b2e99be2 (2026-10-18), and
 # re-read with the independent-coordinate row at 24b5d47ac04eb4ee5adb1203e6a888cc2ab287e3 (hashes
-# unchanged); publish 24b5d47 or later before deployment.
+# unchanged), and at a4f8773 after the Hutch++ proofs (hashes unchanged); publish
+# a4f877336325611783c2f3af6bafe51e2fc11ab1 or later before deployment.
 # Compare every changed summary with its exact theorem before updating statement_hash.
 
 [[families]]

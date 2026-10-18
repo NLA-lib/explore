@@ -512,3 +512,6 @@ extraction (354 modules, 4098 declarations) builds with 56 rows, six in this fam
 tests pass (the definition-link test covers the row label), the Node probability tests and the
 JavaScript syntax check pass, and all 250 math spans of the family, guarantees, rows and the 13
 cited statements render under KaTeX. No browser pass was made.
+
+Re-checked 2026-10-18 against library commit a4f8773 (Hutch++ proved, no `sorry` in the library):
+the strict build accepts every row with no statement-hash change.
