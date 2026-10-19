@@ -636,3 +636,36 @@ Block Krylov and subspace iteration
 At 390 px a row is a short paragraph, its cells separated by dots, as in the statements table.
 Expanded (`▾`), a row shows its statement with the *Explicit bound* toggle, the links *Result
 page* (the row selected), *Asymptotic theorem*, *Explicit theorem*, *Source ↗* and *Copy link*.
+
+### Implementation and read-back (2026-10-19)
+
+Built against the extraction at a4f8773 (354 modules, 4105 declarations; `--src` a `git archive`
+of a4f8773, since the library worktree is on another branch). The page has 67 rows: 50 reviewed
+rates (the 50 earlier rows, every `statement_hash` unchanged), 11 pending and 6 exact values; and
+139 bounds without a rate form. The pending rows are the 11 pairs the audit found without a row:
+the three PCP sample sizes (Embeddings, group "Projection-cost preservation · tail bound"), the
+three ETRSVD tails and the three RSVD tails (CountSketch, sub-Gaussian, sub-Gaussian constant
+factor; group "Frobenius norm · tail bound"), and the Hutch++ tail and variance (Trace
+estimation). The RSVD spectral theorems (HMT 10.6 for $\mathbb{E}\|\cdot\|_2$, TW 8.1 RSVD2 and
+the HMT 10.6 form for $\mathbb{E}\|\cdot\|_2^2$, TW 8.1 RSVD1 and HMT 10.8 tails, the
+late-truncated and any-best-rank-$k$ forms) are listed under *Bounds without a rate form* of the
+one- and two-pass family, 11 statements in four cells; `?algorithm=RSVD&measure=Spectral+norm`
+opens that list.
+
+Migration of `rates.toml`: the hand facet fields and the per-family `filters`/`subject_field` were
+removed (the old `subject_field` values became the algorithm column's heading, `subject_label`);
+each resource got its `kind`; the exact rows' `probe` became `label`; guarantee titles say
+"expected error $\mathbb{E}\|\cdot\|^2$" and "tail bound" (no "squared", "high probability" or
+"Expectation"), and "Late truncation" is "late-truncated". Notes and resource bounds are unchanged.
+`facets.toml` gains overrides for the single-probe Girard–Hutchinson theorems, whose names spell
+`quadForm` rather than the estimator, and for the $m$-probe theorem (absolute error, any isotropic
+probe); `facets.py` reads `abs_<algorithm>_sub` after a scale
+(`mul_nuclearNorm_lt_abs_hutchpp_sub_trace`) as an absolute error, which also corrects the Hutch++
+relative-error row of its result page.
+
+Checks: every row's algorithm link and every *Bounds without a rate form* link (206 in all)
+selects the intended statement on its result page; `#rate/<id>`, `#rate/<declaration>`,
+`#rate-row-<id>`, the notation and guarantee anchors and the query-string filters work; with every
+row expanded and every disclosure open there is no KaTeX error and no horizontal overflow at 1280
+and 390 px, and no console error. Not done: no independent mathematical review was needed, since
+no reviewed summary changed; the 11 pending rows await one.

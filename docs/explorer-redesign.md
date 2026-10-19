@@ -86,6 +86,12 @@ The audit script is not committed; its parser is the basis of `facets.py`. Libra
 still say "average" (HMT 10.6) and "mean" in a few places; the explorer shows them as the
 library's names of the statements and does not rewrite them.
 
+**Stage 4 (Rates) status** (branch `feat/rates-facets`, 2026-10-19): Rates rows are generated
+from every asymptotic pair, with the reviewed `rates.toml` summaries as an overlay keyed by
+theorem and statement hash, pending rows for the rest and the exact rows kept; see
+[rates-design.md](rates-design.md#rates-from-facets-2026-10-19). The Sources page of stage 4 is
+not part of it (decision 6).
+
 ---
 
 ## 1. What a reader comes to do
