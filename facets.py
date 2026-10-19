@@ -172,8 +172,10 @@ def infer(name, type_deps=()):
     conclusion = '_'.join(before)
     terms = re.split(r'_add_(?=(?:' + '|'.join(t for t, *_ in MEASURES) + r')(?:_|$))', conclusion)
     measures, moments = [], []
-    if before[:1] == ['abs']:
-        # `abs_hutchpp_sub_trace`: the absolute error of a scalar estimate
+    if before[:1] == ['abs'] or re.search(
+            r'(?:^|_)abs_(?:' + '|'.join(re.escape(t) for t, _, _ in ALGORITHMS) + r')_sub(?:_|$)', head):
+        # `abs_hutchpp_sub_trace`: the absolute error of a scalar estimate, also when a scale
+        # comes first (`mul_nuclearNorm_lt_abs_hutchpp_sub_trace`: ε‖A‖_* < |hutchpp − tr A|)
         measures, moments = ['abs'], [2 if _has('sq', conclusion) else 1]
     else:
         for term in terms:
@@ -211,6 +213,55 @@ def infer(name, type_deps=()):
     if last is not None and '_'.join(words[last + 1:]) in SHAPES:
         f['details'].append(SHAPES['_'.join(words[last + 1:])])
     return f
+
+
+# sketch properties, `[exists_forall_]<property>_of_<law>`: outside the bound grammar, but their
+# asymptotic forms are sample-size rates (the Rates page)
+PROPERTIES = [
+    ('hasJLProperty', 'Distributional JL'),
+    ('isObliviousSubspaceEmbedding', 'Oblivious subspace embedding'),
+    ('hasSubspaceEmbedding', 'Subspace embedding'),
+    ('isObliviousSubspaceInjection', 'Oblivious subspace injection'),
+    ('hasSubspaceInjection', 'Subspace injection'),
+    ('hasProjectionCostPreserving', 'Projection-cost preservation'),
+]
+PROPERTY_PREFIX = re.compile(r'(exists_forall_)?(' + '|'.join(t for t, _ in PROPERTIES) + r')(?:_of_(.*))?$')
+
+
+def infer_property(name):
+    """The facets of a sketch-property theorem (`exists_forall_hasJLProperty_of_hasLaw_srht`):
+    the property stands in the algorithm's place and the statistic is a tail bound (a
+    failure probability); None for any other name."""
+    parts = name.split('.')
+    m = PROPERTY_PREFIX.match(parts[-1])
+    if not m:
+        return None
+    asym, token, rest = m.groups()
+    rest = rest or ''
+    law = next((lab for tok, lab in LAWS if _has(tok, rest)), None)
+    if not law:
+        law = next((INTERFACES[n] for n in reversed(parts[:-1]) if n in INTERFACES), None)
+    return {'form': 'asymptotic' if asym else 'explicit', 'statistic': 'tail', 'exact': False,
+            'measure': None, 'moment': None, 'algorithm': dict(PROPERTIES)[token], 'output': None,
+            'law': law, 'regime': None, 'details': [], 'property': True}
+
+
+def statistic_key(f):
+    """The statistic without its norm, as the Rates filter offers it."""
+    stat = (f or {}).get('statistic')
+    if stat == 'expectation':
+        return 'expectation-2' if f.get('moment') == 2 else 'expectation-1'
+    return stat
+
+
+# the statistic filter's options: formula first, then the approved words
+STATISTIC_LABELS = {
+    'expectation-2': 'E‖·‖² · expected error',
+    'expectation-1': 'E‖·‖ · expected error',
+    'tail': 'ℙ[·] · tail bound',
+    'variance': 'Var · variance',
+}
+STATISTIC_WORDS = {'expectation': 'expected error', 'tail': 'tail bound', 'variance': 'variance'}
 
 
 def apply_override(f, override):
@@ -260,6 +311,8 @@ def statistic_tex(f):
     stat = f.get('statistic')
     if not stat:
         return None
+    if f.get('property'):
+        return r'$\mathbb{P}[\text{failure}]$'
     if stat == 'variance':
         return r'$\operatorname{Var}$' + (' (exact)' if f.get('exact') else '')
     keys = (f.get('measure') or '').split('+') if f.get('measure') else []

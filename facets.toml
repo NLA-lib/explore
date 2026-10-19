@@ -62,3 +62,23 @@ label = "through an approximate-multiplication tail, any field"
 [overrides."Matrix.PosSemidef.measureReal_hutchpp_lt_one_sub_mul_trace_le_of_isSubgaussianVector"]
 measure = "trace"
 label = "lower tail"
+
+# Girard–Hutchinson with one probe is the quadratic form; the names spell `quadForm` (the exact
+# variances of the Rates page)
+[overrides."NLAlib.variance_quadForm_of_hasLaw_gaussianVector"]
+algorithm = "Girard–Hutchinson"
+
+[overrides."NLAlib.variance_quadForm_of_hasLaw_rademacherVector"]
+algorithm = "Girard–Hutchinson"
+
+[overrides."NLAlib.variance_quadForm_sqrt_smul_of_hasLaw_uniformSphereVector"]
+algorithm = "Girard–Hutchinson"
+
+[overrides."NLAlib.variance_quadForm_of_isHermitian"]
+algorithm = "Girard–Hutchinson"
+law = "independent coordinates"
+
+# the m-probe second moment about the trace, for any isotropic probes
+[overrides."NLAlib.integral_norm_girardHutchinson_sub_trace_sq"]
+measure = "abs"
+law = "any isotropic probe"
