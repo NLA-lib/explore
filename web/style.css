@@ -882,7 +882,11 @@ button:focus-visible, select:focus-visible {
     outline-offset: 3px;
 }
 
-/* Rates use the same reading column, with full-width theorem disclosures below each row. */
+.source-modules { margin-top: 1em; font-size: 90%; }
+.source-modules > summary { font-style: italic; text-decoration: underline; }
+
+/* Rates: one table per family in the look of a result page's statements table; group rows are
+   guarantees (or generated cells of pending rows), a row expands in place to its theorem. */
 .rate-filters {
     display: flex;
     flex-wrap: wrap;
@@ -890,76 +894,143 @@ button:focus-visible, select:focus-visible {
     font-size: 70%;
     padding-top: 0.5em;
 }
-.rate-filters label { display: flex; flex-direction: column; min-width: 0; max-width: 100%; }
-.rate-filters select { font: inherit; color: inherit; background: #fff; max-width: 100%; }
-.rates-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 75%; }
-.rates-table th { text-align: left; font-weight: 600; border-bottom: 1px solid var(--ink); }
-.rates-table td, .rates-table th { vertical-align: top; padding: 0.5em 0.6em 0.5em 0; overflow-wrap: anywhere; }
-.rates-table th:first-child { width: 25%; }
-.rates-table th:nth-child(2) { width: 36%; }
-.rate-meta { display: block; color: var(--faint); font-size: 90%; margin: 0.1em 0 0.4em; }
-.rate-resource + .rate-resource { margin-top: 0.5em; }
-.rate-caveat { font-size: 90%; margin: 0.6em 0 0; }
-.rate-theorem > td { border-bottom: 1px solid var(--rule); padding-bottom: 1em; }
-.rate-detail > summary { display: inline; text-decoration: underline; text-underline-offset: 2px; }
-.rate-detail > summary::before { content: '+ '; }
-.rate-detail[open] > summary::before { content: '− '; }
-.rate-permalink { display: inline-block; margin-top: 0.4em; font-size: 85%; }
-.rate-expanded { margin-top: 0.6em; }
-.rate-expanded .statement > p { font-size: 100%; }
-.rate-expanded button { margin-bottom: 0.5em; }
-.rate-links { font-size: 90%; }
-.rates-table .katex { white-space: normal; }
-.rates-table .katex-html { overflow-wrap: normal; }
-.source-modules { margin-top: 1em; font-size: 90%; }
-.source-modules > summary { font-style: italic; text-decoration: underline; }
-@media (max-width: 600px) {
-    .rates-table, .rates-table tbody, .rates-table tr, .rates-table td { display: block; width: auto; }
-    .rates-table { font-size: 85%; }
-    .rates-table thead { display: none; }
-    .rates-table td { padding: 0.4em 0; }
-    .rates-table td[data-label]::before { content: attr(data-label); display: block; font-size: 80%; font-weight: 600; color: var(--faint); }
-    .rates-table tr[id] { padding-top: 0.7em; }
-    .rate-theorem { margin-bottom: 0.7em; }
-    .rates-table .katex { font-size: 1.05em; }
+.rate-filters label { display: flex; flex-direction: column; min-width: 0; max-width: 100%; flex: 1 1 8rem; }
+.rate-filters select { font: inherit; color: inherit; background: #fff; min-width: 0; width: 100%; max-width: 100%;
+    box-sizing: border-box; text-overflow: ellipsis; padding: 0.2em 0.4em; min-height: 28px; }
+
+/* the tables need more than the reading column; prose in them keeps a readable measure */
+body[data-page="rates"] #contentContainer { max-width: 1120px; }
+body[data-page="rates"] .intro, body[data-page="rates"] .rate-family > .topic-blurb,
+body[data-page="rates"] .rate-notation > :not(summary), body[data-page="rates"] .rate-norate-intro { max-width: 760px; }
+.rate-family { margin: 1.6em 0 2.4em; }
+.rate-family > h2 { margin-bottom: 0.3em; }
+.rate-notation, .rate-definitions, .rate-norate { font-size: 80%; line-height: 1.45; }
+.rate-notation { margin: 0.4em 0 0.8em; }
+.rate-notation > summary, .rate-definitions > summary, .rate-norate > summary {
+    text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.rate-notation > summary::before, .rate-norate > summary::before { content: '+ '; }
+.rate-notation[open] > summary::before, .rate-norate[open] > summary::before { content: '− '; }
+.rate-notation .katex-display, .guarantee-description .katex-display, .rate-definitions .katex-display {
+    overflow-x: auto; overflow-y: hidden; }
+
+.rate-scroll {
+    overflow-x: auto;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--rule);
 }
-
-.rates-table .nowrap { white-space: normal; }
-.rates-table .katex { display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden; vertical-align: middle; }
-.rates-table .katex-display .katex { display: block; }
-
-.rate-filters label { flex: 1 1 8rem; }
-.rate-filters label:first-child { flex-basis: 100%; }
-.rate-filters select { min-width: 0; width: 100%; box-sizing: border-box; text-overflow: ellipsis; }
-
-.rate-filters select { padding: 0.2em 0.4em; min-height: 28px; }
-.rate-theorem .rate-permalink { float: right; margin: 0 0 0.4em 1em; }
-.rate-expanded { clear: both; }
-.rate-notation { margin: 0.6em 0 1em; font-size: 80%; line-height: 1.45; }
-.rate-notation > summary { text-decoration: underline; text-underline-offset: 2px; }
-.rate-notation > summary::before { content: '+ '; }
-.rate-notation[open] > summary::before { content: '− '; }
-@media (max-width: 600px) {
-    .rate-filters select { min-height: 32px; }
+.rates-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 72%;
+    line-height: 1.35;
 }
-.rate-notation .katex-display { overflow-x: auto; overflow-y: hidden; }
-
-/* A shared guarantee heads its comparison rows once. */
-.rate-guarantee { margin: 1.5em 0 2em; }
-.rate-guarantee > h3 { font-size: 19px; margin-bottom: 0.4em; }
-.guarantee-description { font-size: 80%; line-height: 1.45; }
-.guarantee-description .katex-display, .rate-definitions .katex-display { overflow-x: auto; overflow-y: hidden; }
-.rate-definitions { margin: 0.6em 0 1em; font-size: 80%; }
-.rate-definitions > summary { text-decoration: underline; text-underline-offset: 2px; }
+.rates-table th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--faint);
+    padding: 0.35em 0.6em 0.35em 0;
+    vertical-align: bottom;
+}
+.rates-table thead th { border-bottom: 1px solid var(--rule); }
+.rates-table td {
+    padding: 0.35em 0.6em 0.35em 0;
+    vertical-align: baseline;
+    border-top: 1px solid #eee;
+}
+.rates-table .pick { width: 1.6em; padding-left: 0.2em; }
+.rates-table tr.rate-group th {
+    color: var(--ink);
+    font-weight: 400;
+    padding-top: 0.9em;
+    border-bottom: 1px solid var(--rule);
+}
+.rate-group-title { font-style: italic; }
+.rate-group-title .katex { font-style: normal; }
+.rates-table tr.rate-group .rate-definitions { margin: 0.25em 0 0.1em; font-size: 100%; color: var(--faint); }
+.rates-table tr.rate-group .rate-definitions[open] { color: var(--ink); }
 .rate-definitions h4 { margin-bottom: 0.5em; }
-.rate-definition-links { display: block; margin-top: 0.4em; font-size: 85%; }
-.rates-table th:first-child { width: 38%; }
-.rates-table th:nth-child(2) { width: auto; }
-.rate-copy-status { float: right; font-size: 85%; margin-right: 0.5em; max-width: 65%; overflow-wrap: anywhere; }
-.rate-theorem button.rate-permalink { font-size: 85%; margin-top: 0; }
-.rate-definitions .statement > p { font-size: 100%; }
+.rate-definitions .statement > p, .guarantee-description { font-size: 100%; }
+.rates-table tr.rate-row { cursor: pointer; }
+.rates-table tr.rate-row:hover td { background: #f6f6f4; }
+.rates-table tr.rate-row.on td { background: #ecece8; }
+.rates-table tr.rate-row.on td.pick { box-shadow: inset 3px 0 0 var(--ink); }
+.rates-table td.c-algorithm { white-space: nowrap; font-weight: 600; }
+.rates-table td.c-algorithm a { text-decoration: none; border-bottom: 1px solid var(--rule); }
+.rates-table td.c-algorithm a:hover { border-bottom-color: var(--ink); }
+.rates-table td.c-stat, .rates-table td.c-output, .rates-table td.c-regime { white-space: nowrap; }
+.rates-table td.c-source { color: var(--faint); min-width: 7em; }
+.rates-table td.c-law, .rates-table td.c-output { min-width: 5.5em; }
+.rates-table td.c-resources { min-width: 14em; }
+.rates-table .katex { font-size: 1.12em; }
+.rate-toggle {
+    border: none; background: none; padding: 0 0.2em; font: inherit; color: var(--faint); cursor: pointer;
+    min-width: 1.4em; min-height: 1.4em;
+}
+.rate-row.on .rate-toggle, .rate-toggle:hover { color: var(--ink); }
+.rate-resource + .rate-resource { margin-top: 0.25em; }
+.rate-res-label { color: var(--faint); }
+.rate-caveat { font-size: 92%; margin: 0.3em 0 0; color: var(--faint); }
+.rate-caveat strong { font-weight: 600; }
+.pending-tag {
+    display: inline-block;
+    font-size: 80%;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1px dashed var(--faint);
+    color: var(--faint);
+    padding: 0 0.35em;
+    border-radius: 2px;
+    font-style: normal;
+    vertical-align: 0.1em;
+}
+.rates-table tr.rate-row.pending td.c-algorithm a { font-weight: 400; }
+.rate-pending-statement .statement > p { font-size: 100%; margin: 0.2em 0 0; }
+.rate-pending-statement .katex-display { margin: 0.3em 0; overflow-x: auto; overflow-y: hidden; }
+.rates-table tr.rate-theorem > td { background: #fafaf8; padding: 0.6em 0.8em 0.8em 1.8em; border-top: none; }
+.rate-expanded { font-size: 125%; }
+.rate-expanded .statement > p { font-size: 100%; }
+.rate-expanded .katex-display { overflow-x: auto; overflow-y: hidden; }
+.rate-detail-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em 0.8em; margin-bottom: 0.4em; }
+.rate-detail-bar button { font-size: 85%; }
+.rate-copy-status { font-size: 85%; overflow-wrap: anywhere; }
+.rate-links, .rate-pending-note { font-size: 85%; margin: 0.4em 0 0; }
+.rate-pending-note { color: var(--faint); }
 
-.rate-definitions .guarantee-description { font-size: 100%; }
+.rate-norate { margin: 0.8em 0 0; }
+.rate-norate-n { color: var(--faint); }
+.rate-norate-intro { color: var(--faint); margin: 0.4em 0; }
+.rate-norate ul { list-style: none; padding: 0; margin: 0; }
+.rate-norate li { padding: 0.3em 0; border-top: 1px solid #eee; margin: 0; }
+.rate-norate li::before { content: none; }
+.rate-norate-cell { margin-right: 0.4em; }
+.rate-norate .sep { color: var(--faint); }
+
+/* on a phone a row is a short paragraph, its cells separated by dots, as in the statements table */
+@media (max-width: 600px) {
+    .rate-scroll { overflow-x: visible; }
+    .rates-table, .rates-table tbody, .rates-table tr, .rates-table td, .rates-table th { display: block; }
+    .rates-table thead { display: none; }
+    .rates-table { font-size: 80%; }
+    .rates-table tr.rate-row { position: relative; display: flex; flex-wrap: wrap; align-items: baseline;
+        padding: 0.45em 0.4em 0.45em 2em; border-top: 1px solid #eee; }
+    .rates-table tr.rate-row td { display: inline; padding: 0; border: none; background: none !important; white-space: normal; }
+    .rates-table tr.rate-row td:empty { display: none; }
+    .rates-table tr.rate-row td:not(.pick):not(.c-resources):not(:empty) ~ td:not(.c-resources):not(:empty)::before {
+        content: "\00a0·\00a0"; color: var(--faint); }
+    .rates-table tr.rate-row td.c-law, .rates-table tr.rate-row td.c-output, .rates-table tr.rate-row td.c-source { min-width: 0; }
+    .rate-expanded { font-size: 105%; }
+    .rates-table tr.rate-row td.c-resources { display: block; order: 10; flex-basis: 100%; min-width: 0; margin-top: 0.25em; }
+    .rates-table tr.rate-row td.pick { position: absolute; left: 0.3em; top: 0.4em; width: auto; }
+    .rates-table tr.rate-row.on { background: #ecece8; box-shadow: inset 3px 0 0 var(--ink); }
+    .rates-table tr.rate-row.on td.pick { box-shadow: none; }
+    .rates-table tr.rate-theorem > td { padding: 0.5em 0.4em 0.7em; }
+    .rates-table tr.rate-theorem[hidden] { display: none; }
+    .rate-filters select { min-height: 32px; }
+    /* eleven filters would fill a phone's screen: on Rates the bar scrolls away */
+    body[data-page="rates"] #searchbar { position: static; }
+    .rate-filters label { flex-basis: 40%; }
+}
+
 /* Catalogue summaries can contain a full display equation; keep it inside the reading column. */
 .desc .katex-display { overflow-x: auto; overflow-y: hidden; }
 .desc .katex { display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden; vertical-align: middle; }

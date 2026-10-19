@@ -259,6 +259,15 @@
   }
 
   const rateFilters = {};
+  const RATES = D.rates || { entries: [], families: [], guarantees: [], groups: [], norate: [] };
+  const RATE_FACETS = [
+    ['family', 'Family'], ['algorithm', 'Algorithm'], ['measure', 'Error measure'], ['stat_key', 'Statistic'],
+    ['law', 'Law'], ['output', 'Output'], ['regime', 'Regime'], ['resource', 'Resource'], ['form', 'Form'],
+    ['source', 'Source'], ['status', 'Status']];
+  const RATE_COLUMN_TITLES = { law: 'Law', output: 'Output', regime: 'Regime', detail: 'Detail' };
+  const openRates = new Set();
+  const RATE_GENERATED = { algorithm: 1, measure: 1, stat_key: 1, law: 1, output: 1, regime: 1, form: 1 };
+  const rateWordCache = new Map();
 
   // Topics and subtopics are <details>, closed at first; which are open survives a search.
   const openSections = new Set();
@@ -334,51 +343,119 @@
 
   // ------------------------------------------------------------------ Rates comparisons
 
+  // Rows are generated from every asymptotic pair of the library (build.py, rates_page); a
+  // reviewed row carries its curated summary, a pending one its asymptotic statement. One table
+  // per family, grouped by guarantee, in the look of a result page's statements table.
+
+  // the facet values of a row, as strings; a family's own `filters` read the row's fields
+  function rateValues(e, field) {
+    const c = e.c || {};
+    const v = field === 'family' ? e.family : field === 'status' ? e.status : field === 'resource' ? c.resources
+      : field === 'source' ? c.sources : field in RATE_GENERATED ? c[field] : e[field];
+    return v === undefined || v === null || v === '' ? [] : [].concat(v).map(String);
+  }
+
+  function rateMatches(e, field, want) {
+    if (!want) return true;
+    if (field === 'law' && want.startsWith('class:')) return e.c?.law_class === want.slice(6);
+    return rateValues(e, field).includes(want);
+  }
+
+  function capital(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function rateOptionLabel(field, v) {
+    if (field === 'family') return RATES.families.find(f => f.id === v)?.title ?? v;
+    if (field === 'algorithm') return RATES.algorithms?.[v] ?? v;
+    if (field === 'stat_key') return RATES.statistics?.[v] ?? v;
+    if (field === 'status') return { reviewed: 'Reviewed', pending: 'Pending review' }[v] ?? v;
+    if (field === 'form') return { rate: 'Asymptotic rate', exact: 'Exact value' }[v] ?? v;
+    return capital(v);
+  }
+
+  function rateOrder(field) {
+    if (field === 'family') return RATES.families.map(f => f.id);
+    if (field === 'algorithm') return RATES.families.flatMap(f => f.algorithms || []);
+    if (field === 'stat_key') return Object.keys(RATES.statistics || {});
+    if (field === 'resource') return RATES.resourceKinds || [];
+    if (field === 'output') return ['plain', 'late-truncated', 'early-truncated'];
+    if (field === 'regime') return ['gapless', 'gapped'];
+    if (field === 'status') return ['reviewed', 'pending'];
+    if (field === 'form') return ['rate', 'exact'];
+    if (field === 'law') return (RATES.lawClasses || []).flatMap(([, laws]) => laws);
+    return [];
+  }
+
+  function rateFields() {
+    const family = RATES.families.find(f => f.id === rateFilters.family);
+    return [...RATE_FACETS, ...(family?.filters || []).map(f => [f.field, f.label || f.field, f.order])];
+  }
+
+  function syncRateQuery() {
+    const q = new URLSearchParams(Object.entries(rateFilters).filter(([, v]) => v));
+    if ($('#q').value.trim()) q.set('q', $('#q').value.trim());
+    const s = q.toString();
+    history.replaceState(null, '', location.pathname + (s ? '?' + s : '') + location.hash);
+  }
+
   function initRates() {
     document.title = 'NLA-lib Rates';
     $('h1').textContent = 'NLA-lib Rates';
     $('#intro').hidden = false;
-    $('#intro').textContent = 'Compare guarantees and sample requirements. Expand a row for its precise theorem and hypotheses.';
-    $('#q').placeholder = 'Search rates, algorithms, sketches and guarantees';
+    $('#intro').textContent = 'Compare the resources each algorithm needs for a target accuracy. Rows are generated ' +
+      'from the library’s asymptotic theorems: reviewed rows carry a summary, pending rows the theorem as stated. ' +
+      'An algorithm opens its statement on the result page; ▸ expands the statement here.';
+    $('#q').placeholder = 'Search rates, algorithms, laws and guarantees';
     $('#q').setAttribute('aria-label', 'Search rates');
     $('#byline').innerHTML = `From NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
     $('#searchbar').append(h('<div class="rate-filters" aria-label="Filter rates"></div>'));
+    // filter state lives in the query string, so a comparison can be linked
+    const params = new URLSearchParams(location.search);
+    for (const [k, v] of params) if (k === 'q') $('#q').value = v; else rateFilters[k] = v;
+    $('#content').addEventListener('click', rateClick);
     renderRates();
   }
 
   function renderRateFilters() {
-    const families = D.rates?.families || [];
-    const family = families.find(f => f.id === rateFilters.family);
-    const schema = family?.filters || [];
-    const allowed = new Set(['family', ...schema.map(f => f.field)]);
-    for (const key of Object.keys(rateFilters)) if (!allowed.has(key)) delete rateFilters[key];
-    const filters = $('.rate-filters');
-    if (!filters) return;
-    filters.replaceChildren();
-    const add = (field, title, values, names = {}) => {
-      const label = h(`<label>${esc(title)}<select data-field="${esc(field)}" aria-label="${esc(title)}"><option value="">All${field === 'family' ? ' families' : ''}</option>${values.map(v =>
-        `<option value="${esc(v)}"${rateFilters[field] === v ? ' selected' : ''}>${esc(names[v] || v)}</option>`).join('')}</select></label>`);
+    const box = $('.rate-filters');
+    if (!box) return;
+    const fields = rateFields();
+    const allowed = new Set(fields.map(f => f[0]));
+    for (const k of Object.keys(rateFilters)) if (!allowed.has(k) || !rateFilters[k]) delete rateFilters[k];
+    box.replaceChildren();
+    for (const [field, title, configured] of fields) {
+      // the bounds without a rate form count too: "RSVD, spectral norm" is a choice with no rate yet
+      const compatible = [...RATES.entries, ...(RATES.norate || [])].filter(e => fields.every(([o]) => o === field || rateMatches(e, o, rateFilters[o])));
+      const values = [...new Set(compatible.flatMap(e => rateValues(e, field)))];
+      const order = configured || rateOrder(field);
+      const rank = v => { const i = order.indexOf(v); return i < 0 ? order.length : i; };
+      values.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+      const want = rateFilters[field];
+      if (want && !values.includes(want) && !(field === 'law' && want.startsWith('class:'))) delete rateFilters[field];
+      if (values.length < 2 && !rateFilters[field]) continue;
+      const opt = v => `<option value="${esc(v)}"${rateFilters[field] === v ? ' selected' : ''}>${esc(rateOptionLabel(field, v))}</option>`;
+      let options = values.map(opt).join('');
+      if (field === 'law') {
+        // laws by sketch class, as on the Sketching page; a class with several laws can be chosen whole
+        const classOf = v => compatible.find(e => e.c?.law === v)?.c.law_class || 'Other';
+        options = (RATES.lawClasses || [['Other', []]]).map(([cls]) => {
+          const vs = values.filter(v => classOf(v) === cls);
+          if (!vs.length) return '';
+          const whole = `class:${cls}`;
+          return `<optgroup label="${esc(cls)}">${vs.length > 1 ? `<option value="${esc(whole)}"${rateFilters.law === whole ? ' selected' : ''}>All ${esc(cls)} laws</option>` : ''}${vs.map(opt).join('')}</optgroup>`;
+        }).join('');
+      }
+      const label = h(`<label>${esc(title)}<select data-field="${esc(field)}" aria-label="${esc(title)}"><option value="">All${field === 'family' ? ' families' : ''}</option>${options}</select></label>`);
       $('select', label).addEventListener('change', ev => {
-        const value = ev.target.value;
-        if (field === 'family') for (const key of Object.keys(rateFilters)) delete rateFilters[key];
-        rateFilters[field] = value;
+        rateFilters[field] = ev.target.value;
+        if (field === 'family') {
+          // a family's own filters do not carry over to another family
+          const own = new Set(RATE_FACETS.map(f => f[0]));
+          for (const k of Object.keys(rateFilters)) if (!own.has(k)) delete rateFilters[k];
+        }
+        syncRateQuery();
         renderRates();
         [...document.querySelectorAll('.rate-filters select')].find(s => s.dataset.field === field)?.focus();
       });
-      filters.append(label);
-    };
-    add('family', 'Family', families.map(f => f.id), Object.fromEntries(families.map(f => [f.id, f.title])));
-    if (!family) return;
-    const rows = (D.rates?.entries || []).filter(e => e.family === family.id);
-    for (const facet of schema) {
-      const compatible = rows.filter(e => schema.every(other => other.field === facet.field || !rateFilters[other.field] || e[other.field] === rateFilters[other.field]));
-      const values = [...new Set(compatible.map(e => e[facet.field]).filter(v => v !== undefined && v !== null && v !== '').map(String))];
-      if (facet.order) {
-        const rank = value => { const i = facet.order.indexOf(value); return i < 0 ? facet.order.length : i; };
-        values.sort((a, b) => rank(a) - rank(b));
-      }
-      if (rateFilters[facet.field] && !values.includes(rateFilters[facet.field])) delete rateFilters[facet.field];
-      if (values.length > 1 || rateFilters[facet.field]) add(facet.field, facet.label || facet.field, values);
+      box.append(label);
     }
   }
 
@@ -389,85 +466,237 @@
       .toLowerCase().match(/[\p{L}\p{N}]+/gu) || [];
   }
 
+  function rateWords(e) {
+    if (!rateWordCache.has(e)) {
+      const family = RATES.families.find(f => f.id === e.family);
+      const guarantee = RATES.guarantees.find(g => g.id === e.group);
+      const group = RATES.groups.find(g => g.id === e.group);
+      const c = e.c || {};
+      const d = decls[e.overview];
+      rateWordCache.set(e, rateSearchWords([family?.title, guarantee?.title, guarantee?.description, group?.title,
+        c.algorithm, RATES.algorithms?.[c.algorithm], c.measure, c.law, c.output, c.regime, c.detail, c.source,
+        ...(c.sources || []), e.label, ...(family?.filters || []).map(f => e[f.field]),
+        ...(e.resources || []).flatMap(r => [r.label, r.bound, r.kind]), e.notes, short(d.n), d.nm,
+        e.status === 'pending' ? 'pending ' + (d.stmt || '') : ''].join(' ')));
+    }
+    return rateWordCache.get(e);
+  }
+
   function resetRates() {
     $('#q').value = '';
-    for (const k of Object.keys(rateFilters)) rateFilters[k] = '';
-    renderRateFilters();
+    for (const k of Object.keys(rateFilters)) delete rateFilters[k];
+    syncRateQuery();
     renderRates();
+  }
+
+  // the result page with this row selected; an exact theorem without a Result id is its own page
+  function rateRoute(e, i = e.overview) { return e.result ? rowRoute(e.result, i) : declRoute(i); }
+
+  function rateColumns(f, rows) {
+    // a plain output is no information where no row is truncated
+    const value = (e, k) => (k === 'output' && e.c?.output === 'plain' ? '' : e.c?.[k] ?? '');
+    const vary = k => new Set(rows.map(e => value(e, k))).size > 1;
+    return [{ k: 'algorithm', t: f.subject_label || 'Algorithm' },
+      ...['law', 'output', 'regime', 'detail'].filter(k => vary(k) || (k === 'detail' && rows.some(e => e.c?.detail)))
+        .map(k => ({ k, t: RATE_COLUMN_TITLES[k] })),
+      { k: 'stat', t: 'Statistic' }, { k: 'resources', t: f.resources_label || 'Resources' }, { k: 'source', t: 'Source' }];
+  }
+
+  function rateCell(e, k) {
+    const c = e.c || {};
+    if (k === 'algorithm') {
+      const name = c.algorithm || short(decls[e.overview].n);
+      const long = RATES.algorithms?.[c.algorithm];
+      return `<a href="${BASE}${rateRoute(e)}" title="${esc((long ? long + ': ' : '') + 'open this statement on its result page')}">${esc(name)}</a>`;
+    }
+    if (k === 'resources') {
+      if (e.status === 'pending') {
+        return '<span class="pending-tag">pending review</span>' +
+          `<div class="rate-pending-statement">${statementHtml(null, e.overview)}</div>`;
+      }
+      const notes = Array.isArray(e.notes) ? e.notes.join(' ') : e.notes;
+      return (e.resources || []).map(r => `<div class="rate-resource"><span class="rate-res-label">${md(r.label, { inline: true })}:</span> ${md(r.bound, { inline: true })}</div>`).join('') +
+        (notes ? `<p class="rate-caveat"><strong>${e.kind === 'exact' ? 'Hypotheses' : 'Parameters'}:</strong> ${md(notes, { inline: true })}</p>` : '');
+    }
+    return c[k] ? md(c[k], { inline: true }) : '';
+  }
+
+  function rateRowHtml(e, cols) {
+    const open = openRates.has(e.id);
+    return `<tr class="rate-row${e.status === 'pending' ? ' pending' : ''}${open ? ' on' : ''}" id="rate-row-${esc(e.id)}" data-rate="${esc(e.id)}">` +
+      `<td class="pick"><button type="button" class="rate-toggle" aria-expanded="${open}" aria-controls="rate-detail-${esc(e.id)}" title="Show the theorem here">${open ? '▾' : '▸'}<span class="sr"> Show the theorem</span></button></td>` +
+      cols.map(c => `<td class="c-${c.k}" data-label="${esc(c.t)}">${rateCell(e, c.k)}</td>`).join('') + '</tr>' +
+      `<tr class="rate-theorem" id="rate-detail-${esc(e.id)}" data-rate="${esc(e.id)}"${open ? '' : ' hidden'}><td colspan="${cols.length + 1}"><div class="rate-expanded"></div></td></tr>`;
+  }
+
+  function definitionLink(i, label) {
+    return Number.isInteger(i) && decls[i] ? `<a href="${BASE}${declRoute(i)}">${esc(label)}</a>` : '';
+  }
+
+  function rateGroupHtml(f, title, cols, rows, g) {
+    const span = cols.length + 1;
+    let head = `<span class="rate-group-title">${md(title, { inline: true })}</span>`;
+    if (g && !g.pending) {
+      const groupId = `rate-guarantee-${f.id}-${g.id}`;
+      head += `<details class="rate-definitions" id="${esc(groupId)}"${openSections.has(groupId) ? ' open' : ''}><summary>Guarantee and definitions</summary>` +
+        `<div class="guarantee-description">${md(g.description)}</div>${(g.definitions || []).map(d =>
+          `<h4>${definitionLink(d.i, d.label || d.declaration)}</h4>${statementHtml(null, d.i)}`).join('')}</details>`;
+    } else {
+      head += ' <span class="pending-tag">generated, pending review</span>';
+    }
+    return `<tr class="rate-group"><th colspan="${span}" scope="colgroup">${head}</th></tr>` + rows.map(e => rateRowHtml(e, cols)).join('');
+  }
+
+  // explicit bounds of the family's algorithms with no asymptotic form: no rate to compare yet
+  function norateFor(f, query) {
+    const own = new Set(['family', 'algorithm', 'measure', 'stat_key', 'law', 'output', 'regime', 'source']);
+    if (Object.entries(rateFilters).some(([k, v]) => v && !own.has(k))) return [];
+    return (RATES.norate || []).filter(x => x.family === f.id &&
+      Object.entries(rateFilters).every(([k, v]) => k === 'family' ? !v || v === f.id : rateMatches(x, k, v)) &&
+      (!query.length || (() => {
+        const d = decls[x.i];
+        const words = rateSearchWords([...Object.values(x.c).flat(), RATES.algorithms?.[x.c.algorithm], short(d.n), d.nm].join(' '));
+        return query.every(q => words.some(w => w.includes(q)));
+      })()));
+  }
+
+  function norateHtml(f, list, open) {
+    if (!list.length) return '';
+    const id = `rate-norate-${f.id}`;
+    const cells = new Map();
+    for (const x of list) {
+      const key = [x.c.algorithm, x.c.measure, x.c.stat].join('|');
+      if (!cells.has(key)) cells.set(key, []);
+      cells.get(key).push(x);
+    }
+    const link = x => {
+      const c = x.c;
+      const text = [c.law, c.output && c.output !== 'plain' ? c.output : null, c.regime, c.detail, c.source].filter(Boolean).join(' · ') || short(decls[x.i].n);
+      return `<a href="${BASE}${rowRoute(x.result, x.i)}">${md(text, { inline: true })}</a>`;
+    };
+    return `<details class="rate-norate" id="${esc(id)}"${open || openSections.has(id) ? ' open' : ''}><summary>Bounds without a rate form <span class="rate-norate-n">(${list.length})</span></summary>` +
+      '<p class="rate-norate-intro">Explicit bounds of these algorithms that have no asymptotic form in the library yet, so no resource to compare. Each link opens the statement on its result page.</p>' +
+      '<ul>' + [...cells.values()].map(xs => `<li><span class="rate-norate-cell"><strong>${esc(xs[0].c.algorithm)}</strong>` +
+        `${xs[0].c.measure ? ' · ' + esc(xs[0].c.measure) : ''} · ${md(xs[0].c.stat || '', { inline: true })}</span> ` +
+        xs.map(link).join('<span class="sep"> · </span>') + '</li>').join('') + '</ul></details>';
   }
 
   function renderRates() {
     renderRateFilters();
     const query = rateSearchWords($('#q').value);
-    const entries = (D.rates?.entries || []).filter(e => {
-      if (!Object.entries(rateFilters).every(([k, v]) => !v || String(e[k]) === v)) return false;
-      const family = D.rates.families.find(f => f.id === e.family);
-      const guarantee = D.rates.guarantees?.find(g => g.id === e.guarantee && g.family === e.family);
-      const words = rateSearchWords([e.algorithm, e[family?.subject_field || 'algorithm'], e.variant, e.sketch, e.norm, e.mode, guarantee?.title, guarantee?.description,
-        ...(family?.filters || []).map(f => e[f.field]), ...e.resources.flatMap(r => [r.label, r.bound]), ...(Array.isArray(e.notes) ? e.notes : [e.notes]), family?.title].join(' '));
-      return query.every(q => words.some(w => w.includes(q)));
-    });
-    const families = D.rates?.families || [];
-    $('#content').innerHTML = entries.length ? `<p class="searchnote">${entries.length} row${entries.length === 1 ? '' : 's'}. Resources, exact values and parameter caveats are stated per row.</p>` + families.map(f => {
+    const entries = RATES.entries.filter(e => Object.entries(rateFilters).every(([k, v]) => rateMatches(e, k, v)) &&
+      query.every(q => rateWords(e).some(w => w.includes(q))));
+    const n = s => entries.filter(s).length;
+    const parts = [[n(e => e.status === 'reviewed' && e.kind !== 'exact'), 'reviewed rate', 'reviewed rates'],
+      [n(e => e.status === 'pending'), 'pending review', 'pending review'], [n(e => e.kind === 'exact'), 'exact value', 'exact values']]
+      .filter(([k]) => k).map(([k, one, many]) => `${k} ${k === 1 ? one : many}`);
+    const sections = RATES.families.map(f => {
+      const all = RATES.entries.filter(e => e.family === f.id);
       const rows = entries.filter(e => e.family === f.id);
-      const subject = esc(f.subject_label || 'Method / sketch');
-      const resourcesLabel = esc(f.resources_label || 'Resources');
-      if (!rows.length) return '';
+      const norate = norateFor(f, query);
+      if (!rows.length && !norate.length) return '';
+      const cols = rateColumns(f, all);
       const notationId = `rate-notation-${f.id}`;
-      const definitionLink = (i, label) => Number.isInteger(i) && decls[i]
-        ? `<a href="${BASE}${declRoute(i)}">${esc(label)}</a>` : '';
-      const groups = (D.rates.guarantees || []).filter(g => g.family === f.id && rows.some(e => e.guarantee === g.id));
-      return `<section class="rate-family"><h2>${esc(f.title)}</h2>${f.description ? `<p class="topic-blurb">${md(f.description, { inline: true })}</p>` : ''}` +
-        (f.notation ? `<details class="rate-notation" id="${esc(notationId)}"${openSections.has(notationId) ? ' open' : ''}><summary>Notation and assumptions</summary>${md(f.notation)}</details>` : '') + groups.map(g => {
-          const groupId = `rate-guarantee-${f.id}-${g.id}`;
-          const definitions = g.definitions || [];
-          return `<section class="rate-guarantee"><h3>${md(g.title, { inline: true })}</h3>` +
-            `<details class="rate-definitions" id="${esc(groupId)}"${openSections.has(groupId) ? ' open' : ''}><summary>Guarantee and definitions</summary><div class="guarantee-description">${md(g.description)}</div>${definitions.map(d =>
-              `<h4>${definitionLink(d.i, d.label || d.declaration)}</h4>${statementHtml(null, d.i)}`).join('')}</details>` +
-            `<table class="rates-table"><thead><tr><th scope="col">${subject}</th><th scope="col">${resourcesLabel}</th></tr></thead><tbody>` + rows.filter(e => e.guarantee === g.id).map(e => {
-              const notes = Array.isArray(e.notes) ? e.notes.join(' ') : e.notes;
-              return `<tr id="rate-row-${esc(e.id)}"><td data-label="${subject}"><strong>${esc(e[f.subject_field || 'algorithm'])}</strong>${e.variant && e.variant !== 'Standard' ? `<span class="rate-meta">${md(e.variant, { inline: true })}</span>` : ''}${e.sketch && f.subject_field !== 'sketch' ? `<span class="rate-meta">${esc(e.sketch)}</span>` : ''}` +
-                `<span class="rate-definition-links">${[definitionLink(e.algorithm_definition_index, e.algorithm_definition_label || f.definition_label || 'Algorithm definition'), definitionLink(e.sketch_definition_index, 'Sketch definition')].filter(Boolean).join(' · ')}</span></td>` +
-                `<td data-label="${resourcesLabel}">${e.resources.map(r => `<div class="rate-resource"><strong>${esc(r.label)}:</strong> ${md(r.bound, { inline: true })}</div>`).join('')}${notes ? `<p class="rate-caveat"><strong>${e.kind === 'exact' ? 'Hypotheses' : 'Parameters'}:</strong> ${md(notes, { inline: true })}</p>` : ''}</td>` +
-                `</tr><tr class="rate-theorem"><td colspan="2"><button type="button" class="rate-permalink" data-copy-rate="${esc(e.id)}">Copy link</button><span class="rate-copy-status" role="status"></span><details class="rate-detail" data-rate="${esc(e.id)}"><summary>View theorem</summary><div class="rate-expanded"></div></details></td></tr>`;
-            }).join('') + '</tbody></table></section>';
-        }).join('') + '</section>';
-    }).join('') : '<p class="empty">No rates match these filters.</p><button type="button" id="reset-rates">Reset filters and search</button>';
+      const groups = [...RATES.guarantees.filter(g => g.family === f.id), ...RATES.groups.filter(g => g.family === f.id)]
+        .map(g => [g, rows.filter(e => e.group === g.id)]).filter(([, rs]) => rs.length);
+      const table = rows.length ? `<div class="rate-scroll"><table class="rates-table"><thead><tr><th class="pick" scope="col"><span class="sr">Show the theorem</span></th>` +
+        cols.map(c => `<th scope="col" class="c-${c.k}">${esc(c.t)}</th>`).join('') + '</tr></thead><tbody>' +
+        groups.map(([g, rs]) => rateGroupHtml(f, g.title, cols, rs, g)).join('') + '</tbody></table></div>' : '';
+      return `<section class="rate-family" id="rate-family-${esc(f.id)}"><h2>${esc(f.title)}</h2>${f.description ? `<p class="topic-blurb">${md(f.description, { inline: true })}</p>` : ''}` +
+        (f.notation ? `<details class="rate-notation" id="${esc(notationId)}"${openSections.has(notationId) ? ' open' : ''}><summary>Notation and assumptions</summary>${md(f.notation)}</details>` : '') +
+        table + norateHtml(f, norate, !rows.length) + '</section>';
+    }).join('');
+    $('#content').innerHTML = entries.length || sections
+      ? `<p class="searchnote">${entries.length ? `${entries.length} row${entries.length === 1 ? '' : 's'}${parts.length ? ': ' + parts.join(', ') : ''}. ` +
+        'Resources, exact values and parameter caveats are stated per row; pending rows show the theorem as the library states it.'
+        : 'No rate matches these filters; the bounds below have no asymptotic form yet.'}</p>` + sections
+      : '<p class="empty">No rates match these filters.</p><button type="button" id="reset-rates">Reset filters and search</button>';
     $('#reset-rates')?.addEventListener('click', resetRates);
-    for (const button of document.querySelectorAll('[data-copy-rate]')) button.addEventListener('click', async () => {
-      const url = new URL('#rate/' + encodeURIComponent(button.dataset.copyRate), location.href).href;
-      const status = button.nextElementSibling;
+    for (const id of openRates) {
+      const tr = document.getElementById('rate-detail-' + id);
+      if (tr) drawRateDetail(tr);
+    }
+  }
+
+  function rateById(id) { return RATES.entries.find(e => e.id === id); }
+
+  function drawRateDetail(tr, explicit) {
+    const e = rateById(tr.dataset.rate);
+    const exact = e.kind === 'exact';
+    const paired = !exact && e.explicit !== e.overview;
+    // a pending row already shows its asymptotic statement, so it opens on the explicit one
+    if (explicit === undefined) explicit = tr.dataset.explicit ? tr.dataset.explicit === '1' : e.status === 'pending' && paired;
+    tr.dataset.explicit = explicit ? '1' : '0';
+    const i = explicit && paired ? e.explicit : e.overview;
+    const f = RATES.families.find(x => x.id === e.family) || {};
+    const defs = [definitionLink(e.algorithm_definition_index, e.algorithm_definition_label || f.definition_label || 'Algorithm definition'),
+      definitionLink(e.sketch_definition_index, 'Sketch definition')].filter(Boolean);
+    const links = exact ? `<a href="${BASE}${declRoute(e.overview)}">Theorem</a>`
+      : `<a href="${BASE}${declRoute(e.overview)}">Asymptotic theorem</a> · <a href="${BASE}${declRoute(e.explicit)}">Explicit theorem</a>`;
+    $('.rate-expanded', tr).innerHTML = '<div class="rate-detail-bar">' +
+      (paired ? `<button type="button" class="rate-explicit${explicit ? ' on' : ''}" aria-pressed="${explicit}">Explicit bound</button>` : '') +
+      `<button type="button" class="rate-permalink" data-copy-rate="${esc(e.id)}">Copy link</button><span class="rate-copy-status" role="status"></span></div>` +
+      statementHtml(null, i) +
+      `<p class="rate-links"><a href="${BASE}${rateRoute(e, i)}">Result page</a> · ${links} · <a href="${sourceUrl(i)}" target="_blank" rel="noopener">Source ↗</a>` +
+      (defs.length ? ' · ' + defs.join(' · ') : '') + '</p>' +
+      (e.status === 'pending' ? '<p class="rate-pending-note">No reviewed summary yet: the row shows the asymptotic theorem as the library states it, and its cells are read from the declaration’s name.</p>' : '');
+  }
+
+  function toggleRate(id, open) {
+    const row = document.getElementById('rate-row-' + id);
+    const tr = document.getElementById('rate-detail-' + id);
+    if (!row || !tr) return false;
+    open ??= tr.hidden;
+    tr.hidden = !open;
+    row.classList.toggle('on', open);
+    const b = $('.rate-toggle', row);
+    b.setAttribute('aria-expanded', open);
+    b.firstChild.textContent = open ? '▾' : '▸';
+    if (open) { openRates.add(id); if (!$('.rate-expanded', tr).childNodes.length) drawRateDetail(tr); }
+    else openRates.delete(id);
+    return true;
+  }
+
+  async function rateClick(ev) {
+    const copy = ev.target.closest('[data-copy-rate]');
+    if (copy) {
+      const e = rateById(copy.dataset.copyRate);
+      // a pending row is linked by its declaration, which stays valid once it is reviewed
+      const key = e.status === 'pending' ? e.theorem : e.id;
+      const url = location.origin + location.pathname + '#rate/' + encodeURIComponent(key);
+      const status = copy.nextElementSibling;
       try {
         await navigator.clipboard.writeText(url);
         status.textContent = 'Link copied';
       } catch (error) {
         status.innerHTML = `Copy this link: <a href="${esc(url)}">${esc(url)}</a>`;
       }
-    });
-    for (const detail of document.querySelectorAll('.rate-detail')) {
-      const e = entries.find(e => e.id === detail.dataset.rate);
-      let explicit = false;
-      const draw = () => {
-        const i = explicit ? e.explicit : e.overview;
-        // an exact row cites one theorem: no asymptotic form, so no toggle and a single link
-        const exact = e.kind === 'exact';
-        const links = exact ? `<a href="${BASE}${declRoute(e.overview)}">Theorem</a>`
-          : `<a href="${BASE}${declRoute(e.overview)}">Asymptotic theorem</a> · <a href="${BASE}${declRoute(e.explicit)}">Explicit theorem</a>`;
-        $('.rate-expanded', detail).innerHTML = (!exact && e.explicit !== e.overview ? `<button type="button" class="rate-explicit${explicit ? ' on' : ''}" aria-pressed="${explicit}">Explicit bound</button>` : '') +
-          statementHtml(null, i) + `<p class="rate-links">${links} · <a href="${sourceUrl(i)}" target="_blank" rel="noopener">Source ↗</a></p>`;
-        $('.rate-explicit', detail)?.addEventListener('click', () => { explicit = !explicit; draw(); });
-      };
-      detail.addEventListener('toggle', () => { if (detail.open && !$('.rate-expanded', detail).childNodes.length) draw(); });
+      return;
+    }
+    const explicit = ev.target.closest('.rate-explicit');
+    if (explicit) {
+      const tr = explicit.closest('tr.rate-theorem');
+      drawRateDetail(tr, tr.dataset.explicit !== '1');
+      $('.rate-explicit', tr)?.focus();
+      return;
+    }
+    const row = ev.target.closest('tr.rate-row');
+    if (row && (ev.target.closest('.rate-toggle') || !ev.target.closest('a, button, details, summary, input, select'))) {
+      toggleRate(row.dataset.rate);
     }
   }
 
-  function focusRate(id) {
-    let detail = [...document.querySelectorAll('.rate-detail')].find(d => d.dataset.rate === id);
-    if (!detail && (D.rates?.entries || []).some(e => e.id === id)) {
-      resetRates();
-      detail = [...document.querySelectorAll('.rate-detail')].find(d => d.dataset.rate === id);
-    }
-    if (detail) { detail.open = true; document.getElementById('rate-row-' + id).scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  // `#rate/<id>` (or `#rate/<declaration>`, the link of a pending row) and `#rate-row-<id>`
+  function focusRate(key) {
+    const bare = key.replace(/^NLAlib\./, '');
+    const e = rateById(key) || RATES.entries.find(x => x.theorem === key || x.theorem.replace(/^NLAlib\./, '') === bare);
+    if (!e) return;
+    if (!document.getElementById('rate-row-' + e.id)) resetRates();
+    toggleRate(e.id, true);
+    // below the search bar, which stays at the top of the window
+    const row = document.getElementById('rate-row-' + e.id);
+    const bar = $('#searchbar');
+    if (row) window.scrollTo({ top: row.getBoundingClientRect().top + window.scrollY - (bar && getComputedStyle(bar).position === 'sticky' ? bar.getBoundingClientRect().height : 0) - 12, behavior: 'smooth' });
   }
 
   // ------------------------------------------------------------------ the Books page
@@ -1067,10 +1296,18 @@
   $('#back').addEventListener('click', () => history.back());
 
   function route() {
-    if (PAGE === 'rates' && location.hash.startsWith('#rate/')) {
+    const rate = PAGE === 'rates' && /^#rate(?:\/|-row-)(.+)$/.exec(location.hash);
+    if (rate) {
       $('#panel').hidden = true;
       document.body.classList.remove('panel-open');
-      focusRate(decodeURIComponent(location.hash.slice(6)));
+      focusRate(decodeURIComponent(rate[1]));
+      return;
+    }
+    // the notation and guarantee disclosures and the family sections are linkable too
+    const anchor = PAGE === 'rates' && /^#rate-[\w-]+$/.test(location.hash) && document.getElementById(location.hash.slice(1));
+    if (anchor) {
+      if (anchor.tagName === 'DETAILS') anchor.open = true;
+      anchor.scrollIntoView();
       return;
     }
     // a link to a book on the Books page (`books/#b-Tropp2015`) opens it
