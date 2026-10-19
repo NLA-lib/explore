@@ -573,16 +573,40 @@ def unique_ids(rows, label):
     return seen
 
 
-def rates_page(cfg, decls, index, targets):
+RESOURCE_KINDS = ('samples', 'block size', 'depth', 'queries')
+LAW_CLASS_DEFAULT = 'Other'
+FALLBACK_FAMILY = {
+    'id': 'other-asymptotic', 'title': 'Other asymptotic bounds', 'generated': True,
+    'description': 'Asymptotic theorems of algorithms that no family of `rates.toml` lists yet. '
+                   'They are generated from the library; none has a reviewed summary.',
+}
+
+
+def slug(text):
+    return re.sub(r'[^a-z0-9]+', '-', text.lower()).strip('-')
+
+
+def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=None, source_names=None):
+    """The Rates page: one row per asymptotic pair of the library (and per exact row), generated
+    from its facets; `[[rates]]` entries are the reviewed overlay, keyed by `theorem` and
+    `statement_hash`.
+
+    `facets_for(i)` gives a declaration's facet record (or None), `results` the built results
+    (for the bounds without a rate form), `cites(i)` a declaration's citations."""
+    facets_for = facets_for or (lambda i: None)
+    results = results or {}
+    cites = cites or (lambda i: [])
     families = cfg.get('families', [])
     family_ids = unique_ids(families, 'rate family')
     reserved_filters = {'id', 'ids', 'theorem', 'family', 'statement_hash', 'hash', 'resources',
                         'overview', 'explicit', 'result', 'guarantee', 'notes', 'kind',
                         'doc', 'signature', 'statement', 'source', 'title', 'description', 'filters',
                         'algorithm_definition', 'sketch_definition', 'algorithm_definition_index',
-                        'sketch_definition_index', 'algorithm_definition_label'}
+                        'sketch_definition_index', 'algorithm_definition_label', 'label', 'status',
+                        'group', 'c'}
     family_filters = {}
     family_subjects = {}
+    family_of_algorithm = {}
     out_families = []
     for family in families:
         required_text(family, ['title', 'description'], 'rate family')
@@ -592,7 +616,17 @@ def rates_page(cfg, decls, index, targets):
         subject = family.get('subject_field', 'algorithm')
         if not isinstance(subject, str) or not re.fullmatch(r'[a-z][a-z0-9_]*', subject) or subject in reserved_filters:
             raise ValueError(f'rate family {family["id"]}: unsafe or reserved subject_field')
-        family_subjects[family['id']] = subject
+        # a configured subject field must be on every reviewed row; the default is the
+        # generated algorithm
+        family_subjects[family['id']] = subject if 'subject_field' in family else None
+        algorithms = family.get('algorithms', [])
+        if not isinstance(algorithms, list) or any(not isinstance(a, str) or not a.strip() for a in algorithms):
+            raise ValueError(f'rate family {family["id"]}: algorithms must be a list of facet values')
+        for a in algorithms:
+            if a in family_of_algorithm:
+                raise ValueError(f'rate family {family["id"]}: algorithm {a!r} is already in family '
+                                 f'{family_of_algorithm[a]}')
+            family_of_algorithm[a] = family['id']
         filters = family.get('filters', [])
         if not isinstance(filters, list):
             raise ValueError(f'rate family {family["id"]}: filters must be a list')
@@ -615,6 +649,25 @@ def rates_page(cfg, decls, index, targets):
             seen.add(field)
         family_filters[family['id']] = filters
         out_families.append({**family, 'filters': filters, 'subject_field': subject})
+    names = cfg.get('algorithm_names', {})
+    if not isinstance(names, dict) or any(not isinstance(v, str) or not v.strip() for v in names.values()):
+        raise ValueError('rates.toml: algorithm_names must map facet values to names')
+    law_classes = cfg.get('law_classes', {})
+    if not isinstance(law_classes, dict) or any(
+            not isinstance(v, list) or any(not isinstance(x, str) or not x for x in v) for v in law_classes.values()):
+        raise ValueError('rates.toml: law_classes must map a class to a list of law labels')
+    class_of = {law: cls for cls, laws in law_classes.items() for law in laws}
+    generate = cfg.get('generate', {})
+    if not isinstance(generate, dict) or set(generate) - {'exclude_words'}:
+        raise ValueError('rates.toml: [generate] takes only exclude_words')
+    exclude_words = generate.get('exclude_words', [])
+    if not isinstance(exclude_words, list) or any(not isinstance(w, str) or not w.strip() for w in exclude_words):
+        raise ValueError('rates.toml: exclude_words must be a list of words')
+
+    def excluded(i):
+        hay = ' '.join([*decls[i]['_results'], decls[i]['module']]).lower()
+        return any(w.lower() in hay for w in exclude_words)
+
     guarantees = cfg.get('guarantees', [])
     guarantee_ids = unique_ids(guarantees, 'rate guarantee')
     out_guarantees = []
@@ -637,16 +690,49 @@ def rates_page(cfg, decls, index, targets):
             resolved_links.append({**link, 'i': i})
         guarantee_family[guarantee['id']] = guarantee['family']
         out_guarantees.append({**guarantee, 'definitions': resolved_links})
+
+    def sources(i, j):
+        """Short citations of a row (its explicit theorem's, else its asymptotic one's) and the
+        papers they come from."""
+        short, long = [], []
+        for k in dict.fromkeys((j, i)):
+            for key, loc in cites(k):
+                if facets.BIB_KEY.match(key):
+                    c = facets.citation_short(key, loc, source_names)
+                    if c not in short:
+                        short.append(c)
+                    if facets.source_long(key) not in long:
+                        long.append(facets.source_long(key))
+            if short:
+                break
+        return short, long
+
+    def cells(f, i, j, label=None, resources=(), exact=False):
+        f = f or {}
+        short, long = sources(i, j)
+        c = {'algorithm': f.get('algorithm'), 'measure': facets.measure_label(f.get('measure')),
+             'stat': facets.statistic_tex(f), 'stat_key': facets.statistic_key(f), 'law': f.get('law'),
+             'output': facets.OUTPUTS.get(f.get('output')) if f.get('output') else None,
+             'regime': f.get('regime'),
+             'detail': label or '; '.join(f.get('details') or []) or None,
+             'source': ', '.join(short[:2]) or None, 'sources': long or None,
+             'resources': list(dict.fromkeys(r['kind'] for r in resources if r.get('kind'))) or None,
+             'form': 'exact' if exact else 'rate'}
+        if c['law']:
+            c['law_class'] = class_of.get(c['law'], LAW_CLASS_DEFAULT)
+        return {k: v for k, v in c.items() if v is not None}
+
     entries = cfg.get('rates', [])
     unique_ids(entries, 'rate')
     # explicit theorems that have an asymptotic form: an exact row must not cite one
     paired = set(targets.values())
+    allowed_resource = {'label', 'bound', 'kind'}
     out = []
     for rate in entries:
-        required_text(rate, ['theorem', 'family', 'algorithm', 'guarantee', 'statement_hash'], f'rate {rate["id"]}')
+        required_text(rate, ['theorem', 'guarantee', 'statement_hash'], f'rate {rate["id"]}')
         if 'notes' in rate and not isinstance(rate['notes'], str):
             raise ValueError(f'rate {rate["id"]}: invalid notes')
-        if rate['family'] not in family_ids:
+        if 'family' in rate and rate['family'] not in family_ids:
             raise ValueError(f'rate {rate["id"]}: unknown family {rate["family"]}')
         exact = 'kind' in rate
         if exact and rate['kind'] != 'exact':
@@ -654,13 +740,14 @@ def rates_page(cfg, decls, index, targets):
         for key, value in rate.items():
             if key != 'resources' and (not isinstance(value, str) or (key != 'notes' and not value.strip())):
                 raise ValueError(f'rate {rate["id"]}: empty or invalid scalar metadata {key}')
-        required_text(rate, [family_subjects[rate['family']],
-                             *[f['field'] for f in family_filters[rate['family']]]],
-                      f'rate {rate["id"]} configured filter')
         if rate['guarantee'] not in guarantee_ids:
             raise ValueError(f'rate {rate["id"]}: unknown guarantee {rate["guarantee"]}')
-        if guarantee_family[rate['guarantee']] != rate['family']:
+        family = rate.get('family', guarantee_family[rate['guarantee']])
+        if guarantee_family[rate['guarantee']] != family:
             raise ValueError(f'rate {rate["id"]}: guarantee family mismatch')
+        required_text(rate, [*([family_subjects[family]] if family_subjects[family] else []),
+                             *[f['field'] for f in family_filters[family]]],
+                      f'rate {rate["id"]} configured filter')
         if 'algorithm_definition_label' in rate and 'algorithm_definition' not in rate:
             raise ValueError(f'rate {rate["id"]}: algorithm_definition_label without algorithm_definition')
         definition_links = {}
@@ -696,12 +783,92 @@ def rates_page(cfg, decls, index, targets):
         if not isinstance(resources, list) or not resources:
             raise ValueError(f'rate {rate["id"]}: resources must be nonempty')
         for resource in resources:
-            if not isinstance(resource, dict):
+            if not isinstance(resource, dict) or set(resource) - allowed_resource:
                 raise ValueError(f'rate {rate["id"]}: invalid resource')
             required_text(resource, ['label', 'bound'], f'rate {rate["id"]} resource')
-        out.append({**rate, **definition_links, 'overview': i, 'explicit': j,
-                    'result': d['_results'][0] if d['_results'] else None})
-    return {'families': out_families, 'guarantees': out_guarantees, 'entries': out}
+            if 'kind' in resource and resource['kind'] not in RESOURCE_KINDS:
+                raise ValueError(f'rate {rate["id"]}: resource kind must be one of {", ".join(RESOURCE_KINDS)}')
+        f = facets_for(i) or facets_for(j)
+        alg = (f or {}).get('algorithm')
+        if alg in family_of_algorithm and family_of_algorithm[alg] != family:
+            raise ValueError(f'rate {rate["id"]}: its facets put it in family {family_of_algorithm[alg]} '
+                             f'(algorithm {alg}), its guarantee in {family}')
+        out.append({**rate, **definition_links, 'family': family, 'overview': i, 'explicit': j,
+                    'result': d['_results'][0] if d['_results'] else None,
+                    'status': 'reviewed', 'group': rate['guarantee'],
+                    'c': cells(f, i, j, rate.get('label'), resources, exact)})
+
+    # every other asymptotic pair is a pending row, with what the library says about it
+    reviewed = {e['overview'] for e in out}
+    ids = {e['id'] for e in out}
+    groups = {}
+    need_fallback = False
+    for i in sorted(targets, key=lambda k: decls[k]['name']):
+        j = targets[i]
+        if i in reviewed or excluded(i) or decls[i].get('sorry') or decls[j].get('sorry'):
+            continue
+        f = facets_for(i) or facets_for(j) or {}
+        alg = f.get('algorithm')
+        family = family_of_algorithm.get(alg)
+        if family is None:
+            family, need_fallback = FALLBACK_FAMILY['id'], True
+        key = facets.statistic_key(f)
+        if f.get('property'):
+            gid, title = f'{family}-{slug(alg)}', f'{alg} · tail bound'
+        else:
+            measure = facets.measure_label(f.get('measure'))
+            words = facets.STATISTIC_WORDS.get(f.get('statistic'), 'other statements')
+            stat = facets.statistic_tex(f)
+            gid = f'{family}-{slug(f.get("measure") or "any")}-{key or "other"}-{f.get("moment") or 0}'
+            title = ' · '.join(x for x in (measure, ' '.join(x for x in (words, stat) if x)) if x)
+            title = title[:1].upper() + title[1:]
+        gid = 'pending-' + gid
+        groups.setdefault(gid, {'id': gid, 'family': family, 'title': title, 'pending': True})
+        rid = base = slug(re.sub(r'^exists_forall_', '', decls[i]['name'].split('.')[-1]))
+        n = 2
+        while rid in ids:
+            rid, n = f'{base}-{n}', n + 1
+        ids.add(rid)
+        out.append({'id': rid, 'theorem': decls[i]['name'], 'family': family, 'overview': i,
+                    'explicit': j, 'result': decls[i]['_results'][0] if decls[i]['_results'] else None,
+                    'status': 'pending', 'group': gid, 'c': cells(f, i, j)})
+    if need_fallback:
+        out_families.append({**FALLBACK_FAMILY, 'filters': [], 'subject_field': 'algorithm'})
+        print('note: asymptotic pairs in no Rates family: ' +
+              ', '.join(e['theorem'].split('.')[-1] for e in out if e['family'] == FALLBACK_FAMILY['id']),
+              file=sys.stderr)
+
+    # an algorithm that has a gapped rate is gapless where it is not gapped
+    gapped = {e['c'].get('algorithm') for e in out if e['c'].get('regime') == 'gapped'}
+    for e in out:
+        if e['c'].get('algorithm') in gapped and not e['c'].get('regime'):
+            e['c']['regime'] = 'gapless'
+
+    # the explicit bounds of a family's algorithms that have no asymptotic form
+    pair_members = set(targets) | paired
+    norate, seen = [], set()
+    for rid, r in results.items():
+        for row in r.get('rows', []):
+            e = row['e']
+            if row['o'] != e or e in pair_members or e in seen or decls[e].get('sorry') or excluded(e):
+                continue
+            f = facets_for(e)
+            if not f or f.get('statistic') not in ('expectation', 'tail') or f.get('exact') or f.get('form') != 'explicit':
+                continue
+            family = family_of_algorithm.get(f.get('algorithm'))
+            if not family:
+                continue
+            seen.add(e)
+            c = cells(f, e, e)
+            if c.get('algorithm') in gapped and not c.get('regime'):
+                c['regime'] = 'gapless'
+            norate.append({'family': family, 'result': rid, 'i': e, 'c': c})
+    norate.sort(key=lambda x: (x['c'].get('algorithm', ''), facets._rank(facets_for(x['i']).get('measure'), facets.MEASURE_ORDER),
+                               facets._rank(x['c'].get('stat_key'), list(facets.STATISTIC_LABELS)), decls[x['i']]['name']))
+    return {'families': out_families, 'guarantees': out_guarantees, 'entries': out,
+            'groups': list(groups.values()), 'norate': norate, 'algorithms': names,
+            'lawClasses': [[cls, laws] for cls, laws in law_classes.items()] + [[LAW_CLASS_DEFAULT, []]],
+            'statistics': facets.STATISTIC_LABELS, 'resourceKinds': list(RESOURCE_KINDS)}
 
 
 def collections_page(cfg, results, decls, index, modules, aliases):
@@ -963,6 +1130,16 @@ def build(data, bib, out):
         return {'name': decls[i]['name'], 'kind': decls[i]['kind'], 'facets': facet_of.get(i),
                 'label': p['name'], 'cites': p['cites']}
 
+    def rate_facets(i):
+        """A declaration's facets for Rates: the bound grammar, else the sketch-property one,
+        with facets.toml on top."""
+        if decls[i]['kind'] != 'theorem':
+            return None
+        if i in facet_of:
+            return facet_of[i]
+        f = facets.infer_property(decls[i]['name'])
+        return facets.apply_override(f, overrides[decls[i]['name']]) if f and decls[i]['name'] in overrides else f
+
     out_results = {}
     for rid, r in results.items():
         cfg = results_cfg.get(rid, {})
@@ -1118,7 +1295,8 @@ def build(data, bib, out):
         'resultAlias': alias, 'aliasFocus': merged_focus,
         'nodes': nodes, 'bib': {k: v for k, v in bib.items() if k in cited},
         'synonyms': synonyms,
-        'rates': rates_page(load_toml('rates.toml'), decls, index, targets),
+        'rates': rates_page(load_toml('rates.toml'), decls, index, targets, rate_facets, out_results,
+                            lambda i: parts_of(i)['cites'], source_names),
         'collections': collections,
         'books': books_page(load_toml('books.toml'), bib, out_decls),
     }
