@@ -97,25 +97,10 @@ class BuildTests(unittest.TestCase):
                 decl('N.a1', 'First O.\nAsymptotic: N.e1'),
                 decl('N.a2', 'Second O.\nAsymptotic: N.e2')]
 
-    def test_variant_labels(self):
-        site = self.render(self.variant_decls())
-        self.assertNotIn('variantLabels', site['results']['bound'])
-        cfg = {'results.toml': {'bound': {'variant_labels': ['Spectral', ' Frobenius ']}}}
-        r = self.render(self.variant_decls(), cfg)['results']['bound']
-        self.assertEqual(r['forms'], [dict(overview=2, explicit=0), dict(overview=3, explicit=1)])
-        self.assertEqual(r['variantLabels'], ['Spectral', 'Frobenius'])
-
-    def test_variant_labels_wrong_length(self):
-        for labels in (['Spectral'], ['Spectral', 'Frobenius', 'Extra'], [], 'Spectral'):
-            with self.subTest(labels=labels), self.assertRaisesRegex(ValueError, 'one label per form'):
-                self.render(self.variant_decls(), {'results.toml': {'bound': {'variant_labels': labels}}})
-
-    def test_variant_labels_empty_or_unknown(self):
-        for labels in (['Spectral', ''], ['Spectral', '   '], ['Spectral', 3]):
-            with self.subTest(labels=labels), self.assertRaisesRegex(ValueError, 'nonempty strings'):
-                self.render(self.variant_decls(), {'results.toml': {'bound': {'variant_labels': labels}}})
-        with self.assertRaisesRegex(ValueError, 'variant_labels configured for unknown'):
-            self.render(self.variant_decls(), {'results.toml': {'missing': {'variant_labels': ['A']}}})
+    def test_variant_labels_retired(self):
+        # positional Variant labels gave way to generated statement labels (facets.toml)
+        with self.assertRaisesRegex(ValueError, 'variant_labels is retired'):
+            self.render(self.variant_decls(), {'results.toml': {'bound': {'variant_labels': ['A', 'B']}}})
 
     def test_source_hashes_and_legacy(self):
         with tempfile.TemporaryDirectory() as tmp:

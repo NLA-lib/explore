@@ -10,7 +10,7 @@ description = "Browse by method: randomized SVD, generalized Nyström and PSD Ny
 id = "rsvd"
 title = "Randomized SVD (RSVD) / range finder"
 definitions = ["NLAlib.rsvd", "NLAlib.earlyTruncatedRSVD"]
-results = ["randomized-svd-expected-error", "randomized-svd-average-spectral-error", "randomized-svd-tail", "randomized-svd-deviation-bound", "etrsvd", "range-finder-structural-bound", "truncated-range-finder-structural-bound"]
+results = ["randomized-svd-expected-error", "randomized-svd-tail", "etrsvd", "range-finder-structural-bound", "truncated-range-finder-structural-bound"]
 
 [[collections.groups]]
 id = "gn"

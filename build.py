@@ -10,7 +10,9 @@ Inputs:
   topics.toml             titles, order and blurbs for the library's directories (optional per
                           directory: a directory without an entry gets a title from its name)
   results.toml            per `Result:` id overrides: title, aliases, latex, primary,
-                          variant_labels (all optional)
+                          merge_into (all optional)
+  facets.toml             overrides of the facets inferred from declaration names (facets.py),
+                          keyed by declaration name, and short names of citation keys
   synonyms.toml           search synonyms, mathematical words to library names
   books.toml              key books: chapters, sections and numbered results, for the Books page
 
@@ -31,6 +33,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+import facets  # noqa: E402  (the module beside this script)
 REPO = 'https://github.com/NLA-lib/NLAlib'
 
 DEF_KINDS = {'def', 'abbrev', 'opaque', 'structure', 'class', 'inductive'}
@@ -53,6 +57,20 @@ def humanize(word):
         return word
     out = [parts[0]] + [p if '-' in p or p.isupper() else p.lower() for p in parts[1:]]
     return ' '.join(out)
+
+
+# words the approved vocabulary retires from titles (docs/explorer-redesign.md, Decisions)
+RETIRED = [(re.compile(r'\baverage\b', re.I), '"average" (say "expected")'),
+           (re.compile(r'\bmean (?:squared )?(?:spectral |Frobenius )?(?:error|residual)', re.I),
+            '"mean" for an error (say "expected")'),
+           (re.compile(r'\bwith high probability\b', re.I), '"with high probability" (say "tail bound")'),
+           (re.compile(r'\bdeviation\b', re.I), '"deviation" (say "tail bound")'),
+           (re.compile(r'^The\b'), 'a leading "The"')]
+
+
+def vocabulary_issues(title):
+    """What a result title says that the approved vocabulary retires."""
+    return [why for rx, why in RETIRED if rx.search(title or '')]
 
 
 def humanize_id(rid):
@@ -715,7 +733,8 @@ def collections_page(cfg, results, decls, index, modules, aliases):
                 if rid not in results:
                     raise ValueError(f'collection {collection["id"]}: unknown result {rid}')
                 if rid in group_results:
-                    raise ValueError(f'collection group {group["id"]}: duplicate result {rid}')
+                    raise ValueError(f'collection group {group["id"]}: duplicate result {rid}'
+                                     ' (an id merged into another counts as that one)')
                 group_results.add(rid)
                 entries.append({'type': 'r', 'rid': rid})
                 used_results.add(rid)
@@ -866,17 +885,90 @@ def build(data, bib, out):
         results[canon]['bold'] += gone['bold']
         results[canon]['phrase'] += gone['phrase']
         results[canon].setdefault('ids', []).append(rid)
+    # explorer-side merges (`merge_into` in results.toml): the members of one result join
+    # another; the old id stays an alias, which opens the merged page at the statement that
+    # headed the old one
+    merged_focus = {}
+    for rid, cfg in results_cfg.items():
+        if 'merge_into' not in cfg:
+            continue
+        target = cfg['merge_into']
+        if rid not in results:
+            raise ValueError(f'result {rid}: merge_into configured for unknown or alias result')
+        if not isinstance(target, str) or target not in results or target == rid:
+            raise ValueError(f'result {rid}: merge_into must name another result, not {target!r}')
+        if 'merge_into' in results_cfg.get(target, {}):
+            raise ValueError(f'result {rid}: merge_into target {target} is itself merged')
+        dead = set(cfg) - {'merge_into', 'aliases'}
+        if dead:
+            raise ValueError(f'result {rid}: merged results take only aliases, not {sorted(dead)}')
+        gone = results.pop(rid)
+        own_title = result_title(gone['bold'], rid, gone['phrase'])
+        named = [j for j in gone['decls'] if j not in targets and
+                 (decls[j].get('_name') or '').split(',')[0].strip() == own_title.split(',')[0].strip()]
+        merged_focus[rid] = (named or [j for j in gone['decls'] if j not in targets] or gone['decls'])[0]
+        tr = results[target]
+        tr['decls'] += [j for j in gone['decls'] if j not in tr['decls']]
+        tr.setdefault('merged', []).extend([rid] + gone.get('ids', []))
+        tr.setdefault('extra_aliases', []).extend(cfg.get('aliases', []))
+        for old in [rid] + gone.get('ids', []):
+            alias[old] = target
+            merged_focus[old] = merged_focus[rid]
+    for old, canon in list(alias.items()):
+        alias[old] = alias.get(canon, canon)
     for d in decls:
         d['_results'] = list(dict.fromkeys(alias.get(x, x) for x in d['_results']))
 
     for configured_id, cfg in results_cfg.items():
-        for field in ('primary', 'variant_labels'):
+        if 'variant_labels' in cfg:
+            raise ValueError(f'result {configured_id}: variant_labels is retired; statement labels are '
+                             'generated from facets (override one in facets.toml)')
+        for field in ('primary',):
             if field in cfg and configured_id not in results:
                 raise ValueError(f'result {configured_id}: {field} configured for unknown or alias result')
+
+    # facets of every declaration the grammar covers, with facets.toml on top
+    facets_cfg = load_toml('facets.toml')
+    source_names = facets_cfg.get('sources', {})
+    overrides = facets_cfg.get('overrides', {})
+    for name in overrides:
+        if name not in index:
+            raise ValueError(f'facets.toml: override for unknown declaration {name}')
+    facet_of = {}
+    for i, d in enumerate(decls):
+        if d['kind'] != 'theorem':
+            continue
+        f = facets.infer(d['name'], d.get('typeDeps', []))
+        if d['name'] in overrides:
+            f = facets.apply_override(f, overrides[d['name']])
+        if f:
+            facet_of[i] = f
+    unclassified = sorted(decls[i]['name'] for i, f in facet_of.items()
+                          if decls[i]['_results'] and f.get('statistic') in ('expectation', 'tail')
+                          and not f.get('exact') and f.get('measure') is None and f.get('algorithm'))
+    if unclassified:
+        print(f'note: {len(unclassified)} algorithm bounds without an error measure (facets.toml): '
+              + ', '.join(n.split('.')[-1] for n in unclassified[:8]) + (' …' if len(unclassified) > 8 else ''),
+              file=sys.stderr)
+
+    doc_parts = {}
+
+    def parts_of(i):
+        if i not in doc_parts:
+            doc_parts[i] = split_doc(decls[i].get('doc'), index)
+        return doc_parts[i]
+
+    def info(i):
+        p = parts_of(i)
+        return {'name': decls[i]['name'], 'kind': decls[i]['kind'], 'facets': facet_of.get(i),
+                'label': p['name'], 'cites': p['cites']}
+
     out_results = {}
     for rid, r in results.items():
         cfg = results_cfg.get(rid, {})
-        title = cfg.get('title') or result_title(r['bold'], rid, r['phrase'])
+        title = facets.drop_article(cfg.get('title') or result_title(r['bold'], rid, r['phrase']))
+        for why in vocabulary_issues(title):
+            print(f'warning: result {rid} title "{title}" uses {why}', file=sys.stderr)
         # the declaration the title names comes first: its statement is the result's
         named = lambda j: (decls[j].get('_name') or '').split(',')[0].strip() == title.split(',')[0].strip()
         r['decls'].sort(key=lambda j: not named(j))
@@ -893,19 +985,18 @@ def build(data, bib, out):
                  for i in sorted(r['decls']) if i in targets]
         forms.sort(key=lambda f: f['explicit'] != primary)
         pair = forms[0] if forms else {'overview': primary, 'explicit': primary}
+        if 'primary' in cfg and pair['explicit'] != primary:
+            # a configured headline without an asymptotic form is still the headline
+            pair = {'overview': primary, 'explicit': primary}
         out_results[rid] = {'title': title, 'aliases': cfg.get('aliases', []), 'latex': cfg.get('latex'),
                             'ids': r.get('ids', []), 'overview': pair['overview'],
                             'explicit': pair['explicit'], 'forms': forms,
                             'decls': r['decls'], 'module': decls[primary]['module']}
-        if 'variant_labels' in cfg:
-            # curated Variant dropdown labels, one per form in the built order above
-            labels = cfg['variant_labels']
-            if not isinstance(labels, list) or len(labels) != len(forms):
-                raise ValueError(f'result {rid}: variant_labels must list one label per form '
-                                 f'({len(forms)} forms)')
-            if not all(isinstance(x, str) and x.strip() for x in labels):
-                raise ValueError(f'result {rid}: variant_labels must be nonempty strings')
-            out_results[rid]['variantLabels'] = [x.strip() for x in labels]
+        # the statements table: every member, labelled from its facets
+        rows, columns, default = facets.statement_table(
+            r['decls'], forms, pair['explicit'], title, info, source_names)
+        out_results[rid].update(rows=rows, cols=columns, row=default, merged=r.get('merged', []))
+        out_results[rid]['aliases'] = out_results[rid]['aliases'] + r.get('extra_aliases', [])
 
     # --- graph nodes: a result (all its declarations together) or a documented definition.
     # Every other declaration is a helper; dependencies are collapsed through helpers.
@@ -953,6 +1044,28 @@ def build(data, bib, out):
         for u in us:
             used_by[u].add(n)
 
+    # a result member on its own: the results and definitions its statement and proof reach
+    # through helpers, and the ones that reach it (the graph of one row of the table)
+    reach_memo = {}
+
+    def reach(i, stack=()):
+        if i in reach_memo:
+            return reach_memo[i]
+        acc = set()
+        for j in direct[i]:
+            if j == i or j in stack:
+                continue
+            acc |= {j} if node_of(j) else reach(j, stack + (i,))
+        reach_memo[i] = acc
+        return acc
+
+    member_down = defaultdict(set)
+    for k in range(len(decls)):
+        if node_of(k):
+            for j in reach(k):
+                if decls[j]['_results'] and j != k:
+                    member_down[j].add(k)
+
     # reverse direct dependencies, declaration level
     rdirect = defaultdict(set)
     for i, deps in enumerate(direct):
@@ -964,7 +1077,7 @@ def build(data, bib, out):
     for i, d in enumerate(decls):
         td = [index[n] for n in d.get('typeDeps', []) if n in index]
         vd = [index[n] for n in d.get('valueDeps', []) if n in index]
-        p = split_doc(d.get('doc'), index)
+        p = parts_of(i)
         out_decls.append({
             'role': ('support' if d.get('explorerRole') == 'support' else
                      'concept' if d['kind'] in DEF_KINDS else 'lemma'),
@@ -976,6 +1089,11 @@ def build(data, bib, out):
             'rel': p['rel'], 'no': p['notes'], 'pf': p['proof'],
             'bv': bold_letters(d.get('signature'), [p['stmt'], *p['rel'], p['proof'], *p['cnotes']], p['bold']),
         })
+        if d['_results']:
+            out_decls[-1]['nu'] = sorted(reach(i) - {i})
+            out_decls[-1]['nb'] = sorted(member_down[i])
+        if i in facet_of:
+            out_decls[-1]['fc'] = facet_of[i]
 
     nodes = {n: {'u': sorted(uses.get(n, ())), 'b': sorted(used_by.get(n, ()))}
              for n in set(uses) | set(used_by)}
@@ -997,7 +1115,7 @@ def build(data, bib, out):
         'commit': data.get('commit'), 'date': data.get('date'), 'repo': REPO,
         'ref': data.get('commit') or topics_cfg.get('ref', 'scaffold'),
         'topics': topics, 'modules': modules, 'results': out_results, 'decls': out_decls,
-        'resultAlias': alias,
+        'resultAlias': alias, 'aliasFocus': merged_focus,
         'nodes': nodes, 'bib': {k: v for k, v in bib.items() if k in cited},
         'synonyms': synonyms,
         'rates': rates_page(load_toml('rates.toml'), decls, index, targets),

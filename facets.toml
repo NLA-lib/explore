@@ -1,0 +1,64 @@
+# Overrides of the facets that facets.py reads from declaration names, for the statements
+# tables of result pages (docs/explorer-redesign.md). Everything here is optional.
+#
+# [sources] gives the short name of a citation key in the Source column; without one a key with
+# two or more authors is shortened to their initials (`TroppWebber2023` -> "TW") and a key with
+# one author to the surname (`Woodruff2014` -> "Woodruff").
+#
+# [overrides."<full declaration name>"] sets facets of one declaration, for names the grammar
+# misses or reads too coarsely:
+#
+#   algorithm = "RSVD"                      # as in facets.ALGORITHMS
+#   measure = "frobenius"                   # a key of facets.MEASURES; "spectral+frobenius" for a sum
+#   statistic = "expectation"               # expectation | tail | variance
+#   moment = 2                              # E‖·‖² rather than E‖·‖
+#   output = "late"                         # plain | late | early
+#   law = "Gaussian"
+#   details = ["bounded sketch"]
+#   exact = true                            # an identity, not a bound
+#   label = "any optimal projector"         # the row's Detail cell (or Statement, outside the grammar)
+#
+# An override for a declaration that no longer exists fails the build, like stale Rates rows.
+
+[sources]
+
+# Early truncation through any optimal projector: the names spell `sub_mul`, not the algorithm.
+[overrides."NLAlib.HasSubspaceInjection.measure_frobNorm_sub_mul_sq_gt_le"]
+algorithm = "RSVD"
+output = "early"
+label = "any optimal projector; head injection and approximate-multiplication tails"
+
+[overrides."NLAlib.HasSubspaceInjection.measure_frobNorm_sub_mul_sq_gt_one_add_mul_le"]
+algorithm = "RSVD"
+output = "early"
+label = "any optimal projector; relative error"
+
+# Sketch-and-solve through the oblique projector, and its unbiasedness
+[overrides."NLAlib.integral_frobNorm_one_sub_obliqueProjector_mul_sq_of_hasLaw_gaussianMatrix"]
+algorithm = "sketch-and-solve"
+output = "plain"
+label = "oblique-projector form"
+
+[overrides."NLAlib.integral_frobNorm_one_sub_obliqueProjector_mul_sq_of_hasLaw_haarFrame"]
+algorithm = "sketch-and-solve"
+output = "plain"
+label = "oblique-projector form"
+
+[overrides."NLAlib.integral_sketchAndSolve_of_hasLaw_gaussianMatrix"]
+label = "unbiased"
+
+[overrides."NLAlib.integral_sketchAndSolve_of_hasLaw_haarFrame"]
+label = "unbiased"
+
+[overrides."NLAlib.HasSubspaceInjection.measure_norm_sub_mulVec_sq_gt_le"]
+algorithm = "sketch-and-solve"
+output = "plain"
+
+# Bound shapes the names spell after the relation
+[overrides."NLAlib.HasSubspaceInjection.measure_frobNorm_sub_truncatedSVD_rsvd_sq_gt_add_le"]
+label = "through an approximate-multiplication tail, any field"
+
+# Hutch++ lower tail: the trace estimate falls below (1 − ε) tr A
+[overrides."Matrix.PosSemidef.measureReal_hutchpp_lt_one_sub_mul_trace_le_of_isSubgaussianVector"]
+measure = "trace"
+label = "lower tail"
