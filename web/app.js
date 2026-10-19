@@ -61,24 +61,34 @@
   // a graph box is SVG text, so a title's maths is written out plainly: `$\chi^2$` is χ²
   const GREEK = { alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', epsilon: 'ε', varepsilon: 'ε',
     theta: 'θ', Theta: 'Θ', kappa: 'κ', lambda: 'λ', mu: 'μ', sigma: 'σ', Sigma: 'Σ', chi: 'χ',
-    psi: 'ψ', phi: 'φ', pi: 'π', omega: 'ω', sin: 'sin ', cos: 'cos ', log: 'log ', det: 'det ', tr: 'tr ' };
+    psi: 'ψ', phi: 'φ', Phi: 'Φ', pi: 'π', omega: 'ω', sin: 'sin ', cos: 'cos ', log: 'log ', det: 'det ', tr: 'tr ',
+    cdot: '·', Var: 'Var', operatorname: '' };
   const SUP = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', '+': '⁺', '-': '⁻', '*': '*', T: 'ᵀ', H: 'ᴴ' };
   const plainTex = t => t.replace(/\$([^$]*)\$/g, (_, m) => m
-    .replace(/\\(?:mathbf|mathsf|mathrm|operatorname|boldsymbol)\{([^{}]*)\}/g, '$1')
+    .replace(/\\(?:mathbf|mathsf|mathrm|mathbb|operatorname|boldsymbol)\{([^{}]*)\}/g, '$1')
     .replace(/\\\|/g, '‖').replace(/\\([a-zA-Z]+)\s*/g, (c, w) => GREEK[w] ?? '')
     .replace(/\^\{?([0-9+\-*TH])\}?/g, (c, x) => SUP[x]).replace(/_\{?([^{}\s]+)\}?/g, (c, x) => x.replace(/\d/g, n => '₀₁₂₃₄₅₆₇₈₉'[n]))
     .replace(/[{}]/g, '').replace(/\s+/g, ' ').trim());
+  // the statement rows of the result on screen, by declaration: the graph's 'm:' nodes
+  let memberRows = { rid: null, rows: new Map() };
   const nodeLabel = key => {
     if (key.startsWith('r:')) return plainTex(resultTitle(key.slice(2))).replace(/`/g, '');
+    if (key.startsWith('m:')) {
+      const row = memberRows.rows.get(+key.slice(2));
+      return row ? plainTex(row.l + (row.s ? ' · ' + row.s : '')).replace(/`/g, '') : short(decls[+key.slice(2)].n);
+    }
     if (key.startsWith('d:')) return short(key.slice(2));
     return short(decls[+key.slice(2)].n);
   };
   const nodeRoute = key => {
     if (key.startsWith('r:')) return '#r/' + encodeURIComponent(key.slice(2));
+    if (key.startsWith('m:')) return rowRoute(memberRows.rid, +key.slice(2));
     if (key.startsWith('d:')) return '#d/' + encodeURIComponent(key.slice(2));
     return '#d/' + encodeURIComponent(decls[+key.slice(2)].n);
   };
   const declRoute = i => '#d/' + encodeURIComponent(decls[i].n);
+  // a result page with one statement of its table selected
+  const rowRoute = (rid, i) => '#r/' + encodeURIComponent(rid) + '?s=' + encodeURIComponent(decls[i].n);
   const sourceUrl = (i) => {
     const d = decls[i];
     const path = D.modules[d.m]?.path;
@@ -513,8 +523,8 @@
   const tokenize = text => (text || '')
     .replace(LATEX_FORMAT, ' ')
     .replace(/([a-z])([A-Z])/g, '$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
-    .toLowerCase().split(/[^\p{L}\p{N}]+/u)
-    .filter(w => w && !STOP.has(w)).map(stem);
+    // a theorem number (`8.1`, `10.6`) is one word, so "TW 8.1" finds Theorem 8.1 only
+    .toLowerCase().match(/\d+(?:\.\d+)+|[\p{L}\p{N}]+/gu)?.filter(w => !STOP.has(w)).map(stem) ?? [];
 
   let index = null;
   function buildIndex() {
@@ -527,10 +537,17 @@
       items.push({ type, key, toks, prior });
     };
     for (const [rid, r] of Object.entries(D.results)) {
-      add('r', rid, [[r.title, 4], [r.aliases.join(' '), 4], [rid, 3],
+      add('r', rid, [[r.title, 4], [r.aliases.join(' '), 4], [[rid, ...(r.merged || [])].join(' '), 3],
         [r.decls.map(j => short(decls[j].n)).join(' '), 2],
         [r.decls.map(j => stripResult(decls[j].doc)).join(' '), 1],
         [D.modules[r.module]?.title, 0.5]], 1.3);
+      // each statement of a table is a hit of its own, found by its label, names and sources
+      if ((r.rows || []).length > 1) r.rows.forEach((row, k) => {
+        const ids = [...new Set([row.o, row.e])];
+        add('s', rid + '|' + k, [[row.x, 4], [plainTex(row.l || ''), 3],
+          [ids.map(j => decls[j].nm || '').join(' '), 3], [ids.map(j => short(decls[j].n)).join(' '), 2.5],
+          [r.title, 1.5], [ids.map(j => stripResult(decls[j].doc)).join(' '), 1]], 1.3);
+      });
     }
     decls.forEach((d, i) => {
       if (d.r.length) return;
@@ -565,7 +582,8 @@
       const hits = new Map();
       for (const alt of g) {
         for (const v of index.vocab) {
-          const qlty = v === alt ? 1 : (alt.length >= 3 && v.startsWith(alt)) ? 0.75
+          const number = /\d\.\d/.test(alt);     // `8.1` is not a prefix of `8.12`
+          const qlty = v === alt ? 1 : number ? 0 : (alt.length >= 3 && v.startsWith(alt)) ? 0.75
             : (v.length >= 4 && alt.startsWith(v)) ? 0.5 : 0;
           if (qlty > (hits.get(v) || 0)) hits.set(v, qlty);
         }
@@ -591,7 +609,22 @@
     return scored.slice(0, 60).map(x => x[1]);
   }
 
+  const statementOf = key => {
+    const bar = key.lastIndexOf('|');
+    const rid = key.slice(0, bar);
+    return { rid, row: D.results[rid].rows[+key.slice(bar + 1)] };
+  };
+  const hitRoute = it => it.type === 'r' ? '#r/' + encodeURIComponent(it.key)
+    : it.type === 's' ? (({ rid, row }) => rowRoute(rid, row.o))(statementOf(it.key))
+    : it.type === 'm' ? '#m/' + encodeURIComponent(it.key) : declRoute(it.key);
+
   function hitHtml(it) {
+    if (it.type === 's') {
+      const { rid, row } = statementOf(it.key);
+      return `<li><a class="entry-title" href="${hitRoute(it)}">${md(row.l || decls[row.e].nm || short(decls[row.e].n), { inline: true })}</a>` +
+        `<span class="kind">statement</span><span class="desc">${md(D.results[rid].title, { inline: true })}` +
+        `${row.s ? ' · ' + md(row.s, { inline: true }) : ''}</span></li>`;
+    }
     if (it.type === 'r') {
       const r = D.results[it.key];
       return `<li><a class="entry-title" href="#r/${encodeURIComponent(it.key)}">${md(r.title, { inline: true })}</a>` +
@@ -620,7 +653,7 @@
     lastHits = search(q);
     $('#content').innerHTML = lastHits.length
       ? `<p class="searchnote">${lastHits.length === 60 ? 'Top 60 matches' : lastHits.length + ' matches'}; ` +
-        'words are matched against names, docstrings and file titles.</p>' +
+        'words are matched against names, docstrings, sources and file titles.</p>' +
         `<ul class="entries">${lastHits.map(hitHtml).join('')}</ul>`
       : '<p class="empty">Nothing matches.</p>';
   }
@@ -629,9 +662,7 @@
   $('#q').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(runSearch, 90); });
   $('#q').addEventListener('keydown', ev => {
     if (ev.key === 'Enter' && lastHits.length) {
-      const it = lastHits[0];
-      location.hash = it.type === 'r' ? '#r/' + encodeURIComponent(it.key)
-        : it.type === 'm' ? '#m/' + encodeURIComponent(it.key) : declRoute(it.key);
+      location.hash = hitRoute(lastHits[0]);
     } else if (ev.key === 'Escape') {
       $('#q').value = '';
       runSearch();
@@ -659,7 +690,12 @@
 
   function neighbours(mode) {
     if (mode === 'nodes') {
-      return { up: k => D.nodes[k]?.u ?? [], down: k => D.nodes[k]?.b ?? [] };
+      // a member of the result on screen is its own node; other declarations are their nodes
+      const key = j => memberRows.rows.has(j) ? 'm:' + j
+        : decls[j].r.length ? 'r:' + decls[j].r[0] : 'd:' + decls[j].n;
+      const member = (k, field) => [...new Set((decls[+k.slice(2)][field] || []).map(key))];
+      return { up: k => k.startsWith('m:') ? member(k, 'nu') : D.nodes[k]?.u ?? [],
+               down: k => k.startsWith('m:') ? member(k, 'nb') : D.nodes[k]?.b ?? [] };
     }
     return {
       up: k => { const d = decls[+k.slice(2)]; return [...d.td, ...d.vd].map(j => 'i:' + j); },
@@ -704,7 +740,7 @@
         const y = y0 + r * ROW;
         pos.set(k, { x, y, w });
         const label = nodeLabel(k);
-        const cls = ['node', k === focus ? 'focus' : '', k.startsWith('d:') ? 'def' : ''].join(' ');
+        const cls = ['node', k === focus ? 'focus' : '', k.startsWith('d:') ? 'def' : '', k.startsWith('m:') ? 'member' : ''].join(' ');
         parts.push(`<g class="${cls}" data-key="${esc(k)}"><title>${esc(label)}</title>` +
           `<rect x="${x}" y="${y}" width="${w}" height="${BOX}" rx="2"></rect>` +
           `<text x="${x + PADX}" y="${y + 14}">${esc(fit(label, w - 2 * PADX))}</text></g>`);
@@ -733,8 +769,8 @@
     return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${edges.join('')}${parts.join('')}</svg>`;
   }
 
-  function graphSection(focus, modes) {
-    const state = { mode: modes[0], depth: 1, expanded: new Set() };
+  function graphSection(focus, modes, state = { mode: modes[0], depth: 1, expanded: new Set() }) {
+    if (!modes.includes(state.mode)) state.mode = modes[0];
     const box = h('<div></div>');
     const draw = () => {
       const opts = (modes.length > 1 ? modes.map(m =>
@@ -744,7 +780,8 @@
       box.innerHTML = `<div class="label">Dependencies<span class="opts">${opts}</span></div>` +
         `<div class="graph">${graphSvg(f, state.mode, state.depth, state.expanded)}</div>` +
         `<div class="legend">${state.mode === 'nodes'
-          ? 'Arrows run from a result or definition to those whose statements or proofs use it; helper lemmas are collapsed. Solid boxes are results, dashed boxes definitions.'
+          ? 'Arrows run from a result or definition to those whose statements or proofs use it; helper lemmas are collapsed. Solid boxes are results, dashed boxes definitions' +
+            (f.startsWith('m:') ? '; the dark box is the selected statement, shaded boxes are other statements of this result.' : '.')
           : 'Arrows run from a declaration to the declarations whose statements or proofs use it directly.'}</div>`;
     };
     box.addEventListener('click', ev => {
@@ -862,56 +899,113 @@
     return `<div class="statement">${latex ? md(latex) : `<p>${stmtHtml(i, true)}</p>`}</div>`;
   }
 
+  // A result page: its statements table (every member, labelled from its facets), and for the
+  // selected statement its statement, explicit/asymptotic toggle, Lean, graph and notes.
   function showResult(rid, focusDecl) {
+    const focusAlias = D.aliasFocus?.[rid];
+    const asked = rid;
     rid = D.resultAlias?.[rid] ?? rid;
     const r = D.results[rid];
     if (!r) return showMissing();
-    const overview = overviewOf(r);
-    const forms = r.forms || [];
-    // An asymptotic declaration may have an additional Result id of its own. Its target
-    // still needs a formal section here without changing that target's result membership.
-    const formalDecls = [...new Set([overview, ...r.decls, ...forms.flatMap(f => [f.overview, f.explicit])])];
+    if (focusDecl === undefined && focusAlias !== undefined) focusDecl = focusAlias;
+    // an old or merged id redirects: the address becomes the page it now lives on
+    if (asked !== rid) history.replaceState(null, '', location.pathname + location.search +
+      (focusDecl !== undefined ? rowRoute(rid, focusDecl) : '#r/' + encodeURIComponent(rid)));
+    const rows = r.rows?.length ? r.rows : [{ o: overviewOf(r), e: r.explicit ?? overviewOf(r), c: {}, g: null, l: '' }];
+    const cols = r.cols || [];
+    memberRows = { rid, rows: new Map(rows.flatMap(row => [[row.o, row], [row.e, row]])) };
+    let sel = Math.min(r.row ?? 0, rows.length - 1);
+    let explicit = false;
+    if (focusDecl !== undefined) {
+      const k = rows.findIndex(x => x.o === focusDecl || x.e === focusDecl);
+      if (k >= 0) { sel = k; explicit = rows[k].e === focusDecl && rows[k].o !== focusDecl; }
+    }
+    const nDecls = new Set(rows.flatMap(row => [row.o, row.e])).size;
     const body = $('#panelbody');
     body.innerHTML = headHtml(md(r.title, { inline: true }), 'Theorem') +
-      `<div class="subtitle"><code>${esc(rid)}</code>${r.ids.map(x => `, <code>${esc(x)}</code>`).join('')} · ${formalDecls.length} formal statement${formalDecls.length > 1 ? 's' : ''}` +
+      `<div class="subtitle"><code>${esc(rid)}</code>${r.ids.map(x => `, <code>${esc(x)}</code>`).join('')}` +
+      ` · ${rows.length > 1 ? `${rows.length} statements, ` : ''}${nDecls} formal statement${nDecls > 1 ? 's' : ''}` +
+      `${(r.merged || []).length ? ' · includes ' + r.merged.map(x => `<code>${esc(x)}</code>`).join(', ') : ''}` +
       `${r.aliases.length ? ' · also known as ' + r.aliases.map(esc).join(', ') : ''}</div>`;
-    if (forms.length) {
-      // Each pair owns its parsed mathematical statement and hypotheses. Related pointers,
-      // proof constants and citations stay in their sections below; no result override applies.
-      let pair = Math.max(0, forms.findIndex(f => f.overview === overview));
-      let explicit = false;
+
+    let table = null;
+    if (rows.length > 1) {
+      const span = cols.length + 1;
+      let group;
+      const trs = rows.map((row, k) => {
+        const head = row.g && row.g !== group ? `<tr class="stmt-group"><th colspan="${span}" scope="colgroup">${esc(row.g)}</th></tr>` : '';
+        group = row.g;
+        const label = plainTex(row.l || decls[row.e].nm || short(decls[row.e].n)).replace(/`/g, '');
+        return head + `<tr class="stmt-row" data-k="${k}"><td class="pick"><input type="radio" name="stmt" value="${k}" aria-label="${esc(label)}"></td>` +
+          cols.map(c => `<td class="c-${esc(c.k)}" data-label="${esc(c.t)}">${row.c[c.k] ? md(row.c[c.k], { inline: true }) : ''}</td>`).join('') + '</tr>';
+      }).join('');
+      table = h(`<section class="statements"><div class="label">Statements<span class="opts">${rows.length}</span></div>` +
+        `<div class="stmt-scroll"><table class="stmt-table"><thead><tr><th class="pick" scope="col"><span class="sr">Selected</span></th>` +
+        cols.map(c => `<th scope="col" class="c-${esc(c.k)}">${esc(c.t)}</th>`).join('') + `</tr></thead><tbody>${trs}</tbody></table></div></section>`);
+      body.append(table);
+      table.addEventListener('change', ev => {
+        if (ev.target.name === 'stmt') select(+ev.target.value, false, true);
+      });
+      table.addEventListener('click', ev => {
+        const tr = ev.target.closest('tr.stmt-row');
+        if (tr && !ev.target.closest('a, input')) select(+tr.dataset.k, false, true);
+      });
+    }
+    const graphState = { mode: 'nodes', depth: 1, expanded: new Set() };
+    const detail = h('<div class="selection"></div>');
+    body.append(detail);
+
+    function select(k, keepExplicit, user) {
+      if (k !== sel) { sel = k; if (!keepExplicit) explicit = false; }
+      draw(user);
+    }
+
+    function draw(user) {
+      const row = rows[sel];
+      const paired = row.o !== row.e;
+      const i = explicit && paired ? row.e : row.o;
+      if (table) {
+        for (const tr of table.querySelectorAll('tr.stmt-row')) {
+          const on = +tr.dataset.k === sel;
+          tr.classList.toggle('on', on);
+          $('input', tr).checked = on;
+        }
+        if (user) history.replaceState(null, '', location.pathname + location.search + rowRoute(rid, i));
+      }
+      const d = decls[i];
+      const name = d.nm && d.nm.replace(/^The (\S)/, (m, c) => c.toUpperCase());
+      const latex = !paired && sel === (r.row ?? 0) && !r.forms?.length ? r.latex : null;
+      detail.replaceChildren();
       const box = h('<section class="result-statement"></section>');
-      const choices = forms.length > 1 ? `<label class="variant">Variant <select aria-label="Statement variant">${forms.map((f, k) =>
-        `<option value="${k}"${k === pair ? ' selected' : ''}>${esc(plainTex(r.variantLabels?.[k] || decls[f.explicit].nm || short(decls[f.explicit].n)))}</option>`).join('')}</select></label>` : '';
       box.innerHTML = '<div class="label">Statement<span class="opts">' +
-        '<button type="button" class="explicit-bound" aria-pressed="false">Explicit bound</button></span></div>' + choices +
-        '<div class="selected-statement" aria-live="polite"></div>';
-      const draw = () => {
-        const i = explicit ? forms[pair].explicit : forms[pair].overview;
-        $('.selected-statement', box).innerHTML = statementHtml(null, i) +
-          `<p class="statement-source"><a href="#decl-${i}" data-formal="${i}">View formal statement</a></p>`;
-        const button = $('.explicit-bound', box);
-        button.setAttribute('aria-pressed', String(explicit));
-        button.classList.toggle('on', explicit);
-      };
-      $('.explicit-bound', box).addEventListener('click', () => { explicit = !explicit; draw(); });
-      $('select', box)?.addEventListener('change', ev => { pair = +ev.target.value; draw(); });
+        (paired ? `<button type="button" class="explicit-bound${explicit ? ' on' : ''}" aria-pressed="${explicit}">Explicit bound</button>` : '') +
+        '</span></div>' +
+        (rows.length > 1 && name && name !== r.title ? `<h3 class="formname">${md(name, { inline: true })}</h3>` : '') +
+        `<div class="selected-statement" aria-live="polite">${statementHtml(latex, i)}</div>` +
+        `<p class="statement-source"><a href="#decl-${i}" data-formal="${i}">View formal statement</a>` +
+        (rows.length > 1 ? ` · <a href="${rowRoute(rid, i)}">Link to this statement</a>` : '') + '</p>';
+      $('.explicit-bound', box)?.addEventListener('click', () => { explicit = !explicit; draw(true); });
       box.addEventListener('click', ev => {
         const a = ev.target.closest('[data-formal]');
         if (!a) return;
         ev.preventDefault();
         document.getElementById('decl-' + a.dataset.formal)?.scrollIntoView({ behavior: 'smooth' });
       });
-      draw();
-      body.append(box);
-    } else {
-      body.insertAdjacentHTML('beforeend', '<div class="label">Statement</div>' + statementHtml(r.latex, overview));
+      detail.append(box);
+      const formal = paired ? [i, i === row.o ? row.e : row.o] : [i];
+      formal.forEach((j, k) => detail.append(declSection(j, { title: r.title, first: k === 0 })));
+      detail.append(graphSection([rows.length > 1 ? 'm:' + i : 'r:' + rid, 'i:' + i], ['nodes', 'decls'], graphState));
+      detail.insertAdjacentHTML('beforeend', notesHtml(formal));
     }
-    formalDecls.forEach((j, k) => body.append(declSection(j, { title: r.title, first: k === 0 })));
-    body.append(graphSection(['r:' + rid, 'i:' + (focusDecl ?? overview)], ['nodes', 'decls']));
-    body.insertAdjacentHTML('beforeend', notesHtml(formalDecls));
+
+    draw(false);
     openPanel(crumbs(r.module));
-    if (focusDecl !== undefined) document.getElementById('decl-' + focusDecl)?.scrollIntoView();
+    if (table) {
+      // the selected row in view inside the table's own scroll box, not the panel's
+      const tr = table.querySelector('tr.stmt-row.on');
+      const box = $('.stmt-scroll', table);
+      if (tr && box.scrollHeight > box.clientHeight) box.scrollTop = tr.offsetTop - box.clientHeight / 3;
+    }
   }
 
   function showDecl(name) {
@@ -985,14 +1079,16 @@
       book.open = true;
       book.scrollIntoView();
     }
-    const m = /^#([rdm])\/(.+)$/.exec(location.hash);
+    const m = /^#([rdm])\/([^?]+)(?:\?(.*))?$/.exec(location.hash);
     if (!m) {
       $('#panel').hidden = true;
       document.body.classList.remove('panel-open');
       return;
     }
     const arg = decodeURIComponent(m[2]);
-    if (m[1] === 'r') showResult(arg);
+    // `#r/<id>?s=<declaration>`: the result with that statement selected
+    const picked = new URLSearchParams(m[3] || '').get('s');
+    if (m[1] === 'r') showResult(arg, picked !== null ? byName.get(picked) : undefined);
     else if (m[1] === 'd') showDecl(arg);
     else showModule(arg);
   }

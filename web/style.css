@@ -739,21 +739,137 @@ ul.declist li {
     flex-wrap: wrap;
 }
 
-.variant {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5em;
-    font-size: 75%;
-    margin-bottom: 0.6em;
+/* The statements table of a result page: every member, one row each, grouped by error measure.
+   The selected row drives the statement, the Lean, the graph and the notes below it. */
+.statements .label .opts {
+    color: var(--faint);
 }
 
-.variant select {
-    min-width: 0;
-    max-width: 100%;
-    font: inherit;
-    color: inherit;
+.stmt-scroll {
+    max-height: 60vh;
+    overflow: auto;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--rule);
+}
+
+.stmt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 72%;
+    line-height: 1.35;
+}
+
+.stmt-table th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--faint);
+    padding: 0.35em 0.6em 0.35em 0;
+    position: sticky;
+    top: 0;
     background: #fff;
-    border: 1px solid var(--ink);
+    z-index: 1;
+}
+
+.stmt-table thead th {
+    border-bottom: 1px solid var(--rule);
+}
+
+.stmt-table td {
+    padding: 0.3em 0.6em 0.3em 0;
+    vertical-align: baseline;
+    border-top: 1px solid #eee;
+}
+
+.stmt-table .pick {
+    width: 1.6em;
+    padding-left: 0.3em;
+}
+
+.stmt-table .pick input {
+    margin: 0;
+    accent-color: var(--ink);
+}
+
+.stmt-table tr.stmt-group th {
+    color: var(--ink);
+    font-style: italic;
+    font-weight: 400;
+    padding-top: 0.8em;
+    position: static;
+    border-bottom: 1px solid var(--rule);
+}
+
+.stmt-table tr.stmt-row {
+    cursor: pointer;
+}
+
+.stmt-table tr.stmt-row:hover td {
+    background: #f6f6f4;
+}
+
+.stmt-table tr.stmt-row.on td {
+    background: #ecece8;
+}
+
+.stmt-table tr.stmt-row.on td.pick {
+    box-shadow: inset 3px 0 0 var(--ink);
+}
+
+.stmt-table td.c-stat, .stmt-table td.c-output, .stmt-table td.c-form {
+    white-space: nowrap;
+}
+
+.stmt-table td.c-source, .stmt-table td.c-form {
+    color: var(--faint);
+}
+
+.stmt-table .katex {
+    font-size: 1.12em;
+}
+
+.sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* on a phone a row is a short paragraph: its cells in a line, separated by dots */
+@media (max-width: 600px) {
+    .stmt-table, .stmt-table tbody, .stmt-table tr, .stmt-table td, .stmt-table th { display: block; }
+    .stmt-table thead { display: none; }
+    .stmt-table tr.stmt-row {
+        position: relative;
+        padding: 0.45em 0.4em 0.45em 2em;
+        border-top: 1px solid #eee;
+    }
+    .stmt-table td {
+        display: inline;
+        padding: 0;
+        border: none;
+        background: none !important;
+    }
+    .stmt-table td:not(.pick):not(:empty) ~ td:not(:empty)::before {
+        content: " · ";
+        color: var(--faint);
+    }
+    .stmt-table td.c-stat { white-space: normal; }
+    .stmt-table td.pick {
+        position: absolute;
+        left: 0.4em;
+        top: 0.5em;
+        width: auto;
+        padding: 0;
+    }
+    .stmt-table tr.stmt-row.on { background: #ecece8; box-shadow: inset 3px 0 0 var(--ink); }
+    .stmt-table tr.stmt-row.on td.pick { box-shadow: none; }
+    .stmt-table { font-size: 80%; }
+}
+
+.graph .node.member:not(.focus) rect {
+    fill: #f0f0ec;
 }
 
 .statement-source {
@@ -850,3 +966,7 @@ button:focus-visible, select:focus-visible {
 .desc .katex-display .katex { display: block; }
 .desc .nowrap { display: inline-block; max-width: 100%; vertical-align: middle; }
 details.topic, details.sub { scroll-margin-top: 4rem; }
+
+.result-statement .formname {
+    margin: 0.2em 0 0.45em;
+}

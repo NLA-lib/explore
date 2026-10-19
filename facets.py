@@ -318,7 +318,7 @@ def citation_search_text(key, label, overrides=None):
 # ------------------------------------------------------------------ the statements table
 
 COLUMNS = [('algorithm', 'Algorithm'), ('stat', 'Statistic'), ('law', 'Law'), ('output', 'Output'),
-           ('regime', 'Regime'), ('detail', 'Detail'), ('form', 'Form'), ('source', 'Source')]
+           ('regime', 'Regime'), ('detail', 'Detail'), ('form', 'Asymptotic'), ('source', 'Source')]
 ALWAYS = {'stat', 'source'}       # shown whenever a row has a value, even when constant
 BIB_KEY = re.compile(r'^[A-Z][A-Za-z]+\d{4}[a-z]?$')
 
@@ -414,7 +414,8 @@ def statement_table(members, forms, primary, title, info, source_names=None):
             c['output'] = OUTPUTS.get(f.get('output')) if f.get('output') else None
             c['regime'] = f.get('regime')
             c['detail'] = '; '.join(f.get('details') or []) or None
-        c['form'] = r'explicit, $O(\cdot)$' if o != e else 'explicit'
+        # an explicit bound with an asymptotic form; the toggle above the statement switches
+        c['form'] = r'$O(\cdot)$' if o != e else None
         c['source'] = ', '.join(sources(o, e)[:2]) or None
         group = measure_label(f.get('measure')) if f and f.get('statistic') else None
         rows.append({'o': o, 'e': e, 'g': group, 'c': c, 'f': f if f and f.get('statistic') else None,

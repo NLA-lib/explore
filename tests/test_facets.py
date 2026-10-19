@@ -140,7 +140,7 @@ class TableTests(Rendered):
         self.assertEqual([row['c']['source'] for row in spectral], ['TW 8.1 (RSVD2)', 'HMT 10.6'])
         self.assertIn('TW 8.1 (RSVD2)', spectral[0]['x'])
         self.assertIn('Tropp–Webber 2023 Theorem 8.1 (RSVD2)', spectral[0]['x'])
-        self.assertEqual(r['rows'][0]['c']['form'], r'explicit, $O(\cdot)$')
+        self.assertEqual([row['c']['form'] for row in r['rows']], [r'$O(\cdot)$', None, None, None])
         self.assertIn('Spectral norm', spectral[0]['l'])
 
     def test_rows_alike_get_names(self):
