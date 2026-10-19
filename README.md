@@ -114,13 +114,9 @@ and result IDs; source paths and line numbers come from each fresh extraction. S
 
 `results.toml` can set `primary` to an exact explicit declaration belonging to that result.
 Its asymptotic counterpart becomes the overview. This makes headline choice independent of
-source order; the conditional completion identity no longer titles early-truncated GN.
-
-`results.toml` can also set `variant_labels`, one short label per (overview, explicit) form in
-the built order (the primary's form first, then extraction order), for the result page's Variant
-dropdown. Each label names only what differs between the forms (`"Truncated, Frobenius norm"`).
-The build fails unless the list has exactly one nonempty string per form; without it the dropdown
-falls back to each explicit declaration's bold docstring name.
+source order; the conditional completion identity no longer titles early-truncated GN. A
+configured primary without an asymptotic form is the headline too (RSVD tail bounds open at
+Tropp–Webber's Gaussian Frobenius tail).
 
 Probability formulas use `$\mathbb{P}[E]$` with square event brackets, including in displayed
 success or failure bounds. `web/math.js` normalizes recognized legacy probability operators and
@@ -129,6 +125,45 @@ and delimiter sizing. Plain matrix `P`, prose/code, and unrecognized or malforme
 left unchanged. Raw extracted documentation and Lean source remain untouched. The library's
 CONTRIBUTING §6 records the convention for future docstrings.
 
+## Result pages: the statements table
+
+A result page lists every member of the result in a **statements table**: one row per
+(asymptotic, explicit) pair and one per other member. Selecting a row shows that statement, with
+the *Explicit bound* toggle when it has an asymptotic form, its Lean, its own dependency graph
+(the statement as a node; other statements of the result shaded) and its notes and references.
+`#r/<id>` opens the headline row; `#r/<id>?s=<declaration>` opens the row holding that
+declaration (its explicit side with the toggle on); `#d/<name>` of a member does the same.
+Search lists each row of a multi-statement result as a hit of its own, found by its label, its
+names and its citations (`TW 8.1`, `Tropp–Webber 2023 Theorem 8.1`, `TroppWebber2023`).
+
+The cells are generated, not curated. `facets.py` reads a probabilistic bound's facets from its
+name, following the library's naming (CONTRIBUTING §4) and the grammar in
+[docs/explorer-redesign.md](docs/explorer-redesign.md#appendix-b-bound-name-grammar-used-for-inference):
+statistic (`integral_`, `measureReal_`/`measure_` with or without `_not`, `variance_`), moment
+(`_sq`), error measure (the first norm of the conclusion), algorithm (from the name, else from
+the statement's dependencies), sketch law (`_of_hasLaw_…`, or an interface namespace such as
+`HasSubspaceInjection.` for "any subspace injection"), output (plain, late-truncated,
+early-truncated), regime and bound shape. Rows are grouped by error measure; the columns are the
+facets that vary within the result, in the explorer's vocabulary: the statistic as a formula
+($\mathbb{E}\|\cdot\|^2$, $\mathbb{E}\|\cdot\|$, $\mathbb{P}[\|\cdot\|^2 > t]$, Var), "tail bound",
+"late-truncated", and the source as a short citation (`TW 8.1 (RSVD2)`, `HMT 10.6`). Rows the
+facets do not tell apart get their docstring names as detail. A result outside the grammar
+(deterministic theory) lists its members by their docstring names, without the shared head
+(`Courant–Fischer, lower bound` is "lower bound").
+
+`facets.toml` overrides facets per declaration name (`algorithm`, `measure`, `output`, `label`
+for the detail cell, …) for the few names the grammar misses, and may give citation keys short
+names; an override of an unknown declaration fails the build. The build prints a note listing
+algorithm bounds without an error measure. Each declaration's facets are in `data.json` (`fc`),
+each result's rows in `rows`/`cols`/`row`.
+
+`results.toml` can fold a result into another, `merge_into = "<id>"`: its members join that
+page and the old id stays an alias (`#r/<old id>` redirects there, selecting the statement that
+headed the old result). A merged entry takes only `aliases`. Titles drop a leading "The" at build
+time, and the build warns about words the vocabulary retires ("average" or "mean" for an error,
+"with high probability", "deviation"). Positional `variant_labels` are retired; the build
+rejects them.
+
 ## What the explorer reads from NLAlib
 
 - **Topics** are the library's directories: `NLAlib/<Layer>/<Subtopic>/<File>.lean`. Titles
@@ -136,7 +171,7 @@ CONTRIBUTING §6 records the convention for future docstrings.
   its module docstring.
 - **Results** are the `Result: <id>` lines of docstrings (CONTRIBUTING §6). Declarations with
   the same id are shown together as one result; its title is the bold name opening the first
-  docstring (`**Weyl's inequality.**`), else the id.
+  docstring (`**Weyl's inequality.**`) without a leading "The", else the id.
 - **Roles**: registered named numerical bounds carry `explorerRole: "support"` in raw data;
   output roles are `support`, `concept` (other definitions), and `lemma`. Support declarations
   stay searchable and available in source views; default dependency graphs collapse through them.
@@ -191,7 +226,9 @@ CONTRIBUTING §6 records the convention for future docstrings.
 | `build.py` | `data/explore-data.json` (+ `references.bib`) → `site/` |
 | `web/` | the page: `index.html`, `app.js`, `style.css`, fonts, KaTeX 0.16.22 (MIT) |
 | `topics.toml` | titles, order and blurbs of topics and subtopics; where loose files go |
-| `results.toml` | optional title, aliases, LaTeX statement, primary and Variant labels per result id |
+| `results.toml` | optional title, aliases, LaTeX statement, primary and `merge_into` per result id |
+| `facets.py` | facets of a bound read from its name; the statements table of a result page |
+| `facets.toml` | per-declaration facet overrides and short names of citation keys |
 | `synonyms.toml` | search synonyms (`pseudoinverse` → `pinv`) |
 | `rates.toml` | families and reviewed theorem-specific rate summaries |
 | `collections.toml` | result and definition groupings independent of source modules |

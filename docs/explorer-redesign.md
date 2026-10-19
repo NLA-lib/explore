@@ -77,6 +77,15 @@ statement, the explicit/asymptotic toggle and the graph focus; statement-level s
 deep links; the two merges with redirects; title normalisation; and the retirement of
 positional `variant_labels`.
 
+**Stage 1 status** (branch `feat/statements-table`, 2026-10-19): implemented as above, in
+`facets.py`, `facets.toml`, `build.py` and `web/app.js`; see the README's "Result pages"
+section. Two choices go slightly beyond the text of §4 C: the Lean, notes and references below
+the table follow the selected row (instead of listing all members, which made the 10,000 px
+panels), and a configured `primary` without an asymptotic form is honoured as the headline.
+The audit script is not committed; its parser is the basis of `facets.py`. Library bold names
+still say "average" (HMT 10.6) and "mean" in a few places; the explorer shows them as the
+library's names of the statements and does not rewrite them.
+
 ---
 
 ## 1. What a reader comes to do
