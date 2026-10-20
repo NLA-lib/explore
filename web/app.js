@@ -1086,6 +1086,10 @@
   }
 
 
+  // shown above every References list: the library's statements are its own, not transcriptions
+  const REFS_WARNING = 'This section is intended to assist you in finding related sources. ' +
+    'The exact statements here may differ from those in the reference materials.';
+
   // Everything in the docstrings that is not the statement: pointers to other declarations,
   // proof sketches, and the sources with how their printed statements differ.
   function notesHtml(ids) {
@@ -1114,7 +1118,8 @@
     return (rel.length ? `<div class="label">Related</div><ul class="notes">${rel.join('')}</ul>` : '') +
       (notes.length ? `<div class="label">Notes</div><ul class="notes">${notes.join('')}</ul>` : '') +
       (pf.length ? `<div class="label">Proof sketch</div><ul class="notes">${pf.join('')}</ul>` : '') +
-      (refItems.length ? `<div class="label">References</div><ul class="refs">${refItems.join('')}</ul>` : '');
+      (refItems.length ? `<div class="label">References</div><p class="refwarn">${REFS_WARNING}</p>` +
+        `<ul class="refs">${refItems.join('')}</ul>` : '');
   }
 
   // the panel's heading: what kind of thing it is, above its name

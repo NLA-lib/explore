@@ -601,6 +601,12 @@ ul.refs, ul.notes {
     margin-top: 0.15em;
 }
 
+.refwarn {
+    font-size: 80%;
+    color: var(--faint);
+    margin: 0.2em 0 0.4em;
+}
+
 .declname {
     font-style: italic;
     font-size: 100% !important;
