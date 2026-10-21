@@ -5,8 +5,8 @@ results of [NLAlib](https://github.com/NLA-lib/NLAlib) by topic, a search box, a
 result its statement, its Lean declarations with links to the source, and its dependencies
 within the library.
 
-Statements and source links are generated from the library. Explorer collections and the Rates
-comparison summaries are curated here and checked against the extracted declarations.
+Statements, source links and the Rates rows are generated from the library. Explorer collections
+and the reviewed Rates summaries are curated here and checked against the extracted declarations.
 
 ## How it updates
 
@@ -21,83 +21,96 @@ comparison summaries are curated here and checked against the extracted declarat
 
 ## Rates and algorithm browsing
 
-The [Rates page](https://nla-lib.org/explore/rates/) compares sufficient asymptotic requirements
-by family, then shared guarantee, then distribution or algorithm. Each guarantee is stated once,
-with its formula and definition links in an expandable section; rows show resources and conditions.
-The filters are appropriate to each family. With all families selected, only the
-family selector and search are shown. Selecting a family reveals its configured filters; options
-are drawn from matching rows, and constant or irrelevant fields stay hidden. Its families
-are **Embeddings and sketch properties**, **One- and two-pass low-rank approximation**,
-**Block Krylov and subspace iteration**, **Regression** and **Trace estimation**. Families are configuration,
-so other future families need no new page template.
-A row is one exact theorem, not a whole Result group. Expand it for the theorem's own assumptions,
-its explicit bound and links to the declaration and source. Expectations of squared norms remain
-distinct from expected norms; JL, embedding and injection guarantees remain distinct.
+The [Rates page](https://nla-lib.org/explore/rates/) compares the resources (samples, block size,
+depth, queries) each algorithm needs for a target accuracy. **Every asymptotic pair of the
+library is a row**: each `exists_forall_` declaration with an `Asymptotic:` target, whether or not
+anyone has reviewed it. Its cells come from the same facets as the statements tables of result
+pages (`facets.py`, with `facets.toml` on top): algorithm, error measure, the statistic as a formula
+($\mathbb{E}\|\cdot\|^2$, $\mathbb{E}\|\cdot\|$, $\mathbb{P}[\ldots]$ "tail bound", Var), sketch
+law, output (plain, late-truncated, early-truncated), regime (gapless, gapped) and the source as a
+short citation. Sketch-property corollaries (`exists_forall_hasJLProperty_of_…`,
+`…isObliviousSubspaceEmbedding…`, `…hasProjectionCostPreserving…`, …) are read by a small property
+grammar (`facets.infer_property`): the property takes the algorithm's place, the statistic is a
+tail bound.
 
-Regression compares expected and high-probability squared Frobenius residual error against the
-least-squares optimum, with sketch class, sketch and guarantee-mode filters. Gaussian and Haar
-expectation rows require $O((r+1)/\varepsilon)$ sketch rows, where $r$ is the input rank. The
-Gaussian high-probability row uses a second-moment sufficient rate
-$O((r+1)/(\varepsilon\delta))$; CountSketch uses
-$O(((r+1)^2+(r+1)/\varepsilon)/\delta)$ and supports complex inputs. Haar retains the ambient
-size cap. Per-row notes and full theorem views give the exact domains and sketch conventions.
+- A **reviewed** row has an entry in `rates.toml` (the overlay, below): its resources with their
+  bounds, visible parameter caveats and definition links.
+- A **pending** row has none yet. It is marked *pending review* and shows the asymptotic
+  statement as the library states it, in a group named after its generated cell ("Frobenius norm ·
+  tail bound $\mathbb{P}[\|\cdot\|_{\mathsf F}^2 > t]$").
+- An **exact** row (`kind = 'exact'`) records an identity, for trace estimation.
 
-Block Krylov and subspace iteration compares depth (blocks $q$ or power steps $p$) for expected
-relative error $1+\varepsilon$, with algorithm, spectral-gap, variant and norm filters. Gapless
-rows need $O(\log(n+1)/\sqrt{\varepsilon})$ blocks for RBKI and NysBKI and $O(\log(n+1)/\varepsilon)$
-power steps for RSI and NysSI (late-truncated RBKI and RSI: $\log(n/\varepsilon)$ for $\log(n+1)$);
+The page has one table per family, in the look of the statements table: guarantee group rows
+with their full statement and definitions in a disclosure, generated columns shown when they vary
+within the family, faint sources. A row's algorithm opens the statement on its result page with
+that row selected (`#r/<id>?s=<asymptotic declaration>`; `#d/<name>` for an exact theorem without
+a Result id); `▸` expands the theorem in place, with the *Explicit bound* toggle, the declaration
+and source links and *Copy link*. Each family ends with **Bounds without a rate form**: the explicit
+probabilistic bounds of its algorithms that have no asymptotic form (for example the RSVD
+spectral-norm bounds of HMT 10.6 and TW 8.1), by algorithm, error measure and statistic, each
+linking to its statement. The filters are global and generated: family, algorithm, error measure,
+statistic, law (grouped by the sketch classes Gaussian, Haar, Sparse, Trig, Other, a class with
+several laws selectable whole), output, regime, resource, form (rate or exact value), source and
+status (reviewed or pending). Options come from the rows compatible with the other choices, and a
+filter with one option is hidden. Filter state and search are kept in the query string
+(`rates/?algorithm=RSVD&stat_key=tail`), so a comparison can be linked.
+
+URLs: `rates/#rate/<id>` expands and scrolls to a reviewed row; a pending row is linked as
+`rates/#rate/<declaration>` (its *Copy link*), which keeps working after it is reviewed; the old
+anchors `#rate-row-<id>`, `#rate-notation-<family>` and `#rate-guarantee-<family>-<guarantee>`
+still work. The families are **Embeddings and sketch properties**, **One- and two-pass low-rank
+approximation**, **Block Krylov and subspace iteration**, **Regression** and **Trace estimation**;
+an asymptotic pair whose algorithm no family lists goes to a generated **Other asymptotic bounds**
+family, so nothing new is dropped silently. Linear-system solvers have no rows this round.
+
+Highlights. Regression: Gaussian and Haar expected-error rows need $O((r+1)/\varepsilon)$ sketch
+rows ($r$ the input rank); the Gaussian tail bound $O((r+1)/(\varepsilon\delta))$, CountSketch
+$O(((r+1)^2+(r+1)/\varepsilon)/\delta)$ over real or complex inputs. Block Krylov and subspace
+iteration list two resources per row, the block size $\ell$ and the depth: gapless rows need
+$O(\log(n+1)/\sqrt{\varepsilon})$ blocks for RBKI and NysBKI and $O(\log(n+1)/\varepsilon)$ power
+steps for RSI and NysSI (late-truncated RBKI and RSI: $\log(n/\varepsilon)$ for $\log(n+1)$);
 gapped rows need $O(\log(n/\varepsilon)/\sqrt{\gamma})$ blocks or $O(\log(n/\varepsilon)/\gamma)$
-power steps for a relative singular gap $\gamma>0$. No rates are listed for Krylov linear-system solvers.
+power steps for a relative singular gap $\gamma>0$. Trace estimation lists the exact variance of
+the Girard–Hutchinson estimate for one real Gaussian, Rademacher or radius-$\sqrt{n}$ sphere probe,
+one probe with independent coordinates of fourth moment $m_4$, the Haar frame estimator
+$(n/k)\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})$, and
+$\mathbb{E}\lvert\cdot-\operatorname{tr}\mathbf{A}\rvert^2$ for $m$ independent isotropic probes,
+next to the (pending) Hutch++ sample sizes.
 
-Trace estimation lists exact values rather than rates: the variance of the Girard–Hutchinson
-estimate for one real Gaussian, Rademacher or radius-$\sqrt{n}$ sphere probe, or one probe with
-independent coordinates of fourth moment $m_4$, the Haar frame estimator
-$(n/k)\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})$, and the second moment
-$\mathbb{E}\lvert\cdot-\operatorname{tr}\mathbf{A}\rvert^2$ for $m$ independent isotropic probes
-(single-probe value over $m$), with probe-class and probe-law filters.
+### `rates.toml`: the reviewed overlay
 
-`rates.toml` supplies ordered `families`, ordered `guarantees`, and comparison `rates`.
-A guarantee has `id`, `family`, `title`, `description` and optional `definitions` links, each with
-`label` and the full `declaration` name. A row references its guarantee by ID; cross-family
-references fail validation. OSI includes isotropy and the lower-tail condition, and remains
-separate from a fixed-subspace injection. The row's optional `algorithm_definition` and
-`sketch_definition` names provide direct definition links. Each row names an asymptotic declaration,
-uses its `Asymptotic:` target for the explicit view, and records a reviewed `statement_hash`.
-The hash is SHA-256 of the extracted signature, a newline, and its full docstring, after removing
-HTML comments from both. Changed wording or hypotheses fail the build until a reviewer checks the
-summary against the updated theorem and records its hash. This is a change detector, not a proof
-that the handwritten summary is correct. Proof-body changes alone do not require new metadata.
-The source snapshot is the rolling release JSON, not a checkout with unfinished Lean work.
+- `[[families]]`: `id`, `title`, `description`, optional `notation`, `subject_label` (the
+  algorithm column's heading, e.g. "Property"), `definition_label`, `resources_label`, and
+  `algorithms`, the algorithm facet values (`facets.ALGORITHMS`, or property labels) whose generated
+  rows it holds. An algorithm in two families fails the build. Optional `filters` on custom row
+  fields remain an extension point (none is configured); `subject_field` too.
+- `[[guarantees]]`: `id`, `family`, `title`, `description`, optional `definitions` links
+  (`label`, full `declaration`). Titles use the vocabulary: "expected error" with the formula,
+  "tail bound", "late-truncated".
+- `[[rates]]`: the reviewed entries, keyed by `theorem` (the asymptotic declaration, or for
+  `kind = 'exact'` the one theorem cited) and `statement_hash`: `id` (the stable URL),
+  `guarantee`, `resources` (`{label, bound, kind}` with `kind` one of `samples`, `block size`,
+  `depth`, `queries`; omitted for an exact value), optional `notes`, `label` (a detail cell, e.g. an
+  exact row's probe), `algorithm_definition`, `algorithm_definition_label` and
+  `sketch_definition`. A row's family is its guarantee's; if its facets put its algorithm in
+  another family the build fails. The hand facet fields of earlier versions (`algorithm`,
+  `variant`, `sketch`, `sketch_category`, `norm`, `mode`, `gap`, `probe…`) are gone: the names say
+  them.
+- `[algorithm_names]` (filter labels such as "Randomized SVD (RSVD)"), `[law_classes]` (the
+  sketch classes; other laws are "Other") and `[generate] exclude_words` (words of a Result id or
+  module that keep a pair off the page; today the linear-system solvers).
 
-Each family declares `filters = [{field = "algorithm", label = "Property"}, ...]`. A filter can
-use any nonempty scalar string field on its rows; optional `order` lists preferred option order.
-For example, a future solver family can filter by preconditioner without adding JavaScript.
-Embeddings expose property, sketch class, sketch and variant; low-rank approximation exposes
-algorithm, variant, sketch class, sketch, norm and probability mode when there is a choice.
-Changing family clears dependent selections. Sketch classes are Gaussian, Haar, Sparse, Trig and
-Other; Trig includes Fourier/Hadamard transforms such as SRHT. General distribution classes and
-row sampling are under Other. Matrix norms are not mandatory rate metadata.
-
-To add a rate, choose or add a family and a shared guarantee, then record `id`, `theorem`, `family`, `algorithm`,
-`guarantee`, a nonempty `resources` list of `{label, bound}`, and `statement_hash`.
-`variant`, `sketch`, `norm`, `mode` and `notes` are optional; configured filter fields must be
-present on every row of that family. Keep restrictions visible in the row or its family notation;
-full statements come from Lean. Families can choose `subject_label`, `subject_field` (default
-`algorithm`) and `definition_label` (default "Algorithm definition"); a row may override that
-label with `algorithm_definition_label` (e.g. "Isotropy" for a property rather than a law). "Copy link" copies the
-rate's stable URL. Resource lists can describe rows, columns, samples or iterations;
-the display does not assume every family uses a pair of sketch sizes. No runtime or pass-count
-claim is inferred from a theorem name. Only paired proved declarations can supply Rates entries,
-except exact rows.
-
-An **exact row** (`kind = 'exact'`) records an identity, not a rate. Its `theorem` is the one
-proved theorem it cites; it must not be an asymptotic declaration nor the `Asymptotic:` target of
-one (use an ordinary row then). Its `statement_hash` covers that theorem as above, its resources
-carry the exact value (for example `{label = 'Variance', bound = '$2\|\mathbf{A}\|_{\mathsf{F}}^2$'}`),
-and its expanded view has no explicit/asymptotic toggle. A Result id is recorded when the theorem
-has one but is not required. Rows without `kind` keep the paired contract; any other `kind`
-fails. A family may set `resources_label` (default "Resources") for its value column, e.g.
-"Exact value".
+The statement hash is SHA-256 of the extracted signature, a newline, and its full docstring, after
+removing HTML comments from both. Changed wording or hypotheses fail the build until a reviewer
+checks the summary against the updated theorem and records its hash; a stale hash, a missing,
+unpaired or unproved declaration all fail. This is a change detector, not a proof that the
+handwritten summary is correct. Proof-body changes alone do not require new metadata. To review a
+pending row, add a `[[rates]]` entry with its `theorem`, a guarantee, resources and the hash; its
+id becomes its URL, and the declaration link keeps working. An exact row's theorem must not be an
+asymptotic declaration nor the `Asymptotic:` target of one, and its expanded view has no
+explicit/asymptotic toggle; a Result id is recorded when it has one. No runtime or pass-count
+claim is inferred from a theorem name. See
+[docs/rates-design.md](docs/rates-design.md#rates-from-facets-2026-10-19).
 
 `collections.toml` organizes the Explorer independently of Lean import paths. Low-rank results
 are grouped under RSVD, generalized Nyström, PSD Nyström and shared theory. Each group references
@@ -114,13 +127,9 @@ and result IDs; source paths and line numbers come from each fresh extraction. S
 
 `results.toml` can set `primary` to an exact explicit declaration belonging to that result.
 Its asymptotic counterpart becomes the overview. This makes headline choice independent of
-source order; the conditional completion identity no longer titles early-truncated GN.
-
-`results.toml` can also set `variant_labels`, one short label per (overview, explicit) form in
-the built order (the primary's form first, then extraction order), for the result page's Variant
-dropdown. Each label names only what differs between the forms (`"Truncated, Frobenius norm"`).
-The build fails unless the list has exactly one nonempty string per form; without it the dropdown
-falls back to each explicit declaration's bold docstring name.
+source order; the conditional completion identity no longer titles early-truncated GN. A
+configured primary without an asymptotic form is the headline too (RSVD tail bounds open at
+Tropp–Webber's Gaussian Frobenius tail).
 
 Probability formulas use `$\mathbb{P}[E]$` with square event brackets, including in displayed
 success or failure bounds. `web/math.js` normalizes recognized legacy probability operators and
@@ -129,6 +138,45 @@ and delimiter sizing. Plain matrix `P`, prose/code, and unrecognized or malforme
 left unchanged. Raw extracted documentation and Lean source remain untouched. The library's
 CONTRIBUTING §6 records the convention for future docstrings.
 
+## Result pages: the statements table
+
+A result page lists every member of the result in a **statements table**: one row per
+(asymptotic, explicit) pair and one per other member. Selecting a row shows that statement, with
+the *Explicit bound* toggle when it has an asymptotic form, its Lean, its own dependency graph
+(the statement as a node; other statements of the result shaded) and its notes and references.
+`#r/<id>` opens the headline row; `#r/<id>?s=<declaration>` opens the row holding that
+declaration (its explicit side with the toggle on); `#d/<name>` of a member does the same.
+Search lists each row of a multi-statement result as a hit of its own, found by its label, its
+names and its citations (`TW 8.1`, `Tropp–Webber 2023 Theorem 8.1`, `TroppWebber2023`).
+
+The cells are generated, not curated. `facets.py` reads a probabilistic bound's facets from its
+name, following the library's naming (CONTRIBUTING §4) and the grammar in
+[docs/explorer-redesign.md](docs/explorer-redesign.md#appendix-b-bound-name-grammar-used-for-inference):
+statistic (`integral_`, `measureReal_`/`measure_` with or without `_not`, `variance_`), moment
+(`_sq`), error measure (the first norm of the conclusion), algorithm (from the name, else from
+the statement's dependencies), sketch law (`_of_hasLaw_…`, or an interface namespace such as
+`HasSubspaceInjection.` for "any subspace injection"), output (plain, late-truncated,
+early-truncated), regime and bound shape. Rows are grouped by error measure; the columns are the
+facets that vary within the result, in the explorer's vocabulary: the statistic as a formula
+($\mathbb{E}\|\cdot\|^2$, $\mathbb{E}\|\cdot\|$, $\mathbb{P}[\|\cdot\|^2 > t]$, Var), "tail bound",
+"late-truncated", and the source as a short citation (`TW 8.1 (RSVD2)`, `HMT 10.6`). Rows the
+facets do not tell apart get their docstring names as detail. A result outside the grammar
+(deterministic theory) lists its members by their docstring names, without the shared head
+(`Courant–Fischer, lower bound` is "lower bound").
+
+`facets.toml` overrides facets per declaration name (`algorithm`, `measure`, `output`, `label`
+for the detail cell, …) for the few names the grammar misses, and may give citation keys short
+names; an override of an unknown declaration fails the build. The build prints a note listing
+algorithm bounds without an error measure. Each declaration's facets are in `data.json` (`fc`),
+each result's rows in `rows`/`cols`/`row`.
+
+`results.toml` can fold a result into another, `merge_into = "<id>"`: its members join that
+page and the old id stays an alias (`#r/<old id>` redirects there, selecting the statement that
+headed the old result). A merged entry takes only `aliases`. Titles drop a leading "The" at build
+time, and the build warns about words the vocabulary retires ("average" or "mean" for an error,
+"with high probability", "deviation"). Positional `variant_labels` are retired; the build
+rejects them.
+
 ## What the explorer reads from NLAlib
 
 - **Topics** are the library's directories: `NLAlib/<Layer>/<Subtopic>/<File>.lean`. Titles
@@ -136,7 +184,7 @@ CONTRIBUTING §6 records the convention for future docstrings.
   its module docstring.
 - **Results** are the `Result: <id>` lines of docstrings (CONTRIBUTING §6). Declarations with
   the same id are shown together as one result; its title is the bold name opening the first
-  docstring (`**Weyl's inequality.**`), else the id.
+  docstring (`**Weyl's inequality.**`) without a leading "The", else the id.
 - **Roles**: registered named numerical bounds carry `explorerRole: "support"` in raw data;
   output roles are `support`, `concept` (other definitions), and `lemma`. Support declarations
   stay searchable and available in source views; default dependency graphs collapse through them.
@@ -191,9 +239,11 @@ CONTRIBUTING §6 records the convention for future docstrings.
 | `build.py` | `data/explore-data.json` (+ `references.bib`) → `site/` |
 | `web/` | the page: `index.html`, `app.js`, `style.css`, fonts, KaTeX 0.16.22 (MIT) |
 | `topics.toml` | titles, order and blurbs of topics and subtopics; where loose files go |
-| `results.toml` | optional title, aliases, LaTeX statement, primary and Variant labels per result id |
+| `results.toml` | optional title, aliases, LaTeX statement, primary and `merge_into` per result id |
+| `facets.py` | facets of a bound read from its name (and of a sketch property); the statements table of a result page; the Rates cells |
+| `facets.toml` | per-declaration facet overrides and short names of citation keys |
 | `synonyms.toml` | search synonyms (`pseudoinverse` → `pinv`) |
-| `rates.toml` | families and reviewed theorem-specific rate summaries |
+| `rates.toml` | Rates families, guarantees and the reviewed overlay (summaries keyed by theorem and statement hash) |
 | `collections.toml` | result and definition groupings independent of source modules |
 | `books.toml` | key books for the Books page: chapters, sections, numbered results (numbers and short names only) |
 

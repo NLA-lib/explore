@@ -1,6 +1,6 @@
 # Rates and algorithm-oriented exploration
 
-The dated sections record successive changes. The latest sections, **Exact rows: trace estimation (2026-10-18)** with its two dated follow-ups, describe the current completed extension. Earlier dated sections record its predecessors, preparation and preceding schema changes.
+The dated sections record successive changes. The latest section, **Rates from facets (2026-10-19)**, describes the current design: rows generated from every asymptotic pair, with the reviewed summaries as an overlay. Earlier dated sections record its predecessors, preparation and preceding schema changes; where they describe hand-entered row metadata (`algorithm`, `variant`, `sketch`, `norm`, `mode`, per-family filters) they are superseded by it.
 
 Approved 2026-10-16. Presentation only; no mathematical declarations or import paths change.
 The library checkout has ongoing Lean development, so implementation and validation use its
@@ -515,3 +515,157 @@ cited statements render under KaTeX. No browser pass was made.
 
 Re-checked 2026-10-18 against library commit a4f8773 (Hutch++ proved, no `sorry` in the library):
 the strict build accepts every row with no statement-hash change.
+
+
+## Rates from facets (2026-10-19)
+
+Maintainer, after the statements table of stage 1: "this is looking nicer. how about the rates
+page. maybe we can do somethign similar". This is stage 4 of
+[the explorer redesign](explorer-redesign.md#5-recommendation-and-migration), within the decisions
+recorded there (vocabulary; facets inferred from names with `facets.toml` overrides; pairs
+without a reviewed summary shown as "pending"; no rows for linear-system solvers this round).
+
+### What changes and why
+
+Today every Rates row is hand-entered in `rates.toml`, with hand facet fields (`algorithm`,
+`variant`, `sketch`, `sketch_category`, `norm`, `mode`, `gap`, `probe…`) and per-family filter
+schemas. Coverage therefore lags the library by construction: 11 of 61 asymptotic pairs have no
+row (the RSVD, ETRSVD and sub-Gaussian tails, the Hutch++ tail and variance, the three PCP
+sample sizes), and the hand vocabulary ("Expectation", "High probability", "Frobenius squared")
+is the one the redesign retires.
+
+- **Rows are generated.** Every `exists_forall_` declaration with an `Asymptotic:` target is a
+  row, whatever `rates.toml` says. Its cells come from the same facet records as the statements
+  tables (`facets.py`, with `facets.toml` on top): algorithm, error measure, statistic as a
+  formula, sketch law, output, regime, and the source as a short citation. Sketch-property
+  corollaries (`exists_forall_hasJLProperty_of_…`, `…isObliviousSubspaceEmbedding…`, PCP, …),
+  which the bound grammar does not cover, get a small property grammar in `facets.py`: the
+  property is the row's "algorithm" and the statistic is a tail bound.
+- **Reviewed summaries are an overlay.** A `[[rates]]` entry keeps what facets cannot
+  generate: its stable `id`, the shared `guarantee`, the `resources` with their bounds, the
+  visible `notes`, definition links and the reviewed `statement_hash`. It is keyed by its
+  `theorem` (the declaration) and the hash; the strict contract is unchanged, so a stale hash, a
+  missing or unproved declaration or an unpaired theorem still fails the build. Each resource now
+  says which kind it is (`kind = 'samples' | 'block size' | 'depth' | 'queries'`), which is the
+  Resource facet. The hand facet fields are dropped from the file: they were copies of what the
+  names say.
+- **Unreviewed pairs are pending.** A pair without an overlay entry is shown with its generated
+  cells and, in place of a summary, the asymptotic statement itself, under a visible
+  *pending review* tag. Its URL is `rates/#rate/<declaration>`, which keeps working after review
+  (the router accepts a row id or a declaration name).
+- **Exact rows stay.** `kind = 'exact'` rows (trace estimation) cite one theorem and are
+  overlay-only, as before; their facets come from the theorem's name (with `facets.toml`
+  overrides for the quadratic-form theorems, whose names do not spell the estimator).
+  Block Krylov keeps block size and depth as two separate resources of one row.
+- **Families group rows by what readers compare.** A family lists the algorithms (facet
+  values) it holds; a generated row joins the family of its algorithm, a reviewed one the family
+  of its guarantee, and the build fails if the two disagree. Inside a family, rows are grouped by
+  guarantee (curated title, description and definition links); pending rows are grouped by the
+  generated (error measure, statistic) cell, since a guarantee's wording is reviewed text that an
+  unreviewed theorem need not satisfy. A pair in no family goes to a generated "Other
+  asymptotic bounds" family, so a new algorithm is never silently dropped; `[generate]
+  exclude_words` keeps the linear-system solvers (sketch-and-precondition, Kaczmarz, the Krylov
+  linear-system modules) out, by result id or module name.
+- **Bounds without a rate form are listed.** Each family ends with a closed disclosure listing
+  the explicit probabilistic bounds of its algorithms that have no asymptotic form, by
+  (algorithm, error measure, statistic) and linking to their statements. This is where the ten
+  RSVD spectral theorems become reachable from Rates; they are not sample-size rows, and
+  turning one into a row needs an `exists_forall_` corollary in the library.
+- **One table language.** Each family is one table in the style of the statements table: thin
+  rules, group heading rows in italics, faint source column, generated columns shown only when
+  they vary in that family (statistic, resources and source always). Each row's algorithm links
+  to its result page with that row selected (`#r/<id>?s=<asymptotic declaration>`; `#d/<name>`
+  for an exact theorem without a Result id). A row expands in place to its statement, with the
+  *Explicit bound* toggle, Lean links, *Copy link* and the source link.
+- **Filters are global and generated**: family, algorithm, error measure, statistic, law
+  (grouped by the sketch classes Gaussian, Haar, Sparse, Trig, Other, with a whole-class
+  choice), output, regime, resource, form (rate or exact value), source and status (reviewed or
+  pending). Options come from the rows compatible with the other choices; a filter with one
+  option is hidden. Filter state is kept in the query string (`rates/?algorithm=RSVD&law=…`),
+  so a comparison can be linked. Family-specific `filters` on custom row fields remain possible
+  as an extension point but none is configured.
+- **Vocabulary.** The statistic is a formula ($\mathbb{E}\|\cdot\|^2$, $\mathbb{E}\|\cdot\|$,
+  $\mathbb{P}[\ldots]$ "tail bound", Var); "Expectation" and "High probability" disappear, as do
+  "squared" and "second moment" in titles and labels, and "Late truncation" becomes
+  "late-truncated".
+
+Kept: `rates/`, `rates/#rate/<id>` (expands and scrolls to the row), the row anchors
+`#rate-row-<id>`, the notation and guarantee disclosures with their ids, *Copy link*, search,
+and the reset button.
+
+### Mock (1280 px)
+
+```
+NLA-lib Rates
+Compare the resources each algorithm needs for a target accuracy. Rows are generated from the
+library's asymptotic theorems; reviewed rows carry a summary, pending rows their statement.
+[Search rates, algorithms, laws and guarantees                                            ]
+Family [All ▾] Algorithm [All ▾] Error measure [All ▾] Statistic [All ▾] Law [All ▾]
+Output [All ▾] Regime [All ▾] Resource [All ▾] Form [All ▾] Source [All ▾] Status [All ▾]
+67 rows: 50 reviewed rates, 11 pending review, 6 exact values.
+
+One- and two-pass low-rank approximation
+Compare sufficient sketch sizes for relative error 1+ε …     + Notation and assumptions
+──────────────────────────────────────────────────────────────────────────────────────────
+   Algorithm  Law              Output           Statistic   Resources            Source
+ (1+ε) low-rank approximation · expected error E‖A−Â‖_F²     + Guarantee and definitions
+ ▸ RSVD       Gaussian         plain            E‖·‖_F²     Samples ℓ: O(k/ε)    HMT 10.5
+ ▸ RSVD       rotation-inv.    plain            E‖·‖_F²     Samples ℓ: O(k/ε)
+ ▸ RSVD       Gaussian         late-truncated   E‖·‖_F²     Samples ℓ: O(k/ε)
+ ▸ GN         Gaussian         plain            E‖·‖_F²     Range ℓ: O(k/ε)
+                                                            Co-range p: O(k/ε²)
+ Frobenius norm · tail bound ℙ[‖·‖_F² > t]                        generated, pending review
+ ▸ RSVD       CountSketch      plain            ℙ[‖·‖_F²>t] PENDING REVIEW  There are
+                                                            absolute constants C, ε₀ … ℓ ≥
+                                                            C(k²+k+k/ε)/δ …
+ ▸ RSVD       sub-Gaussian     early-truncated  ℙ[‖·‖_F²>t] PENDING REVIEW  …
+──────────────────────────────────────────────────────────────────────────────────────────
++ Bounds without a rate form (RSVD 52, GN 20, Nyström 31)
+    RSVD · Spectral norm · E‖·‖₂   Gaussian HMT 10.6 · rotation-invariant HMT 10.6
+    RSVD · Spectral norm · E‖·‖₂²  Gaussian TW 8.1 (RSVD2) · late-truncated Gu 3.4 · …
+
+Block Krylov and subspace iteration
+   Algorithm  Output          Regime   Statistic  Resources                         Source
+ (1+ε) low-rank approximation · expected error E‖A−Â‖₂²
+ ▸ RBKI       plain                    E‖·‖₂²     Block size ℓ: r+2                 TW 9.1
+                                                  Depth q: O(log(n+1)/√ε)
+ ▸ RBKI       late-truncated  gapped   E‖·‖₂²     Block size ℓ: t+2
+                                                  Depth q: O(log(n/ε)/√γ)           TW 9.2
+```
+
+At 390 px a row is a short paragraph, its cells separated by dots, as in the statements table.
+Expanded (`▾`), a row shows its statement with the *Explicit bound* toggle, the links *Result
+page* (the row selected), *Asymptotic theorem*, *Explicit theorem*, *Source ↗* and *Copy link*.
+
+### Implementation and read-back (2026-10-19)
+
+Built against the extraction at a4f8773 (354 modules, 4105 declarations; `--src` a `git archive`
+of a4f8773, since the library worktree is on another branch). The page has 67 rows: 50 reviewed
+rates (the 50 earlier rows, every `statement_hash` unchanged), 11 pending and 6 exact values; and
+139 bounds without a rate form. The pending rows are the 11 pairs the audit found without a row:
+the three PCP sample sizes (Embeddings, group "Projection-cost preservation · tail bound"), the
+three ETRSVD tails and the three RSVD tails (CountSketch, sub-Gaussian, sub-Gaussian constant
+factor; group "Frobenius norm · tail bound"), and the Hutch++ tail and variance (Trace
+estimation). The RSVD spectral theorems (HMT 10.6 for $\mathbb{E}\|\cdot\|_2$, TW 8.1 RSVD2 and
+the HMT 10.6 form for $\mathbb{E}\|\cdot\|_2^2$, TW 8.1 RSVD1 and HMT 10.8 tails, the
+late-truncated and any-best-rank-$k$ forms) are listed under *Bounds without a rate form* of the
+one- and two-pass family, 11 statements in four cells; `?algorithm=RSVD&measure=Spectral+norm`
+opens that list.
+
+Migration of `rates.toml`: the hand facet fields and the per-family `filters`/`subject_field` were
+removed (the old `subject_field` values became the algorithm column's heading, `subject_label`);
+each resource got its `kind`; the exact rows' `probe` became `label`; guarantee titles say
+"expected error $\mathbb{E}\|\cdot\|^2$" and "tail bound" (no "squared", "high probability" or
+"Expectation"), and "Late truncation" is "late-truncated". Notes and resource bounds are unchanged.
+`facets.toml` gains overrides for the single-probe Girard–Hutchinson theorems, whose names spell
+`quadForm` rather than the estimator, and for the $m$-probe theorem (absolute error, any isotropic
+probe); `facets.py` reads `abs_<algorithm>_sub` after a scale
+(`mul_nuclearNorm_lt_abs_hutchpp_sub_trace`) as an absolute error, which also corrects the Hutch++
+relative-error row of its result page.
+
+Checks: every row's algorithm link and every *Bounds without a rate form* link (206 in all)
+selects the intended statement on its result page; `#rate/<id>`, `#rate/<declaration>`,
+`#rate-row-<id>`, the notation and guarantee anchors and the query-string filters work; with every
+row expanded and every disclosure open there is no KaTeX error and no horizontal overflow at 1280
+and 390 px, and no console error. Not done: no independent mathematical review was needed, since
+no reviewed summary changed; the 11 pending rows await one.

@@ -8,50 +8,75 @@
 # a4f877336325611783c2f3af6bafe51e2fc11ab1 or later before deployment.
 # Compare every changed summary with its exact theorem before updating statement_hash.
 
+# Rows are generated from every asymptotic pair of the library (and the exact rows below); the
+# [[rates]] entries are the reviewed overlay, keyed by `theorem` and `statement_hash`
+# (docs/rates-design.md, "Rates from facets"). A family holds the generated rows whose
+# algorithm facet it lists in `algorithms`; a reviewed row's family is its guarantee's.
+
+# names of algorithm facet values (facets.py), for the Algorithm filter
+[algorithm_names]
+RSVD = 'Randomized SVD (RSVD)'
+GN = 'Generalized Nyström (GN)'
+'Nyström' = 'PSD Nyström'
+RBKI = 'Randomized block Krylov (RBKI)'
+RSI = 'Randomized subspace iteration (RSI)'
+NysBKI = 'Block Krylov Nyström (NysBKI)'
+NysSI = 'Nyström subspace iteration (NysSI)'
+'sketch-and-solve' = 'Sketch-and-solve'
+
+# the sketch classes of the Law filter, as on the Sketching browse page; other laws are "Other"
+[law_classes]
+Gaussian = ['Gaussian']
+Haar = ['Haar']
+Sparse = ['CountSketch']
+Trig = ['SRHT', 'SRHT, with replacement']
+
+# no generated rows for linear-system solvers in this round (maintainer, 2026-10-19): a pair
+# whose Result id or module contains one of these words is left out
+[generate]
+exclude_words = ['precondition', 'kaczmarz', 'Krylov.LinearSystems']
+
 [[families]]
 id = '''embeddings'''
+algorithms = ['Distributional JL', 'Oblivious subspace embedding', 'Subspace embedding', 'Oblivious subspace injection', 'Subspace injection', 'Projection-cost preservation']
 title = '''Embeddings and sketch properties'''
-subject_label = '''Sketch'''
-subject_field = '''sketch'''
+subject_label = 'Property'
 definition_label = '''Property definition'''
-filters = [{field = 'algorithm', label = 'Property'}, {field = 'sketch_category', label = 'Sketch class', order = ['Gaussian', 'Haar', 'Sparse', 'Trig', 'Other']}, {field = 'sketch', label = 'Sketch'}, {field = 'variant', label = 'Variant'}]
 description = '''Compare sufficient sketch sizes for squared Euclidean distortion. JL concerns a fixed vector; embedding and injection concern every vector in a fixed subspace. Rates apply for sufficiently small positive $\varepsilon$ and the stated failure probability $\delta$.'''
 notation = '''Rows $s$, ambient dimension $n$ and $0<\varepsilon\le\varepsilon_0$ for an absolute $\varepsilon_0>0$; meaningful failure probabilities have $0<\delta<1$. Bounds are sufficient thresholds with absolute constants. OSE/OSI succeeds simultaneously on each fixed subspace $U$ of dimension at most $d$; it does not promise a single draw for all subspaces. Distributional JL is per fixed unit vector. All distortions use squared Euclidean norms. Gaussian, sign and sub-Gaussian sketches are $\mathbf{S}=s^{-1/2}\mathbf{X}$; sub-Gaussian rows are independent and isotropic with proxy $c$. Haar uses $\mathbf{S}=\sqrt{n/s}\,\mathbf{Q}^{\mathsf{T}}$. Sampling uses normalized rows $\mathbf{e}_i^{\mathsf{H}}/\sqrt{s p_i}$, with $\sum_i p_i=1$; uniform sampling has $p_i=1/n$. For sampling, $U=\operatorname{range}\mathbf{U}$ and $d=\operatorname{rank}\mathbf{U}$; $\ell_i(\mathbf{U})$ denotes leverage. SRHT uses $\mathbf{S}=\sqrt{n/s}\,\mathbf{P}^{\mathsf{H}}\mathbf{F}\mathbf{D}$, random signs independent of sampled indices, and a unitary $\mathbf{F}$ with $n|F_{ij}|^2\le\beta$. CountSketch has one independent sign per column with independent uniform row hashes. Oblivious injection includes square-integrable entries and the expectation identity stated in its guarantee. Fixed-subspace injection does not assert this extra property.'''
 
 [[families]]
 id = '''low-rank-one-two-pass'''
+algorithms = ['RSVD', 'GN', 'Nyström']
 title = '''One- and two-pass low-rank approximation'''
-subject_label = '''Algorithm / sketch'''
-filters = [{field = 'algorithm', label = 'Algorithm'}, {field = 'variant', label = 'Variant'}, {field = 'sketch_category', label = 'Sketch class', order = ['Gaussian', 'Haar', 'Sparse', 'Trig', 'Other']}, {field = 'sketch', label = 'Sketch'}, {field = 'norm', label = 'Norm'}, {field = 'mode', label = 'Guarantee mode'}]
+subject_label = 'Algorithm'
 description = '''Compare sufficient sketch sizes for relative error $1+\varepsilon$, for sufficiently small positive $\varepsilon$. $\operatorname{OPT}_k$ is the best rank-$k$ error in the indicated norm; the basic outputs may have rank larger than $k$.'''
-notation = '''Real matrices and $0<\varepsilon\le\varepsilon_0$ for an absolute $\varepsilon_0>0$; rates give sufficient sample thresholds with absolute constants. Gaussian sketches have standard independent entries, with independent range and co-range sketches for generalized Nyström. Nyström requires $\mathbf{H}\succeq0$. Rotation-invariant sketches have a left unitarily invariant probability law and full column rank almost surely. $\widehat{\mathbf{A}}$ or $\widehat{\mathbf{H}}$ is the named algorithm output; late truncation takes its best rank-$k$ approximation, while early truncation truncates the sketch first. $\operatorname{OPT}_{\mathsf{F},k}^2=\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_k\|_{\mathsf{F}}^2$ and $\operatorname{OPT}_{*,k}=\|\mathbf{H}-\llbracket\mathbf{H}\rrbracket_k\|_*$. Frobenius guarantees take the expectation of the squared error.'''
+notation = '''Real matrices and $0<\varepsilon\le\varepsilon_0$ for an absolute $\varepsilon_0>0$; rates give sufficient sample thresholds with absolute constants. Gaussian sketches have standard independent entries, with independent range and co-range sketches for generalized Nyström. Nyström requires $\mathbf{H}\succeq0$. Rotation-invariant sketches have a left unitarily invariant probability law and full column rank almost surely. $\widehat{\mathbf{A}}$ or $\widehat{\mathbf{H}}$ is the named algorithm output; its late-truncated version is the best rank-$k$ approximation of that output, while early truncation truncates the sketch first. $\operatorname{OPT}_{\mathsf{F},k}^2=\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_k\|_{\mathsf{F}}^2$ and $\operatorname{OPT}_{*,k}=\|\mathbf{H}-\llbracket\mathbf{H}\rrbracket_k\|_*$. Frobenius guarantees take the expectation of the squared error.'''
 
 [[families]]
 id = '''low-rank-krylov'''
+algorithms = ['RBKI', 'RSI', 'NysBKI', 'NysSI']
 title = '''Block Krylov and subspace iteration'''
-subject_label = '''Algorithm'''
-filters = [{field = 'algorithm', label = 'Algorithm', order = ['Randomized block Krylov (RBKI)', 'Randomized subspace iteration (RSI)', 'Block Krylov Nyström (NysBKI)', 'Nyström subspace iteration (NysSI)']}, {field = 'gap', label = 'Spectral gap', order = ['Gapless', 'Gapped']}, {field = 'variant', label = 'Variant', order = ['Basic', 'Late truncation']}, {field = 'norm', label = 'Norm', order = ['Spectral squared', 'Frobenius squared', 'Spectral', 'Nuclear']}]
+subject_label = 'Algorithm'
 description = '''Compare the resources for expected relative error $1+\varepsilon$ against the best rank-$r$ error, for sufficiently small positive $\varepsilon$. Each row gives two: the block size $\ell$ (columns of the Gaussian test matrix) and the iteration depth, $q$ blocks for block Krylov methods or $p$ power steps for subspace iteration. The block size is a fixed threshold; only the depth grows with $1/\varepsilon$. Gapless rates hold for every input; gapped rates assume a positive relative singular gap $\gamma$.'''
-notation = '''Real matrices $\mathbf{A}\in\mathbb{R}^{m\times n}$; Nyström rows take positive semidefinite $\mathbf{H}\in\mathbb{R}^{n\times n}$. The test matrix $\mathbf{X}\in\mathbb{R}^{n\times\ell}$ has independent standard Gaussian entries, unnormalized, and the block size satisfies $\ell\ge r+2$ for target rank $r$ (gapped rows: $\ell\ge t+2$ for their tail index $t\ge r$). This family writes the target rank $r$, as its theorems do; the one- and two-pass family writes $k$. Rates are sufficient thresholds $q\ge C\cdot(\ldots)$ or $p\ge C\cdot(\ldots)$ with absolute constants, for $0<\varepsilon\le\varepsilon_0$ with an absolute $\varepsilon_0>0$; $n$ is the number of columns of $\mathbf{A}$ (the size of $\mathbf{H}$). RBKI with $q$ blocks returns $\mathbf{P}\mathbf{A}$, with $\mathbf{P}$ the orthogonal projector onto the range of $\mathbf{A}[\mathbf{X},\,\mathbf{A}^{\mathsf{T}}\mathbf{A}\mathbf{X},\dots,(\mathbf{A}^{\mathsf{T}}\mathbf{A})^{q-1}\mathbf{X}]$ ($2q$ products with $\mathbf{A}$ or $\mathbf{A}^{\mathsf{T}}$ in Tropp and Webber's count). RSI with $p$ power steps is the randomized SVD with test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$ ($2p+2$ products). NysBKI is Nyström with the block Krylov matrix $[\mathbf{X},\mathbf{H}\mathbf{X},\dots,\mathbf{H}^{q-1}\mathbf{X}]$ ($q$ products); NysSI is Nyström with $\mathbf{H}^p\mathbf{X}$ ($p+1$ products). Late truncation returns the best rank-$r$ approximation of the output. Singular values are indexed from $0$, so $\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_r\|_2=\sigma_r(\mathbf{A})$. Gapped rows fix a head of $r\ge1$ singular values and a tail index $t$ with $r\le t\le\ell-2$, and assume $\gamma=(\sigma_{r-1}-\sigma_t)/(\sigma_{r-1}+\sigma_t)>0$; for Nyström rows these are singular values (eigenvalues) of $\mathbf{H}$. Spectral and Frobenius errors of general matrices are squared; Nyström spectral errors are not.'''
+notation = '''Real matrices $\mathbf{A}\in\mathbb{R}^{m\times n}$; Nyström rows take positive semidefinite $\mathbf{H}\in\mathbb{R}^{n\times n}$. The test matrix $\mathbf{X}\in\mathbb{R}^{n\times\ell}$ has independent standard Gaussian entries, unnormalized, and the block size satisfies $\ell\ge r+2$ for target rank $r$ (gapped rows: $\ell\ge t+2$ for their tail index $t\ge r$). This family writes the target rank $r$, as its theorems do; the one- and two-pass family writes $k$. Rates are sufficient thresholds $q\ge C\cdot(\ldots)$ or $p\ge C\cdot(\ldots)$ with absolute constants, for $0<\varepsilon\le\varepsilon_0$ with an absolute $\varepsilon_0>0$; $n$ is the number of columns of $\mathbf{A}$ (the size of $\mathbf{H}$). RBKI with $q$ blocks returns $\mathbf{P}\mathbf{A}$, with $\mathbf{P}$ the orthogonal projector onto the range of $\mathbf{A}[\mathbf{X},\,\mathbf{A}^{\mathsf{T}}\mathbf{A}\mathbf{X},\dots,(\mathbf{A}^{\mathsf{T}}\mathbf{A})^{q-1}\mathbf{X}]$ ($2q$ products with $\mathbf{A}$ or $\mathbf{A}^{\mathsf{T}}$ in Tropp and Webber's count). RSI with $p$ power steps is the randomized SVD with test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$ ($2p+2$ products). NysBKI is Nyström with the block Krylov matrix $[\mathbf{X},\mathbf{H}\mathbf{X},\dots,\mathbf{H}^{q-1}\mathbf{X}]$ ($q$ products); NysSI is Nyström with $\mathbf{H}^p\mathbf{X}$ ($p+1$ products). A late-truncated output is the best rank-$r$ approximation of the output. Singular values are indexed from $0$, so $\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_r\|_2=\sigma_r(\mathbf{A})$. Gapped rows fix a head of $r\ge1$ singular values and a tail index $t$ with $r\le t\le\ell-2$, and assume $\gamma=(\sigma_{r-1}-\sigma_t)/(\sigma_{r-1}+\sigma_t)>0$; for Nyström rows these are singular values (eigenvalues) of $\mathbf{H}$. Spectral and Frobenius errors of general matrices are squared; Nyström spectral errors are not.'''
 
 [[families]]
 id = 'regression'
+algorithms = ['sketch-and-solve']
 title = 'Regression'
-subject_label = 'Sketch'
-subject_field = 'sketch'
-filters = [{field = 'sketch_category', label = 'Sketch class', order = ['Gaussian', 'Haar', 'Sparse', 'Trig', 'Other']}, {field = 'sketch', label = 'Sketch'}, {field = 'mode', label = 'Guarantee mode'}]
+subject_label = 'Algorithm'
 description = '''Compare sufficient sketch sizes for relative least-squares residual error. The error is the squared Frobenius norm of the residual.'''
 notation = '''For fixed matrices $\mathbf{A}\in\Bbbk^{m\times n}$ and $\mathbf{B}\in\Bbbk^{m\times q}$ over the scalar field permitted by the row, let $r=\operatorname{rank}\mathbf{A}$ and $\operatorname{OPT}_{\mathrm{LS}}^2=\min_{\mathbf{Y}}\|\mathbf{B}-\mathbf{A}\mathbf{Y}\|_{\mathsf{F}}^2=\|(\mathbf{I}-\mathbf{A}\mathbf{A}^{+})\mathbf{B}\|_{\mathsf{F}}^2$. A sketch $\mathbf{S}\in\Bbbk^{s\times m}$ produces $\widehat{\mathbf{X}}=\mathsf{sketchAndSolve}(\mathbf{A},\mathbf{S},\mathbf{B})=(\mathbf{S}\mathbf{A})^{+}\mathbf{S}\mathbf{B}$. For absolute $\varepsilon_0>0$, the rates assume $0<\varepsilon\le\varepsilon_0$. The input matrices are fixed before drawing the sketch; expectations and probabilities concern that draw. Resource thresholds, parameter ranges, rank restrictions, sketch normalization and any ambient-dimension cap are supplied by each reviewed row and its exact theorem. Gaussian and Haar rows use real inputs; the CountSketch tail also permits complex inputs. No full-column-rank assumption or coefficient-error guarantee is inferred.'''
 
 [[families]]
 id = 'trace-estimation'
+algorithms = ['Girard–Hutchinson', 'Hutch++']
 title = 'Trace estimation'
-subject_label = 'Probe'
-subject_field = 'probe'
+subject_label = 'Estimator'
 definition_label = 'Probe law'
 resources_label = 'Exact value'
-filters = [{field = 'probe_class', label = 'Probe class', order = ['Real', 'Real or complex']}, {field = 'probe_law', label = 'Probe law', order = ['Gaussian', 'Rademacher', 'Independent coordinates', 'Sphere', 'Haar frame', 'Any isotropic']}]
-description = '''Exact variances of the Girard–Hutchinson estimate $\mathsf{girardHutchinson}(\mathbf{A},\mathbf{\Omega})=\operatorname{tr}(\mathbf{\Omega}^{\mathsf{H}}\mathbf{A}\mathbf{\Omega})/m$ of $\operatorname{tr}\mathbf{A}$, whose $m$ probes are the columns of $\mathbf{\Omega}$; with one probe $\boldsymbol{\omega}$ it is the quadratic form $\boldsymbol{\omega}^{\mathsf{H}}\mathbf{A}\boldsymbol{\omega}$. These are identities, not rates: each row cites one theorem and has no asymptotic form.'''
+description = '''Exact variances of the Girard–Hutchinson estimate $\mathsf{girardHutchinson}(\mathbf{A},\mathbf{\Omega})=\operatorname{tr}(\mathbf{\Omega}^{\mathsf{H}}\mathbf{A}\mathbf{\Omega})/m$ of $\operatorname{tr}\mathbf{A}$, whose $m$ probes are the columns of $\mathbf{\Omega}$; with one probe $\boldsymbol{\omega}$ it is the quadratic form $\boldsymbol{\omega}^{\mathsf{H}}\mathbf{A}\boldsymbol{\omega}$. The exact variances are identities, not rates: each of these rows cites one theorem and has no asymptotic form. The family also holds the sample sizes of Hutch++.'''
 notation = '''A fixed square matrix $\mathbf{A}$ of size $n$, with diagonal entries $a_{ii}$ and symmetric (Hermitian) part $\mathbf{H}=\tfrac12(\mathbf{A}+\mathbf{A}^{\mathsf{H}})$; randomness is over the probes only. Every probe is isotropic, $\mathbb{E}[\boldsymbol{\omega}\boldsymbol{\omega}^{\mathsf{H}}]=\mathbf{I}$, so every estimate has mean $\operatorname{tr}\mathbf{A}$. Real rows state $\operatorname{Var}$ of a real estimate. The $m$-probe row, which also allows complex probes, states the second moment $\mathbb{E}\lvert\cdot-\operatorname{tr}\mathbf{A}\rvert^2$ about the trace: for a complex estimate this is its variance, and for a real one it equals $\operatorname{Var}$. Probe normalizations: a real Gaussian probe has independent $\mathcal{N}(0,1)$ entries; a Rademacher probe has independent random signs; an independent-coordinate probe has independent real entries of mean $0$, variance $1$ and common fourth moment $m_4$; a sphere probe is $\boldsymbol{\omega}=\sqrt{n}\,\mathbf{u}$ for $\mathbf{u}$ uniform on the unit sphere of $\mathbb{R}^n$, so it is uniform on the sphere of radius $\sqrt{n}$. The Haar frame estimator uses $\mathbf{\Omega}=\sqrt{n}\,\mathbf{Q}$ for an $n\times k$ Haar frame $\mathbf{Q}$ (orthonormal columns), so it equals $(n/k)\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})$. General $\mathbf{A}$: the real theorems assume $\mathbf{A}$ symmetric; a real quadratic form sees only $\mathbf{H}=\tfrac12(\mathbf{A}+\mathbf{A}^{\mathsf{T}})$, which has the diagonal and trace of $\mathbf{A}$, and the companion theorems for the real Gaussian, Rademacher and sphere probes state the same variance with $\|\mathbf{H}\|_{\mathsf{F}}$ in place of $\|\mathbf{A}\|_{\mathsf{F}}$ for every real $\mathbf{A}$. No complex probe law is in the library yet.'''
 
 [[guarantees]]
@@ -92,29 +117,22 @@ definitions = [{ label = '''Fixed-subspace injection''', declaration = '''NLAlib
 [[guarantees]]
 id = '''expected-relative-frobenius'''
 family = '''low-rank-one-two-pass'''
-title = '''$(1+\varepsilon)$ low-rank approximation · expected squared Frobenius error'''
+title = '''$(1+\varepsilon)$ low-rank approximation · expected error $\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_{\mathsf{F}}^2$'''
 description = '''For every fixed real matrix $\mathbf{A}$, the named output $\widehat{\mathbf{A}}$ satisfies $\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_{\mathsf{F}}^2\le(1+\varepsilon)\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_k\|_{\mathsf{F}}^2$. The expectation is of the squared error, over the sketches; generalized Nyström uses independent range and co-range sketches. Row-specific rank restrictions and distribution assumptions still apply.'''
 definitions = [{ label = '''Best rank-k truncation''', declaration = '''NLAlib.truncatedSVD''' }]
 
 [[guarantees]]
 id = '''expected-relative-nuclear'''
 family = '''low-rank-one-two-pass'''
-title = '''$(1+\varepsilon)$ PSD low-rank approximation · expected nuclear error'''
+title = '''$(1+\varepsilon)$ PSD low-rank approximation · expected error $\mathbb{E}\|\mathbf{H}-\widehat{\mathbf{H}}\|_*$'''
 description = '''For every fixed real positive semidefinite matrix $\mathbf{H}$, the named Nyström output $\widehat{\mathbf{H}}$ satisfies $\mathbb{E}\|\mathbf{H}-\widehat{\mathbf{H}}\|_*\le(1+\varepsilon)\|\mathbf{H}-\llbracket\mathbf{H}\rrbracket_k\|_*$. The expectation is over the sketch. Row-specific rank restrictions and distribution assumptions still apply.'''
 definitions = [{ label = '''Nyström''', declaration = '''NLAlib.nystrom''' }, { label = '''Best rank-k truncation''', declaration = '''NLAlib.truncatedSVD''' }]
 
 [[rates]]
 id = '''jl-gaussian'''
 theorem = '''NLAlib.exists_forall_hasJLProperty_of_hasLaw_gaussianMatrix'''
-family = '''embeddings'''
-algorithm = '''Distributional JL'''
-variant = '''Standard'''
-sketch = '''Gaussian'''
-sketch_category = 'Gaussian'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''distributional-jl'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(\log(1/\delta)/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\log(1/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.HasJLProperty'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -123,15 +141,8 @@ statement_hash = '''6686237465d505251c666f092e555663a7e38f9a6e32a719a5aaa9ebb0d7
 [[rates]]
 id = '''jl-haar'''
 theorem = '''NLAlib.exists_forall_hasJLProperty_of_hasLaw_haarFrame'''
-family = '''embeddings'''
-algorithm = '''Distributional JL'''
-variant = '''Standard'''
-sketch = '''Haar'''
-sketch_category = 'Haar'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''distributional-jl'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(\log(1/\delta)/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\log(1/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s\le n$.'''
 algorithm_definition = '''NLAlib.HasJLProperty'''
 sketch_definition = '''NLAlib.haarFrame'''
@@ -140,15 +151,8 @@ statement_hash = '''bb93f1c8e91da1a585cc7f4fe8d000d24eb47f59b746db199d015ba81da7
 [[rates]]
 id = '''jl-rademacher'''
 theorem = '''NLAlib.exists_forall_hasJLProperty_of_hasLaw_rademacherMatrix'''
-family = '''embeddings'''
-algorithm = '''Distributional JL'''
-variant = '''Standard'''
-sketch = '''Rademacher'''
-sketch_category = 'Other'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''distributional-jl'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(\log(1/\delta)/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\log(1/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.HasJLProperty'''
 sketch_definition = '''NLAlib.rademacherMatrix'''
@@ -157,15 +161,8 @@ statement_hash = '''fc9810da51a1903cb7febbe852cf865d4742d600484f4fbe654c9f79af77
 [[rates]]
 id = '''jl-sub-gaussian'''
 theorem = '''NLAlib.exists_forall_hasJLProperty_of_isSubgaussianVector'''
-family = '''embeddings'''
-algorithm = '''Distributional JL'''
-variant = '''Standard'''
-sketch = '''Sub-Gaussian'''
-sketch_category = 'Other'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''distributional-jl'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(c^2 \log(1/\delta)/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(c^2 \log(1/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s>0$; independent isotropic rows, proxy $c$.'''
 algorithm_definition = '''NLAlib.HasJLProperty'''
 sketch_definition = '''NLAlib.IsSubgaussianVector'''
@@ -174,15 +171,8 @@ statement_hash = '''28f8222ecc507d3c937d00ccd06027f58dfdfef7c184c73e7a9ee9224751
 [[rates]]
 id = '''ose-countsketch'''
 theorem = '''NLAlib.exists_forall_isObliviousSubspaceEmbedding_of_hasLaw_countSketch'''
-family = '''embeddings'''
-algorithm = '''Subspace embedding'''
-variant = '''Standard'''
-sketch = '''CountSketch'''
-sketch_category = 'Sparse'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''oblivious-subspace-embedding'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(d^2/(\delta\varepsilon^2))$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(d^2/(\delta\varepsilon^2))$ suffices''' }]
 notes = '''$s>0$ when $n>0$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.countSketch'''
@@ -191,15 +181,8 @@ statement_hash = '''11aa58275602e2015adcbfbf1a8bd68ba2e516737c08c6a8404d711080f1
 [[rates]]
 id = '''ose-gaussian'''
 theorem = '''NLAlib.exists_forall_isObliviousSubspaceEmbedding_of_hasLaw_gaussianMatrix'''
-family = '''embeddings'''
-algorithm = '''Subspace embedding'''
-variant = '''Standard'''
-sketch = '''Gaussian'''
-sketch_category = 'Gaussian'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''oblivious-subspace-embedding'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O((d+\log(1/\delta))/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O((d+\log(1/\delta))/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -208,15 +191,8 @@ statement_hash = '''4efa48d836c550f4b86df6ace6e64ccf010159a2de03378341f7f68cc135
 [[rates]]
 id = '''ose-rademacher'''
 theorem = '''NLAlib.exists_forall_isObliviousSubspaceEmbedding_of_hasLaw_rademacherMatrix'''
-family = '''embeddings'''
-algorithm = '''Subspace embedding'''
-variant = '''Standard'''
-sketch = '''Rademacher'''
-sketch_category = 'Other'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''oblivious-subspace-embedding'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O((d+\log(1/\delta))/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O((d+\log(1/\delta))/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.rademacherMatrix'''
@@ -225,15 +201,8 @@ statement_hash = '''11ac38d5e946bf32c2a95f4f3659c2a3e7a8d81f0908852e1354cf984840
 [[rates]]
 id = '''ose-row-sampling-with-replacement'''
 theorem = '''NLAlib.exists_forall_hasSubspaceEmbedding_of_hasLaw_samplingSketch'''
-family = '''embeddings'''
-algorithm = '''Subspace embedding'''
-variant = '''With replacement'''
-sketch = '''Row sampling'''
-sketch_category = 'Other'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''fixed-subspace-embedding'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(L\log(d/\delta)/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $\ell_i(\mathbf{U})\le Lp_i$.'''
 algorithm_definition = '''NLAlib.HasSubspaceEmbedding'''
 sketch_definition = '''NLAlib.samplingSketch'''
@@ -242,15 +211,8 @@ statement_hash = '''362d0842625dcaebff31da77b79910716fafab1010f9f8e6567c15ead0d1
 [[rates]]
 id = '''ose-row-sampling-without-replacement'''
 theorem = '''NLAlib.exists_forall_hasSubspaceEmbedding_of_hasLaw_samplingSketchWithoutReplacement'''
-family = '''embeddings'''
-algorithm = '''Subspace embedding'''
-variant = '''Without replacement'''
-sketch = '''Row sampling'''
-sketch_category = 'Other'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''fixed-subspace-embedding'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(L\log(d/\delta)/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s\le n$; $\ell_i(\mathbf{U})\le L/n$.'''
 algorithm_definition = '''NLAlib.HasSubspaceEmbedding'''
 sketch_definition = '''NLAlib.samplingSketchWithoutReplacement'''
@@ -259,15 +221,8 @@ statement_hash = '''a4698ff6a49266cb6855b70230d421f4ebea497e2dd24e1c258c3af4a806
 [[rates]]
 id = '''ose-srht-with-replacement'''
 theorem = '''NLAlib.exists_forall_isObliviousSubspaceEmbedding_of_hasLaw_srhtWithReplacement'''
-family = '''embeddings'''
-algorithm = '''Subspace embedding'''
-variant = '''With replacement'''
-sketch = '''SRHT'''
-sketch_category = 'Trig'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''oblivious-subspace-embedding'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(\beta\,(d+\log(n/\delta))\,\log(d/\delta)/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\beta\,(d+\log(n/\delta))\,\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.srhtWithReplacement'''
@@ -276,15 +231,8 @@ statement_hash = '''a2d92b3f7e3040ac1d39828b47e0ffb011a71864625dea8df4104249b812
 [[rates]]
 id = '''ose-srht-without-replacement'''
 theorem = '''NLAlib.exists_forall_isObliviousSubspaceEmbedding_of_hasLaw_srht'''
-family = '''embeddings'''
-algorithm = '''Subspace embedding'''
-variant = '''Without replacement'''
-sketch = '''SRHT'''
-sketch_category = 'Trig'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''oblivious-subspace-embedding'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(\beta\,(d+\log(n/\delta))\,\log(d/\delta)/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\beta\,(d+\log(n/\delta))\,\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s\le n$. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.srht'''
@@ -293,15 +241,8 @@ statement_hash = '''025d8aba534031aeb9a9527a0cdeff808488df8a344f1ade9690a931debb
 [[rates]]
 id = '''ose-sub-gaussian'''
 theorem = '''NLAlib.exists_forall_isObliviousSubspaceEmbedding_of_isSubgaussianVector'''
-family = '''embeddings'''
-algorithm = '''Subspace embedding'''
-variant = '''Standard'''
-sketch = '''Sub-Gaussian'''
-sketch_category = 'Other'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''oblivious-subspace-embedding'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(c^2 (d+\log(1/\delta))/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(c^2 (d+\log(1/\delta))/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s>0$; independent isotropic rows, proxy $c$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.IsSubgaussianVector'''
@@ -310,15 +251,8 @@ statement_hash = '''5f6264413c1ba2c5fb8c8646637f7a89610abd378bd58a4512eca10399b2
 [[rates]]
 id = '''osi-gaussian'''
 theorem = '''NLAlib.exists_forall_isObliviousSubspaceInjection_of_hasLaw_gaussianMatrix'''
-family = '''embeddings'''
-algorithm = '''Subspace injection'''
-variant = '''Standard'''
-sketch = '''Gaussian'''
-sketch_category = 'Gaussian'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''oblivious-subspace-injection'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O((d+\log(1/\delta))/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O((d+\log(1/\delta))/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -327,15 +261,8 @@ statement_hash = '''894f84241199ccf651db040502607c78a7d64d19edface145e5e6104f1b2
 [[rates]]
 id = '''osi-row-sampling-with-replacement'''
 theorem = '''NLAlib.exists_forall_hasSubspaceInjection_of_hasLaw_samplingSketch'''
-family = '''embeddings'''
-algorithm = '''Subspace injection'''
-variant = '''With replacement'''
-sketch = '''Row sampling'''
-sketch_category = 'Other'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''fixed-subspace-injection'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(L\log(d/\delta)/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\ell_i(\mathbf{U})\le Lp_i$.'''
 algorithm_definition = '''NLAlib.HasSubspaceInjection'''
 sketch_definition = '''NLAlib.samplingSketch'''
@@ -344,15 +271,8 @@ statement_hash = '''af1c16cea42bea54d9db72da45bfed283fab30d419a26b849b3affba0fe8
 [[rates]]
 id = '''osi-row-sampling-without-replacement'''
 theorem = '''NLAlib.exists_forall_hasSubspaceInjection_of_hasLaw_samplingSketchWithoutReplacement'''
-family = '''embeddings'''
-algorithm = '''Subspace injection'''
-variant = '''Without replacement'''
-sketch = '''Row sampling'''
-sketch_category = 'Other'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''fixed-subspace-injection'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(L\log(d/\delta)/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$s\le n$; $\ell_i(\mathbf{U})\le L/n$.'''
 algorithm_definition = '''NLAlib.HasSubspaceInjection'''
 sketch_definition = '''NLAlib.samplingSketchWithoutReplacement'''
@@ -361,15 +281,8 @@ statement_hash = '''e7887d346b27ad05d729dcec943f12e6b93898f29c283a0d808922bde6d0
 [[rates]]
 id = '''osi-srht-with-replacement'''
 theorem = '''NLAlib.exists_forall_isObliviousSubspaceInjection_of_hasLaw_srhtWithReplacement'''
-family = '''embeddings'''
-algorithm = '''Subspace injection'''
-variant = '''With replacement'''
-sketch = '''SRHT'''
-sketch_category = 'Trig'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''oblivious-subspace-injection'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(\beta\,(d+\log(n/\delta))\,\log(d/\delta)/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\beta\,(d+\log(n/\delta))\,\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s>0$, $n>0$. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
 sketch_definition = '''NLAlib.srhtWithReplacement'''
@@ -378,15 +291,8 @@ statement_hash = '''4ee644e06070e3495d53c9bd732e3520876bb5649c262e8cf110c306875c
 [[rates]]
 id = '''osi-srht-without-replacement'''
 theorem = '''NLAlib.exists_forall_isObliviousSubspaceInjection_of_hasLaw_srht'''
-family = '''embeddings'''
-algorithm = '''Subspace injection'''
-variant = '''Without replacement'''
-sketch = '''SRHT'''
-sketch_category = 'Trig'
-norm = '''Euclidean squared'''
-mode = '''High probability'''
 guarantee = '''oblivious-subspace-injection'''
-resources = [{ label = '''Sketch rows s''', bound = '''$O(\beta\,(d+\log(n/\delta))\,\log(d/\delta)/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\beta\,(d+\log(n/\delta))\,\log(d/\delta)/\varepsilon^2)$ suffices''' }]
 notes = '''$\delta\le1/2$. $s\le n$. $s>0$ for injection. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
 sketch_definition = '''NLAlib.srht'''
@@ -395,15 +301,8 @@ statement_hash = '''ac3c202707adb16b07ee28d8fa58076190e6b04865c196104257b54da029
 [[rates]]
 id = '''rsvd-basic-gaussian'''
 theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_rsvd_sq_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-one-two-pass'''
-algorithm = '''Randomized SVD'''
-variant = '''Basic'''
-sketch = '''Gaussian'''
-sketch_category = 'Gaussian'
-norm = '''Frobenius squared'''
-mode = '''Expectation'''
 guarantee = '''expected-relative-frobenius'''
-resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
+resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -412,15 +311,8 @@ statement_hash = '''a5807e4c53879ffb91df6992d0452b3054ceeac7df892308425d8f6f8327
 [[rates]]
 id = '''rsvd-basic-rotation-invariant'''
 theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_rsvd_sq_le_of_isLeftUnitarilyInvariant'''
-family = '''low-rank-one-two-pass'''
-algorithm = '''Randomized SVD'''
-variant = '''Basic'''
-sketch = '''Rotation invariant'''
-sketch_category = 'Other'
-norm = '''Frobenius squared'''
-mode = '''Expectation'''
 guarantee = '''expected-relative-frobenius'''
-resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
+resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.IsLeftUnitarilyInvariant'''
@@ -429,15 +321,8 @@ statement_hash = '''87d96669747ab353bfa2e4f129644692f5aa5cd205d57ad31f36d6cb7997
 [[rates]]
 id = '''rsvd-late-gaussian'''
 theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_truncatedSVD_rsvd_sq_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-one-two-pass'''
-algorithm = '''Randomized SVD'''
-variant = '''Late truncation'''
-sketch = '''Gaussian'''
-sketch_category = 'Gaussian'
-norm = '''Frobenius squared'''
-mode = '''Expectation'''
 guarantee = '''expected-relative-frobenius'''
-resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
+resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''Output rank $\le k$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -446,15 +331,8 @@ statement_hash = '''5135d85d6315fd8a1cca906dd1d1282d5f0c62103eda31ab6e6ca21f74a3
 [[rates]]
 id = '''rsvd-early-gaussian'''
 theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_earlyTruncatedRSVD_sq_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-one-two-pass'''
-algorithm = '''Randomized SVD'''
-variant = '''Early truncation'''
-sketch = '''Gaussian'''
-sketch_category = 'Gaussian'
-norm = '''Frobenius squared'''
-mode = '''Expectation'''
 guarantee = '''expected-relative-frobenius'''
-resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon^2)$ suffices''' }]
+resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(k/\varepsilon^2)$ suffices''' }]
 notes = '''Output rank $\le k$.'''
 algorithm_definition = '''NLAlib.earlyTruncatedRSVD'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -463,15 +341,8 @@ statement_hash = '''cd69fe2b4d401650f77682383a965e4e39b5ee8bd15d845aed80df0a1111
 [[rates]]
 id = '''gn-basic-gaussian'''
 theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_generalizedNystrom_sq_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-one-two-pass'''
-algorithm = '''Generalized Nyström'''
-variant = '''Basic'''
-sketch = '''Gaussian'''
-sketch_category = 'Gaussian'
-norm = '''Frobenius squared'''
-mode = '''Expectation'''
 guarantee = '''expected-relative-frobenius'''
-resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }, { label = '''Co-range columns p''', bound = '''$O(\ell/\varepsilon)$ suffices''' }]
+resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(k/\varepsilon)$ suffices''' }, { label = '''Co-range columns p''', kind = 'samples', bound = '''$O(\ell/\varepsilon)$ suffices''' }]
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.generalizedNystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -480,15 +351,8 @@ statement_hash = '''0f59b4522a53bd568ec4a35de4a91c3948becc09b6c5455247e3ca2daa60
 [[rates]]
 id = '''gn-late-gaussian'''
 theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_truncatedSVD_generalizedNystrom_sq_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-one-two-pass'''
-algorithm = '''Generalized Nyström'''
-variant = '''Late truncation'''
-sketch = '''Gaussian'''
-sketch_category = 'Gaussian'
-norm = '''Frobenius squared'''
-mode = '''Expectation'''
 guarantee = '''expected-relative-frobenius'''
-resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }, { label = '''Co-range columns p''', bound = '''$O(\ell/\varepsilon)$ suffices''' }]
+resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(k/\varepsilon)$ suffices''' }, { label = '''Co-range columns p''', kind = 'samples', bound = '''$O(\ell/\varepsilon)$ suffices''' }]
 notes = '''Output rank $\le k$.'''
 algorithm_definition = '''NLAlib.generalizedNystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -497,15 +361,8 @@ statement_hash = '''8b12074ea426bacebf27fb2e24bf2ea51d42b8fd3668977653ee6edc0204
 [[rates]]
 id = '''gn-early-gaussian'''
 theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_earlyTruncatedGeneralizedNystrom_sq_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-one-two-pass'''
-algorithm = '''Generalized Nyström'''
-variant = '''Early truncation'''
-sketch = '''Gaussian'''
-sketch_category = 'Gaussian'
-norm = '''Frobenius squared'''
-mode = '''Expectation'''
 guarantee = '''expected-relative-frobenius'''
-resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon^2)$ suffices''' }, { label = '''Co-range columns p''', bound = '''$O(k/\varepsilon)$ suffices''' }]
+resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(k/\varepsilon^2)$ suffices''' }, { label = '''Co-range columns p''', kind = 'samples', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''Output rank $\le k$.'''
 algorithm_definition = '''NLAlib.earlyTruncatedGeneralizedNystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -514,15 +371,8 @@ statement_hash = '''92fd99c49d03a45f0a77c2b8134cf6d8226345b736f489bcd0b82d3d5aa0
 [[rates]]
 id = '''nystrom-basic-gaussian'''
 theorem = '''NLAlib.exists_forall_integral_nuclearNorm_sub_nystrom_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-one-two-pass'''
-algorithm = '''PSD Nyström'''
-variant = '''Basic'''
-sketch = '''Gaussian'''
-sketch_category = 'Gaussian'
-norm = '''Nuclear'''
-mode = '''Expectation'''
 guarantee = '''expected-relative-nuclear'''
-resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
+resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -531,15 +381,8 @@ statement_hash = '''53dc767fa9c30ded48dfe8b3cf905df9b7dce7af7b0a921c7a973148c506
 [[rates]]
 id = '''nystrom-basic-rotation-invariant'''
 theorem = '''NLAlib.exists_forall_integral_nuclearNorm_sub_nystrom_le_of_isLeftUnitarilyInvariant'''
-family = '''low-rank-one-two-pass'''
-algorithm = '''PSD Nyström'''
-variant = '''Basic'''
-sketch = '''Rotation invariant'''
-sketch_category = 'Other'
-norm = '''Nuclear'''
-mode = '''Expectation'''
 guarantee = '''expected-relative-nuclear'''
-resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
+resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.IsLeftUnitarilyInvariant'''
@@ -548,15 +391,8 @@ statement_hash = '''76acc17f1867fab73c95b1d9c51dd0fd3b69d18f6088fcbaa5434c762b8b
 [[rates]]
 id = '''nystrom-late-gaussian'''
 theorem = '''NLAlib.exists_forall_integral_nuclearNorm_sub_truncatedSVD_nystrom_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-one-two-pass'''
-algorithm = '''PSD Nyström'''
-variant = '''Late truncation'''
-sketch = '''Gaussian'''
-sketch_category = 'Gaussian'
-norm = '''Nuclear'''
-mode = '''Expectation'''
 guarantee = '''expected-relative-nuclear'''
-resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
+resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''Output rank $\le k$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -565,15 +401,8 @@ statement_hash = '''6df697c387891aae3d69ea3d9d68054bf3ebab88473d5419fe3ee2774684
 [[rates]]
 id = '''nystrom-late-rotation-invariant'''
 theorem = '''NLAlib.exists_forall_integral_nuclearNorm_sub_truncatedSVD_nystrom_le_of_isLeftUnitarilyInvariant'''
-family = '''low-rank-one-two-pass'''
-algorithm = '''PSD Nyström'''
-variant = '''Late truncation'''
-sketch = '''Rotation invariant'''
-sketch_category = 'Other'
-norm = '''Nuclear'''
-mode = '''Expectation'''
 guarantee = '''expected-relative-nuclear'''
-resources = [{ label = '''Range columns ℓ''', bound = '''$O(k/\varepsilon)$ suffices''' }]
+resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(k/\varepsilon)$ suffices''' }]
 notes = '''Output rank $\le k$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.IsLeftUnitarilyInvariant'''
@@ -582,121 +411,90 @@ statement_hash = '''08c379df6a1fdff875baa3e48f569a266469c141e8c0ae44d9245d92c529
 [[guarantees]]
 id = 'expected-relative-regression-frobenius'
 family = 'regression'
-title = '''$(1+\varepsilon)$ least-squares residual · expected squared Frobenius error'''
+title = '''$(1+\varepsilon)$ least-squares residual · expected error $\mathbb{E}\|\mathbf{B}-\mathbf{A}\widehat{\mathbf{X}}\|_{\mathsf{F}}^2$'''
 description = '''For fixed $\mathbf{A}$ and $\mathbf{B}$, the sketched least-squares output $\widehat{\mathbf{X}}=(\mathbf{S}\mathbf{A})^{+}\mathbf{S}\mathbf{B}$ satisfies $\mathbb{E}\|\mathbf{B}-\mathbf{A}\widehat{\mathbf{X}}\|_{\mathsf{F}}^2\le(1+\varepsilon)\operatorname{OPT}_{\mathrm{LS}}^2$, where $\operatorname{OPT}_{\mathrm{LS}}^2=\min_{\mathbf{Y}}\|\mathbf{B}-\mathbf{A}\mathbf{Y}\|_{\mathsf{F}}^2$. The expectation is of the squared residual over the sketch; this is neither a coefficient-error bound nor a rank-k approximation bound. Row-specific distribution, size and rank conditions apply.'''
 definitions = [{label = 'Sketch-and-solve', declaration = 'NLAlib.sketchAndSolve'}, {label = 'Least-squares solution', declaration = 'NLAlib.IsLeastSquaresSolution'}]
 
 [[guarantees]]
 id = 'high-prob-relative-regression-frobenius'
 family = 'regression'
-title = '''$(1+\varepsilon)$ least-squares residual · high probability'''
+title = '''$(1+\varepsilon)$ least-squares residual · tail bound $\mathbb{P}[\|\mathbf{B}-\mathbf{A}\widehat{\mathbf{X}}\|_{\mathsf{F}}^2>(1+\varepsilon)\operatorname{OPT}_{\mathrm{LS}}^2]\le\delta$'''
 description = '''For fixed $\mathbf{A}$ and $\mathbf{B}$, with probability at least $1-\delta$, the sketched least-squares output $\widehat{\mathbf{X}}=(\mathbf{S}\mathbf{A})^{+}\mathbf{S}\mathbf{B}$ satisfies $\|\mathbf{B}-\mathbf{A}\widehat{\mathbf{X}}\|_{\mathsf{F}}^2\le(1+\varepsilon)\operatorname{OPT}_{\mathrm{LS}}^2$, where $\operatorname{OPT}_{\mathrm{LS}}^2=\min_{\mathbf{Y}}\|\mathbf{B}-\mathbf{A}\mathbf{Y}\|_{\mathsf{F}}^2$. Each fixed input pair has its own success event; a single sketch need not work simultaneously for every input. Row-specific distribution, size, rank and parameter conditions apply.'''
 definitions = [{label = 'Sketch-and-solve', declaration = 'NLAlib.sketchAndSolve'}, {label = 'Least-squares solution', declaration = 'NLAlib.IsLeastSquaresSolution'}]
 
 [[rates]]
 id = '''regression-expected-gaussian'''
 theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_mul_sketchAndSolve_sq_le_of_hasLaw_gaussianMatrix'''
-family = '''regression'''
-algorithm = '''Sketch-and-solve'''
-sketch = '''Gaussian'''
-sketch_category = '''Gaussian'''
-norm = '''Frobenius squared'''
-mode = '''Expectation'''
 guarantee = '''expected-relative-regression-frobenius'''
 notes = '''Real inputs; unnormalized standard Gaussian sketch. Any rank $r\ge0$.'''
 algorithm_definition = '''NLAlib.sketchAndSolve'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''2859f44e5a6fc1e7ccfa8785cc9a17ed15e076e9c56b97482bb0d1f1db25bb7c'''
-resources = [{label = 'Sketch rows s', bound = '''$O((r+1)/\varepsilon)$ suffices'''}]
+resources = [{label = 'Sketch rows s', kind = 'samples', bound = '''$O((r+1)/\varepsilon)$ suffices'''}]
 
 [[rates]]
 id = '''regression-expected-haar'''
 theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_mul_sketchAndSolve_sq_le_of_hasLaw_haarFrame'''
-family = '''regression'''
-algorithm = '''Sketch-and-solve'''
-sketch = '''Haar'''
-sketch_category = '''Haar'''
-norm = '''Frobenius squared'''
-mode = '''Expectation'''
 guarantee = '''expected-relative-regression-frobenius'''
 notes = '''Real inputs; sketch $\mathbf{Q}^{\mathsf{H}}$ for an $m\times s$ Haar frame. $s\le m$; any rank $r\ge0$.'''
 algorithm_definition = '''NLAlib.sketchAndSolve'''
 sketch_definition = '''NLAlib.haarFrame'''
 statement_hash = '''3ea38288e0060e16c6a9bf5f9d3ac50b2dd7c8810b922eaebe5093f41d9f7bdb'''
-resources = [{label = 'Sketch rows s', bound = '''$O((r+1)/\varepsilon)$ suffices'''}]
+resources = [{label = 'Sketch rows s', kind = 'samples', bound = '''$O((r+1)/\varepsilon)$ suffices'''}]
 
 [[rates]]
 id = '''regression-high-prob-gaussian'''
 theorem = '''NLAlib.exists_forall_measureReal_frobNorm_sub_mul_sketchAndSolve_sq_gt_le_of_hasLaw_gaussianMatrix'''
-family = '''regression'''
-algorithm = '''Sketch-and-solve'''
-sketch = '''Gaussian'''
-sketch_category = '''Gaussian'''
-norm = '''Frobenius squared'''
-mode = '''High probability'''
 guarantee = '''high-prob-relative-regression-frobenius'''
 notes = '''Real inputs; unnormalized standard Gaussian sketch. $0<\delta\le1/2$; second-moment sufficient rate; any rank $r\ge0$.'''
 algorithm_definition = '''NLAlib.sketchAndSolve'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
 statement_hash = '''fdd5592af60333194bf62a72dba7a6e987811c3321e9bd2fac5b6c0e81e2c752'''
-resources = [{label = 'Sketch rows s', bound = '''$O((r+1)/(\varepsilon\delta))$ suffices'''}]
+resources = [{label = 'Sketch rows s', kind = 'samples', bound = '''$O((r+1)/(\varepsilon\delta))$ suffices'''}]
 
 [[rates]]
 id = '''regression-high-prob-countsketch'''
 theorem = '''NLAlib.exists_forall_measureReal_frobNorm_sub_mul_sketchAndSolve_sq_gt_le_of_hasLaw_countSketch'''
-family = '''regression'''
-algorithm = '''Sketch-and-solve'''
-sketch = '''CountSketch'''
-sketch_category = '''Sparse'''
-norm = '''Frobenius squared'''
-mode = '''High probability'''
 guarantee = '''high-prob-relative-regression-frobenius'''
 notes = '''Real or complex inputs; unscaled one-sign-per-column CountSketch. $\delta>0$; any rank $r\ge0$.'''
 algorithm_definition = '''NLAlib.sketchAndSolve'''
 sketch_definition = '''NLAlib.countSketch'''
 statement_hash = '''404998880bc5588f76c55ce8d346ecf51efc00248bca3dc503a69ddf05d133a5'''
-resources = [{label = 'Sketch rows s', bound = '''$O(((r+1)^2+(r+1)/\varepsilon)/\delta)$ suffices'''}]
+resources = [{label = 'Sketch rows s', kind = 'samples', bound = '''$O(((r+1)^2+(r+1)/\varepsilon)/\delta)$ suffices'''}]
 
 [[guarantees]]
 id = '''krylov-expected-relative-spectral'''
 family = '''low-rank-krylov'''
-title = '''$(1+\varepsilon)$ low-rank approximation · expected squared spectral error'''
+title = '''$(1+\varepsilon)$ low-rank approximation · expected error $\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_2^2$'''
 description = '''For every fixed real matrix $\mathbf{A}$, the named output $\widehat{\mathbf{A}}$ satisfies $\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_2^2\le(1+\varepsilon)\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_r\|_2^2=(1+\varepsilon)\,\sigma_r(\mathbf{A})^2$, with singular values indexed from $0$. The expectation is of the squared error, over the Gaussian test matrix. Untruncated outputs may have rank larger than $r$; row-specific gap and block-size conditions apply.'''
 definitions = [{ label = '''Best rank-r truncation''', declaration = '''NLAlib.truncatedSVD''' }, { label = '''Relative singular gap (gapped rows)''', declaration = '''NLAlib.singularGapRatio''' }]
 
 [[guarantees]]
 id = '''krylov-expected-relative-frobenius'''
 family = '''low-rank-krylov'''
-title = '''$(1+\varepsilon)$ low-rank approximation · expected squared Frobenius error'''
+title = '''$(1+\varepsilon)$ low-rank approximation · expected error $\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_{\mathsf{F}}^2$'''
 description = '''For every fixed real matrix $\mathbf{A}$, the named output $\widehat{\mathbf{A}}$ satisfies $\mathbb{E}\|\mathbf{A}-\widehat{\mathbf{A}}\|_{\mathsf{F}}^2\le(1+\varepsilon)\|\mathbf{A}-\llbracket\mathbf{A}\rrbracket_r\|_{\mathsf{F}}^2$. The expectation is of the squared error, over the Gaussian test matrix. Only gapped Frobenius rates are proved; row-specific gap and block-size conditions apply.'''
 definitions = [{ label = '''Best rank-r truncation''', declaration = '''NLAlib.truncatedSVD''' }, { label = '''Relative singular gap''', declaration = '''NLAlib.singularGapRatio''' }]
 
 [[guarantees]]
 id = '''krylov-expected-relative-psd-spectral'''
 family = '''low-rank-krylov'''
-title = '''$(1+\varepsilon)$ PSD low-rank approximation · expected spectral error'''
+title = '''$(1+\varepsilon)$ PSD low-rank approximation · expected error $\mathbb{E}\|\mathbf{H}-\widehat{\mathbf{H}}\|_2$'''
 description = '''For every fixed real positive semidefinite matrix $\mathbf{H}$, the named Nyström output $\widehat{\mathbf{H}}$ satisfies $\mathbb{E}\|\mathbf{H}-\widehat{\mathbf{H}}\|_2\le(1+\varepsilon)\|\mathbf{H}-\llbracket\mathbf{H}\rrbracket_r\|_2=(1+\varepsilon)\,\sigma_r(\mathbf{H})$, with indices from $0$. The spectral error is not squared; the expectation is over the Gaussian test matrix. Row-specific gap and block-size conditions apply.'''
 definitions = [{ label = '''Nyström''', declaration = '''NLAlib.nystrom''' }, { label = '''Best rank-r truncation''', declaration = '''NLAlib.truncatedSVD''' }, { label = '''Relative singular gap (gapped rows)''', declaration = '''NLAlib.singularGapRatio''' }]
 
 [[guarantees]]
 id = '''krylov-expected-relative-psd-nuclear'''
 family = '''low-rank-krylov'''
-title = '''$(1+\varepsilon)$ PSD low-rank approximation · expected nuclear error'''
+title = '''$(1+\varepsilon)$ PSD low-rank approximation · expected error $\mathbb{E}\|\mathbf{H}-\llbracket\widehat{\mathbf{H}}\rrbracket_r\|_*$, late-truncated'''
 description = '''For every fixed real positive semidefinite matrix $\mathbf{H}$, the rank-$r$ truncation $\llbracket\widehat{\mathbf{H}}\rrbracket_r$ of the named Nyström output satisfies $\mathbb{E}\|\mathbf{H}-\llbracket\widehat{\mathbf{H}}\rrbracket_r\|_*\le(1+\varepsilon)\|\mathbf{H}-\llbracket\mathbf{H}\rrbracket_r\|_*$. The expectation is over the Gaussian test matrix. Only gapped rates for the late-truncated outputs are proved; row-specific gap and block-size conditions apply.'''
 definitions = [{ label = '''Nyström''', declaration = '''NLAlib.nystrom''' }, { label = '''Best rank-r truncation''', declaration = '''NLAlib.truncatedSVD''' }, { label = '''Relative singular gap''', declaration = '''NLAlib.singularGapRatio''' }]
 
 [[rates]]
 id = '''rbki-gapless-spectral'''
 theorem = '''NLAlib.exists_forall_integral_specNorm_sub_rbki_sq_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Randomized block Krylov (RBKI)'''
-gap = '''Gapless'''
-variant = '''Basic'''
-sketch = '''Gaussian'''
-norm = '''Spectral squared'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-spectral'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=r+2$ suffices''' }, { label = '''Depth q (blocks of size ℓ)''', bound = '''$O(\log(n+1)/\sqrt{\varepsilon})$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=r+2$ suffices''' }, { label = '''Depth q (blocks of size ℓ)''', kind = 'depth', bound = '''$O(\log(n+1)/\sqrt{\varepsilon})$ suffices''' }]
 notes = '''No gap assumption. Output rank $\le q\ell$. Tropp–Webber form; its explicit theorem assumes $\sigma_r>0$ and $q\ge2$, the asymptotic form does not.'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -705,15 +503,8 @@ statement_hash = '''a9f02f5fb0fe172248db2a93a89aefb80e703f4a0584b88ff3b78b8dcdab
 [[rates]]
 id = '''rbki-gapless-late-spectral'''
 theorem = '''NLAlib.exists_forall_integral_specNorm_sub_truncatedSVD_rbki_sq_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Randomized block Krylov (RBKI)'''
-gap = '''Gapless'''
-variant = '''Late truncation'''
-sketch = '''Gaussian'''
-norm = '''Spectral squared'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-spectral'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=r+2$ suffices''' }, { label = '''Depth q (blocks of size ℓ)''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\varepsilon})$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=r+2$ suffices''' }, { label = '''Depth q (blocks of size ℓ)''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\sqrt{\varepsilon})$ suffices''' }]
 notes = '''No gap assumption. Output rank $\le r$. Musco–Musco form: the $\log(1/\varepsilon)$ reflects that proof, not a cost of truncation (the Tropp–Webber form is proved only for the untruncated output).'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -722,15 +513,8 @@ statement_hash = '''f0cb81cd4741c2bb1f8cfe07b30843bc6b9af15e6cca64ac17f3f1b46c6d
 [[rates]]
 id = '''rbki-gapped-spectral'''
 theorem = '''NLAlib.exists_forall_integral_specNorm_sub_rbki_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Randomized block Krylov (RBKI)'''
-gap = '''Gapped'''
-variant = '''Basic'''
-sketch = '''Gaussian'''
-norm = '''Spectral squared'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-spectral'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Depth q (blocks of size ℓ)''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Depth q (blocks of size ℓ)''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le q\ell$.'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -739,15 +523,8 @@ statement_hash = '''6bad0d167b24251afa8c48321a4505b8cac76078b584af0cd6fb311a0ec6
 [[rates]]
 id = '''rbki-gapped-late-spectral'''
 theorem = '''NLAlib.exists_forall_integral_specNorm_sub_truncatedSVD_rbki_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Randomized block Krylov (RBKI)'''
-gap = '''Gapped'''
-variant = '''Late truncation'''
-sketch = '''Gaussian'''
-norm = '''Spectral squared'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-spectral'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Depth q (blocks of size ℓ)''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Depth q (blocks of size ℓ)''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -756,15 +533,8 @@ statement_hash = '''131aa7148e218099e2f75c6c9b8f39884f0dfa8cf063e2fc7b991eeed00e
 [[rates]]
 id = '''rsi-gapless-spectral'''
 theorem = '''NLAlib.exists_forall_integral_specNorm_sub_rsvd_pow_mul_sq_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Randomized subspace iteration (RSI)'''
-gap = '''Gapless'''
-variant = '''Basic'''
-sketch = '''Gaussian'''
-norm = '''Spectral squared'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-spectral'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=r+2$ suffices''' }, { label = '''Power steps p''', bound = '''$O(\log(n+1)/\varepsilon)$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=r+2$ suffices''' }, { label = '''Power steps p''', kind = 'depth', bound = '''$O(\log(n+1)/\varepsilon)$ suffices''' }]
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. No gap assumption. Output rank $\le\ell$. Tropp–Webber form; its explicit theorem assumes $\sigma_r>0$, the asymptotic form does not.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -773,15 +543,8 @@ statement_hash = '''8648dbd3248a0d7e317ab4288c8cafd36b3b5a29b6664be1eb6469ca3625
 [[rates]]
 id = '''rsi-gapless-late-spectral'''
 theorem = '''NLAlib.exists_forall_integral_specNorm_sub_truncatedSVD_rsvd_pow_mul_sq_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Randomized subspace iteration (RSI)'''
-gap = '''Gapless'''
-variant = '''Late truncation'''
-sketch = '''Gaussian'''
-norm = '''Spectral squared'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-spectral'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=r+2$ suffices''' }, { label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\varepsilon)$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=r+2$ suffices''' }, { label = '''Power steps p''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\varepsilon)$ suffices''' }]
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. No gap assumption. Output rank $\le r$. Musco–Musco form: the $\log(1/\varepsilon)$ reflects that proof, not a cost of truncation (the Tropp–Webber form is proved only for the untruncated output).'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -790,15 +553,8 @@ statement_hash = '''1b15bc4016cad0c6fc8efc709e967a8345790decf29e2988cb5a4990a988
 [[rates]]
 id = '''rsi-gapped-spectral'''
 theorem = '''NLAlib.exists_forall_integral_specNorm_sub_rsvd_pow_mul_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Randomized subspace iteration (RSI)'''
-gap = '''Gapped'''
-variant = '''Basic'''
-sketch = '''Gaussian'''
-norm = '''Spectral squared'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-spectral'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Power steps p''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -807,15 +563,8 @@ statement_hash = '''b800a0f09bb90cb1328067b3f210d234cbb1a1091c4b870b6d7a6ff482f9
 [[rates]]
 id = '''rsi-gapped-late-spectral'''
 theorem = '''NLAlib.exists_forall_integral_specNorm_sub_truncatedSVD_rsvd_pow_mul_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Randomized subspace iteration (RSI)'''
-gap = '''Gapped'''
-variant = '''Late truncation'''
-sketch = '''Gaussian'''
-norm = '''Spectral squared'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-spectral'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Power steps p''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -824,15 +573,8 @@ statement_hash = '''3022f5c42a9b3f10c869bebc210c03fe2f7e579ee3acdcf5e8e059439f28
 [[rates]]
 id = '''rbki-gapped-frobenius'''
 theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_rbki_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Randomized block Krylov (RBKI)'''
-gap = '''Gapped'''
-variant = '''Basic'''
-sketch = '''Gaussian'''
-norm = '''Frobenius squared'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-frobenius'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Depth q (blocks of size ℓ)''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Depth q (blocks of size ℓ)''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le q\ell$.'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -841,15 +583,8 @@ statement_hash = '''41875926845332d5c0c7906fe270b70aed50500fb7f8ad712e93d0a4c082
 [[rates]]
 id = '''rbki-gapped-late-frobenius'''
 theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_truncatedSVD_rbki_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Randomized block Krylov (RBKI)'''
-gap = '''Gapped'''
-variant = '''Late truncation'''
-sketch = '''Gaussian'''
-norm = '''Frobenius squared'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-frobenius'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Depth q (blocks of size ℓ)''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Depth q (blocks of size ℓ)''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -858,15 +593,8 @@ statement_hash = '''98956df4358f328f985454b04238dad8aec52e07f5af27523d633e0df3ce
 [[rates]]
 id = '''rsi-gapped-frobenius'''
 theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_rsvd_pow_mul_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Randomized subspace iteration (RSI)'''
-gap = '''Gapped'''
-variant = '''Basic'''
-sketch = '''Gaussian'''
-norm = '''Frobenius squared'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-frobenius'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Power steps p''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -875,15 +603,8 @@ statement_hash = '''5ead1af2add58f19fecfa31b6292622e9244f8f9b3ee0334518822d460dc
 [[rates]]
 id = '''rsi-gapped-late-frobenius'''
 theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_truncatedSVD_rsvd_pow_mul_sq_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Randomized subspace iteration (RSI)'''
-gap = '''Gapped'''
-variant = '''Late truncation'''
-sketch = '''Gaussian'''
-norm = '''Frobenius squared'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-frobenius'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Power steps p''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -892,15 +613,8 @@ statement_hash = '''b5f458693bcfd34536e45cd7f60106723b5f72f92593d22b01fdf7b0105a
 [[rates]]
 id = '''nysbki-gapless-spectral'''
 theorem = '''NLAlib.exists_forall_integral_specNorm_sub_nystromBKI_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Block Krylov Nyström (NysBKI)'''
-gap = '''Gapless'''
-variant = '''Basic'''
-sketch = '''Gaussian'''
-norm = '''Spectral'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-psd-spectral'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=r+2$ suffices''' }, { label = '''Depth q (blocks of size ℓ)''', bound = '''$O(\log(n+1)/\sqrt{\varepsilon})$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=r+2$ suffices''' }, { label = '''Depth q (blocks of size ℓ)''', kind = 'depth', bound = '''$O(\log(n+1)/\sqrt{\varepsilon})$ suffices''' }]
 notes = '''No gap assumption. Output rank $\le q\ell$. Tropp–Webber form; its explicit theorem assumes $\sigma_r(\mathbf{H})>0$ and $q\ge2$, the asymptotic form does not.'''
 algorithm_definition = '''NLAlib.nystromBKI'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -909,15 +623,8 @@ statement_hash = '''43ac0f8d7a55cfc0ff3abffea80ae5b4ce2bcf721ad1dbef49ae75478769
 [[rates]]
 id = '''nysbki-gapped-spectral'''
 theorem = '''NLAlib.exists_forall_integral_specNorm_sub_nystromBKI_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Block Krylov Nyström (NysBKI)'''
-gap = '''Gapped'''
-variant = '''Basic'''
-sketch = '''Gaussian'''
-norm = '''Spectral'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-psd-spectral'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Depth q (blocks of size ℓ)''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Depth q (blocks of size ℓ)''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t$. Output rank $\le q\ell$.'''
 algorithm_definition = '''NLAlib.nystromBKI'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -926,15 +633,8 @@ statement_hash = '''322170ebca8afe82a02574dc583fb6717de6d20f060d004cd163ed417c61
 [[rates]]
 id = '''nyssi-gapless-spectral'''
 theorem = '''NLAlib.exists_forall_integral_specNorm_sub_nystrom_pow_mul_le_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Nyström subspace iteration (NysSI)'''
-gap = '''Gapless'''
-variant = '''Basic'''
-sketch = '''Gaussian'''
-norm = '''Spectral'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-psd-spectral'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=r+2$ suffices''' }, { label = '''Power steps p''', bound = '''$O(\log(n+1)/\varepsilon)$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=r+2$ suffices''' }, { label = '''Power steps p''', kind = 'depth', bound = '''$O(\log(n+1)/\varepsilon)$ suffices''' }]
 notes = '''Nyström at test matrix $\mathbf{H}^p\mathbf{X}$. No gap assumption. Output rank $\le\ell$. Tropp–Webber form; its explicit theorem assumes $\sigma_r(\mathbf{H})>0$, the asymptotic form does not.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -943,15 +643,8 @@ statement_hash = '''8bfdc7d76d32540a3e5e74c9f4798ca94edd24073c1d1642b79f7cb7398e
 [[rates]]
 id = '''nyssi-gapped-spectral'''
 theorem = '''NLAlib.exists_forall_integral_specNorm_sub_nystrom_pow_mul_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Nyström subspace iteration (NysSI)'''
-gap = '''Gapped'''
-variant = '''Basic'''
-sketch = '''Gaussian'''
-norm = '''Spectral'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-psd-spectral'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Power steps p''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
 notes = '''Nyström at test matrix $\mathbf{H}^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -960,15 +653,8 @@ statement_hash = '''31665e3f1c34ea4081a13b5ab074f9aeb667e5b4669496004cb877218206
 [[rates]]
 id = '''nysbki-gapped-late-nuclear'''
 theorem = '''NLAlib.exists_forall_integral_nuclearNorm_sub_truncatedSVD_nystromBKI_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Block Krylov Nyström (NysBKI)'''
-gap = '''Gapped'''
-variant = '''Late truncation'''
-sketch = '''Gaussian'''
-norm = '''Nuclear'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-psd-nuclear'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Depth q (blocks of size ℓ)''', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Depth q (blocks of size ℓ)''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\sqrt{\gamma})$ suffices''' }]
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.nystromBKI'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -977,15 +663,8 @@ statement_hash = '''eedebb2f043a82e9fa19e934cf1840daf20c2d86ab53ddebe1e6fc88555b
 [[rates]]
 id = '''nyssi-gapped-late-nuclear'''
 theorem = '''NLAlib.exists_forall_integral_nuclearNorm_sub_truncatedSVD_nystrom_pow_mul_le_of_singularGapRatio_pos_of_hasLaw_gaussianMatrix'''
-family = '''low-rank-krylov'''
-algorithm = '''Nyström subspace iteration (NysSI)'''
-gap = '''Gapped'''
-variant = '''Late truncation'''
-sketch = '''Gaussian'''
-norm = '''Nuclear'''
-mode = '''Expectation'''
 guarantee = '''krylov-expected-relative-psd-nuclear'''
-resources = [{ label = '''Block size ℓ''', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Power steps p''', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
+resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\ell=t+2$ suffices, for the tail index $t\ge r$''' }, { label = '''Power steps p''', kind = 'depth', bound = '''$O(\log(n/\varepsilon)/\gamma)$ suffices''' }]
 notes = '''Nyström at test matrix $\mathbf{H}^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
@@ -1009,11 +688,7 @@ definitions = [{ label = 'Girard–Hutchinson estimate', declaration = 'NLAlib.g
 id = 'trace-real-gaussian'
 kind = 'exact'
 theorem = 'NLAlib.variance_quadForm_of_hasLaw_gaussianVector'
-family = 'trace-estimation'
-algorithm = 'Girard–Hutchinson'
-probe = 'Real Gaussian'
-probe_class = 'Real'
-probe_law = 'Gaussian'
+label = 'Real Gaussian'
 guarantee = 'trace-single-probe'
 resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=2\|\mathbf{A}\|_{\mathsf{F}}^2$''' }]
 notes = '''Real symmetric $\mathbf{A}$. For any real $\mathbf{A}$ the variance is $2\|\mathbf{H}\|_{\mathsf{F}}^2$, with $\mathbf{H}=\tfrac12(\mathbf{A}+\mathbf{A}^{\mathsf{T}})$: `NLAlib.variance_quadForm_of_hasLaw_gaussianVector_hermitianPart`.'''
@@ -1024,11 +699,7 @@ statement_hash = '6dbdb147df7e9001fc5f80cc62905c450fe685c2a695ec36c28bffdfc70504
 id = 'trace-rademacher'
 kind = 'exact'
 theorem = 'NLAlib.variance_quadForm_of_hasLaw_rademacherVector'
-family = 'trace-estimation'
-algorithm = 'Girard–Hutchinson'
-probe = 'Rademacher'
-probe_class = 'Real'
-probe_law = 'Rademacher'
+label = 'Rademacher'
 guarantee = 'trace-single-probe'
 resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=2\bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-\sum_i a_{ii}^2\bigr)$''' }]
 notes = '''Real symmetric $\mathbf{A}$. For any real $\mathbf{A}$ the variance is $2\bigl(\|\mathbf{H}\|_{\mathsf{F}}^2-\sum_i a_{ii}^2\bigr)$, with $\mathbf{H}=\tfrac12(\mathbf{A}+\mathbf{A}^{\mathsf{T}})$: `NLAlib.variance_quadForm_of_hasLaw_rademacherVector_hermitianPart`. Optimal among real probes with independent coordinates (Hutchinson): for real symmetric $\mathbf{A}$, $\operatorname{Var}(\boldsymbol{\varepsilon}^{\mathsf{T}}\mathbf{A}\boldsymbol{\varepsilon})\le\operatorname{Var}(\mathbf{x}^{\mathsf{T}}\mathbf{A}\mathbf{x})$ for every random vector $\mathbf{x}$ whose coordinates are independent and in $L^4$, each with mean $0$, variance $1$ and the same fourth moment, on any probability space: `NLAlib.variance_quadForm_of_hasLaw_rademacherVector_le`.'''
@@ -1039,11 +710,7 @@ statement_hash = 'a3a9a7ec01bf40dcece01d898cba851686cc9d6a535838d613ea7af874a115
 id = 'trace-independent-coordinates'
 kind = 'exact'
 theorem = 'NLAlib.variance_quadForm_of_isHermitian'
-family = 'trace-estimation'
-algorithm = 'Girard–Hutchinson'
-probe = 'Independent coordinates, fourth moment m₄'
-probe_class = 'Real'
-probe_law = 'Independent coordinates'
+label = 'Independent coordinates, fourth moment m₄'
 guarantee = 'trace-single-probe'
 resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=2\|\mathbf{A}\|_{\mathsf{F}}^2+(m_4-3)\sum_i a_{ii}^2$''' }]
 notes = '''Real symmetric $\mathbf{A}$; $\boldsymbol{\omega}$ has independent real coordinates $\omega_i$ in $L^4$ with $\mathbb{E}\,\omega_i=0$, $\mathbb{E}\,\omega_i^2=1$ and $\mathbb{E}\,\omega_i^4=m_4$ for every $i$. The real Gaussian ($m_4=3$) and Rademacher ($m_4=1$) rows are the special cases; since $m_4\ge1$, random signs give the least variance.'''
@@ -1053,11 +720,7 @@ statement_hash = 'e0dbdaa69c5301fd5c11bc78917ea6e4ff8ff5968f5202d647cedd8a3c3335
 id = 'trace-real-sphere'
 kind = 'exact'
 theorem = 'NLAlib.variance_quadForm_sqrt_smul_of_hasLaw_uniformSphereVector'
-family = 'trace-estimation'
-algorithm = 'Girard–Hutchinson'
-probe = 'Real sphere, radius √n'
-probe_class = 'Real'
-probe_law = 'Sphere'
+label = 'Real sphere, radius √n'
 guarantee = 'trace-single-probe'
 resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=\dfrac{2n}{n+2}\Bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-\dfrac{(\operatorname{tr}\mathbf{A})^2}{n}\Bigr)$''' }]
 notes = '''Real symmetric $\mathbf{A}$; $\boldsymbol{\omega}=\sqrt{n}\,\mathbf{u}$ with $\mathbf{u}$ uniform on the unit sphere of $\mathbb{R}^n$; every dimension $n$. For any real $\mathbf{A}$, replace $\|\mathbf{A}\|_{\mathsf{F}}$ by $\|\mathbf{H}\|_{\mathsf{F}}$, keeping $\operatorname{tr}\mathbf{A}$: `NLAlib.variance_quadForm_sqrt_smul_of_hasLaw_uniformSphereVector_hermitianPart`.'''
@@ -1068,11 +731,7 @@ statement_hash = 'fb4e9202cf44efc3b7dd2d5528b9d6767128a8ef4a9519f94cb4b63d4153b1
 id = 'trace-haar-frame'
 kind = 'exact'
 theorem = 'NLAlib.variance_girardHutchinson_sqrt_smul_of_hasLaw_haarFrame'
-family = 'trace-estimation'
-algorithm = 'Girard–Hutchinson'
-probe = 'Haar frame, k orthonormal probes'
-probe_class = 'Real'
-probe_law = 'Haar frame'
+label = 'Haar frame, k orthonormal probes'
 guarantee = 'trace-several-probes'
 resources = [{ label = 'Variance', bound = '''$\operatorname{Var}\Bigl[\dfrac{n}{k}\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})\Bigr]=\dfrac{2n(n-k)}{k(n-1)(n+2)}\Bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-\dfrac{(\operatorname{tr}\mathbf{A})^2}{n}\Bigr)$''' }]
 notes = '''Real symmetric $\mathbf{A}$; $\mathbf{\Omega}=\sqrt{n}\,\mathbf{Q}$ for an $n\times k$ Haar frame $\mathbf{Q}$, with $1\le k\le n$ and $n\ge2$. The compression $\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})$ itself has variance $\frac{2k(n-k)}{(n-1)n(n+2)}\bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-(\operatorname{tr}\mathbf{A})^2/n\bigr)$ (`NLAlib.variance_trace_conjTranspose_mul_mul_of_hasLaw_haarFrame`), and for any real $\mathbf{A}$ the same with $\|\mathbf{H}\|_{\mathsf{F}}$ (`NLAlib.variance_trace_conjTranspose_mul_mul_of_hasLaw_haarFrame_hermitianPart`).'''
@@ -1083,13 +742,9 @@ statement_hash = '85eaeac068930a212a0a0e7379e3b98cce1beaae82d1afe91b2dd3f481faae
 id = 'trace-independent-probes'
 kind = 'exact'
 theorem = 'NLAlib.integral_norm_girardHutchinson_sub_trace_sq'
-family = 'trace-estimation'
-algorithm = 'Girard–Hutchinson'
-probe = 'm independent probes'
-probe_class = 'Real or complex'
-probe_law = 'Any isotropic'
+label = 'm independent probes'
 guarantee = 'trace-several-probes'
-resources = [{ label = 'Second moment', bound = '''$\mathbb{E}\lvert\mathsf{girardHutchinson}(\mathbf{A},\mathbf{\Omega})-\operatorname{tr}\mathbf{A}\rvert^2=v/m$''' }]
+resources = [{ label = '$\mathbb{E}\lvert\cdot-\operatorname{tr}\mathbf{A}\rvert^2$', bound = '''$\mathbb{E}\lvert\mathsf{girardHutchinson}(\mathbf{A},\mathbf{\Omega})-\operatorname{tr}\mathbf{A}\rvert^2=v/m$''' }]
 notes = '''$m\ge1$ independent isotropic probes $\boldsymbol{\omega}_j$ (the columns of $\mathbf{\Omega}$), over $\mathbb{R}$ or $\mathbb{C}$, each with a square-integrable estimate and the same single-probe second moment $\mathbb{E}\lvert\boldsymbol{\omega}_j^{\mathsf{H}}\mathbf{A}\boldsymbol{\omega}_j-\operatorname{tr}\mathbf{A}\rvert^2=v$, for instance a value from a one-probe row. Any square $\mathbf{A}$. The real form with $\operatorname{Var}$ in hypothesis and conclusion is `NLAlib.variance_girardHutchinson`.'''
 algorithm_definition = 'NLAlib.IsIsotropic'
 algorithm_definition_label = 'Isotropy'
