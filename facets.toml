@@ -23,12 +23,12 @@
 [sources]
 
 # Early truncation through any optimal projector: the names spell `sub_mul`, not the algorithm.
-[overrides."NLAlib.HasSubspaceInjection.measure_frobNorm_sub_mul_sq_gt_le"]
+[overrides."NLAlib.HasSubspaceInjection.measureReal_frobNorm_sub_mul_sq_gt_le"]
 algorithm = "RSVD"
 output = "early"
 label = "any optimal projector; head injection and approximate-multiplication tails"
 
-[overrides."NLAlib.HasSubspaceInjection.measure_frobNorm_sub_mul_sq_gt_one_add_mul_le"]
+[overrides."NLAlib.HasSubspaceInjection.measureReal_frobNorm_sub_mul_sq_gt_one_add_mul_le"]
 algorithm = "RSVD"
 output = "early"
 label = "any optimal projector; relative error"
@@ -50,18 +50,23 @@ label = "unbiased"
 [overrides."NLAlib.integral_sketchAndSolve_of_hasLaw_haarFrame"]
 label = "unbiased"
 
-[overrides."NLAlib.HasSubspaceInjection.measure_norm_sub_mulVec_sq_gt_le"]
+[overrides."NLAlib.HasSubspaceInjection.measureReal_norm_sub_mulVec_sq_gt_le"]
 algorithm = "sketch-and-solve"
 output = "plain"
 
 # Bound shapes the names spell after the relation
-[overrides."NLAlib.HasSubspaceInjection.measure_frobNorm_sub_truncatedSVD_rsvd_sq_gt_add_le"]
+[overrides."NLAlib.HasSubspaceInjection.measureReal_frobNorm_sub_truncatedSVD_rsvd_sq_gt_add_le"]
 label = "through an approximate-multiplication tail, any field"
 
 # Hutch++ lower tail: the trace estimate falls below (1 − ε) tr A
 [overrides."Matrix.PosSemidef.measureReal_hutchpp_lt_one_sub_mul_trace_le_of_isSubgaussianVector"]
 measure = "trace"
 label = "lower tail"
+
+# Hutch++ upper tail: the trace estimate exceeds (1 + ε) tr A
+[overrides."Matrix.PosSemidef.measureReal_hutchpp_gt_one_add_mul_trace_le_of_isSubgaussianVector"]
+measure = "trace"
+label = "upper tail"
 
 # Girard–Hutchinson with one probe is the quadratic form; the names spell `quadForm` (the exact
 # variances of the Rates page)
@@ -79,6 +84,6 @@ algorithm = "Girard–Hutchinson"
 law = "independent coordinates"
 
 # the m-probe second moment about the trace, for any isotropic probes
-[overrides."NLAlib.integral_norm_girardHutchinson_sub_trace_sq"]
+[overrides."NLAlib.integral_norm_trace_sub_girardHutchinson_sq"]
 measure = "abs"
 law = "any isotropic probe"

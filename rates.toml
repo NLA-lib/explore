@@ -166,7 +166,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(c^2 
 notes = '''$\delta\le1/2$. $s>0$; independent isotropic rows, proxy $c$.'''
 algorithm_definition = '''NLAlib.HasJLProperty'''
 sketch_definition = '''NLAlib.IsSubgaussianVector'''
-statement_hash = '''28f8222ecc507d3c937d00ccd06027f58dfdfef7c184c73e7a9ee92247510748'''
+statement_hash = '''d2fd5ddb4aecb29eaaf8fc7558e815a65c6a18d599fd89f25f0666ddf3a637c5'''
 
 [[rates]]
 id = '''ose-countsketch'''
@@ -176,7 +176,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(d^2/
 notes = '''$s>0$ when $n>0$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.countSketch'''
-statement_hash = '''11aa58275602e2015adcbfbf1a8bd68ba2e516737c08c6a8404d711080f100d3'''
+statement_hash = '''5ed5672502811094db8a7eb7d0b2881d06441910161900c52d9b0ef4a48b9eb3'''
 
 [[rates]]
 id = '''ose-gaussian'''
@@ -196,7 +196,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O((d+\
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.rademacherMatrix'''
-statement_hash = '''11ac38d5e946bf32c2a95f4f3659c2a3e7a8d81f0908852e1354cf9848401e2e'''
+statement_hash = '''c62af3c0d4252f00bc1dc2415bc4f7db331472695c6d2be8af3480ffa9843a5c'''
 
 [[rates]]
 id = '''ose-row-sampling-with-replacement'''
@@ -206,7 +206,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\lo
 notes = '''$\delta\le1/2$. $\ell_i(\mathbf{U})\le Lp_i$.'''
 algorithm_definition = '''NLAlib.HasSubspaceEmbedding'''
 sketch_definition = '''NLAlib.samplingSketch'''
-statement_hash = '''362d0842625dcaebff31da77b79910716fafab1010f9f8e6567c15ead0d11847'''
+statement_hash = '''636c3650f343bfaf9119c689813e42b86a6ffbbf99d335b4098e34a33df68975'''
 
 [[rates]]
 id = '''ose-row-sampling-without-replacement'''
@@ -216,7 +216,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\lo
 notes = '''$\delta\le1/2$. $s\le n$; $\ell_i(\mathbf{U})\le L/n$.'''
 algorithm_definition = '''NLAlib.HasSubspaceEmbedding'''
 sketch_definition = '''NLAlib.samplingSketchWithoutReplacement'''
-statement_hash = '''a4698ff6a49266cb6855b70230d421f4ebea497e2dd24e1c258c3af4a806d152'''
+statement_hash = '''766679ba595ef5fbf09d7fef9c1495f7d70b69b065550e963847c5324111e56b'''
 
 [[rates]]
 id = '''ose-srht-with-replacement'''
@@ -226,7 +226,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\bet
 notes = '''$\delta\le1/2$. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.srhtWithReplacement'''
-statement_hash = '''a2d92b3f7e3040ac1d39828b47e0ffb011a71864625dea8df4104249b8122cdc'''
+statement_hash = '''ba73fa13b2c06a45390d8a2ade766622a52db0570aa5fc2470b317bc005a2a5e'''
 
 [[rates]]
 id = '''ose-srht-without-replacement'''
@@ -236,7 +236,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\bet
 notes = '''$\delta\le1/2$. $s\le n$. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.srht'''
-statement_hash = '''025d8aba534031aeb9a9527a0cdeff808488df8a344f1ade9690a931debb32d5'''
+statement_hash = '''70ca4b568848bc7e869a05e1b10db8fc2646eedbf9b97b53e7b6b993b8daef42'''
 
 [[rates]]
 id = '''ose-sub-gaussian'''
@@ -246,7 +246,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(c^2 
 notes = '''$\delta\le1/2$. $s>0$; independent isotropic rows, proxy $c$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.IsSubgaussianVector'''
-statement_hash = '''5f6264413c1ba2c5fb8c8646637f7a89610abd378bd58a4512eca10399b2fe40'''
+statement_hash = '''72256bb2734447199a80859380a5e3099cb125767cfb3c64d8d9a8795318c55f'''
 
 [[rates]]
 id = '''osi-gaussian'''
@@ -266,7 +266,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\lo
 notes = '''$\ell_i(\mathbf{U})\le Lp_i$.'''
 algorithm_definition = '''NLAlib.HasSubspaceInjection'''
 sketch_definition = '''NLAlib.samplingSketch'''
-statement_hash = '''af1c16cea42bea54d9db72da45bfed283fab30d419a26b849b3affba0fe81905'''
+statement_hash = '''2f6c36222be6c19d2dc4aabe23cf93fe09858e5bc5a372d14304bee5b7c7a732'''
 
 [[rates]]
 id = '''osi-row-sampling-without-replacement'''
@@ -276,7 +276,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\lo
 notes = '''$s\le n$; $\ell_i(\mathbf{U})\le L/n$.'''
 algorithm_definition = '''NLAlib.HasSubspaceInjection'''
 sketch_definition = '''NLAlib.samplingSketchWithoutReplacement'''
-statement_hash = '''e7887d346b27ad05d729dcec943f12e6b93898f29c283a0d808922bde6d0552c'''
+statement_hash = '''c16b641e8e7ce34421cb6505a8ef0a9565c8a89b8f54a855bfa284ff1311fa67'''
 
 [[rates]]
 id = '''osi-srht-with-replacement'''
@@ -286,7 +286,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\bet
 notes = '''$\delta\le1/2$. $s>0$, $n>0$. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
 sketch_definition = '''NLAlib.srhtWithReplacement'''
-statement_hash = '''4ee644e06070e3495d53c9bd732e3520876bb5649c262e8cf110c306875c750d'''
+statement_hash = '''e559895accfc5b8e422ca2f55ed87417af98cfe249e5076681c7b489c11e9bfd'''
 
 [[rates]]
 id = '''osi-srht-without-replacement'''
@@ -296,7 +296,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\bet
 notes = '''$\delta\le1/2$. $s\le n$. $s>0$ for injection. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
 sketch_definition = '''NLAlib.srht'''
-statement_hash = '''ac3c202707adb16b07ee28d8fa58076190e6b04865c196104257b54da0294b71'''
+statement_hash = '''318dfc9dcc15c2388b0df09b3df6f268c9cab1246d6548bbe09c52626dd7e1ad'''
 
 [[rates]]
 id = '''rsvd-basic-gaussian'''
@@ -356,7 +356,7 @@ resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(
 notes = '''Output rank $\le k$.'''
 algorithm_definition = '''NLAlib.generalizedNystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''8b12074ea426bacebf27fb2e24bf2ea51d42b8fd3668977653ee6edc020464ce'''
+statement_hash = '''9c2567ec0950d66a8f63da090a8877f2d432f3c2a56325b6599ebbcb9e38d6d8'''
 
 [[rates]]
 id = '''gn-early-gaussian'''
@@ -446,11 +446,11 @@ resources = [{label = 'Sketch rows s', kind = 'samples', bound = '''$O((r+1)/\va
 id = '''regression-high-prob-gaussian'''
 theorem = '''NLAlib.exists_forall_measureReal_frobNorm_sub_mul_sketchAndSolve_sq_gt_le_of_hasLaw_gaussianMatrix'''
 guarantee = '''high-prob-relative-regression-frobenius'''
-notes = '''Real inputs; unnormalized standard Gaussian sketch. $0<\delta\le1/2$; second-moment sufficient rate; any rank $r\ge0$.'''
+notes = '''Real inputs; unnormalized standard Gaussian sketch. $0<\delta\le1/2$; JL-moment sufficient rate; any rank $r\ge0$.'''
 algorithm_definition = '''NLAlib.sketchAndSolve'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''fdd5592af60333194bf62a72dba7a6e987811c3321e9bd2fac5b6c0e81e2c752'''
-resources = [{label = 'Sketch rows s', kind = 'samples', bound = '''$O((r+1)/(\varepsilon\delta))$ suffices'''}]
+statement_hash = '''8c75167b0128d7bd06069ac91a8bd689fda0d930d72bf74c559b760e473ea4ab'''
+resources = [{label = 'Sketch rows s', kind = 'samples', bound = '''$O((r+1)\log(1/\delta)/\varepsilon)$ suffices'''}]
 
 [[rates]]
 id = '''regression-high-prob-countsketch'''
@@ -628,7 +628,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t$. Output rank $\le q\ell$.'''
 algorithm_definition = '''NLAlib.nystromBKI'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''322170ebca8afe82a02574dc583fb6717de6d20f060d004cd163ed417c613d19'''
+statement_hash = '''6427617212c340ca826390f348ca9ba1b56bdfbe5784c1b83f3422e86126bc69'''
 
 [[rates]]
 id = '''nyssi-gapless-spectral'''
@@ -693,7 +693,7 @@ guarantee = 'trace-single-probe'
 resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=2\|\mathbf{A}\|_{\mathsf{F}}^2$''' }]
 notes = '''Real symmetric $\mathbf{A}$. For any real $\mathbf{A}$ the variance is $2\|\mathbf{H}\|_{\mathsf{F}}^2$, with $\mathbf{H}=\tfrac12(\mathbf{A}+\mathbf{A}^{\mathsf{T}})$: `NLAlib.variance_quadForm_of_hasLaw_gaussianVector_hermitianPart`.'''
 algorithm_definition = 'NLAlib.gaussianVector'
-statement_hash = '6dbdb147df7e9001fc5f80cc62905c450fe685c2a695ec36c28bffdfc7050496'
+statement_hash = 'fa407bc0dbe906eb165fd72e57a1751b311cf42a477b3be80d0835bc71ec531f'
 
 [[rates]]
 id = 'trace-rademacher'
@@ -702,9 +702,9 @@ theorem = 'NLAlib.variance_quadForm_of_hasLaw_rademacherVector'
 label = 'Rademacher'
 guarantee = 'trace-single-probe'
 resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=2\bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-\sum_i a_{ii}^2\bigr)$''' }]
-notes = '''Real symmetric $\mathbf{A}$. For any real $\mathbf{A}$ the variance is $2\bigl(\|\mathbf{H}\|_{\mathsf{F}}^2-\sum_i a_{ii}^2\bigr)$, with $\mathbf{H}=\tfrac12(\mathbf{A}+\mathbf{A}^{\mathsf{T}})$: `NLAlib.variance_quadForm_of_hasLaw_rademacherVector_hermitianPart`. Optimal among real probes with independent coordinates (Hutchinson): for real symmetric $\mathbf{A}$, $\operatorname{Var}(\boldsymbol{\varepsilon}^{\mathsf{T}}\mathbf{A}\boldsymbol{\varepsilon})\le\operatorname{Var}(\mathbf{x}^{\mathsf{T}}\mathbf{A}\mathbf{x})$ for every random vector $\mathbf{x}$ whose coordinates are independent and in $L^4$, each with mean $0$, variance $1$ and the same fourth moment, on any probability space: `NLAlib.variance_quadForm_of_hasLaw_rademacherVector_le`.'''
+notes = '''Real symmetric $\mathbf{A}$. For any real $\mathbf{A}$ the variance is $2\bigl(\|\mathbf{H}\|_{\mathsf{F}}^2-\sum_i a_{ii}^2\bigr)$, with $\mathbf{H}=\tfrac12(\mathbf{A}+\mathbf{A}^{\mathsf{T}})$: `NLAlib.variance_quadForm_of_hasLaw_rademacherVector_hermitianPart`. Optimal among real probes with independent coordinates (Hutchinson): for real symmetric $\mathbf{A}$, $\operatorname{Var}(\boldsymbol{\varepsilon}^{\mathsf{T}}\mathbf{A}\boldsymbol{\varepsilon})\le\operatorname{Var}(\mathbf{x}^{\mathsf{T}}\mathbf{A}\mathbf{x})$ for every random vector $\mathbf{x}$ whose coordinates are independent and in $L^4$, each with mean $0$, variance $1$ and the same fourth moment, on any probability space: `NLAlib.variance_quadForm_le_of_hasLaw_rademacherVector`.'''
 algorithm_definition = 'NLAlib.rademacherVector'
-statement_hash = 'a3a9a7ec01bf40dcece01d898cba851686cc9d6a535838d613ea7af874a115a6'
+statement_hash = 'a5048f4a3529666ea7845c7faadc0220bbe4531eb7925e0f026cf76a96dd2b0e'
 
 [[rates]]
 id = 'trace-independent-coordinates'
@@ -741,11 +741,11 @@ statement_hash = '85eaeac068930a212a0a0e7379e3b98cce1beaae82d1afe91b2dd3f481faae
 [[rates]]
 id = 'trace-independent-probes'
 kind = 'exact'
-theorem = 'NLAlib.integral_norm_girardHutchinson_sub_trace_sq'
+theorem = 'NLAlib.integral_norm_trace_sub_girardHutchinson_sq'
 label = 'm independent probes'
 guarantee = 'trace-several-probes'
-resources = [{ label = '$\mathbb{E}\lvert\cdot-\operatorname{tr}\mathbf{A}\rvert^2$', bound = '''$\mathbb{E}\lvert\mathsf{girardHutchinson}(\mathbf{A},\mathbf{\Omega})-\operatorname{tr}\mathbf{A}\rvert^2=v/m$''' }]
+resources = [{ label = '$\mathbb{E}\lvert\operatorname{tr}\mathbf{A}-\cdot\rvert^2$', bound = '''$\mathbb{E}\lvert\operatorname{tr}\mathbf{A}-\mathsf{girardHutchinson}(\mathbf{A},\mathbf{\Omega})\rvert^2=v/m$''' }]
 notes = '''$m\ge1$ independent isotropic probes $\boldsymbol{\omega}_j$ (the columns of $\mathbf{\Omega}$), over $\mathbb{R}$ or $\mathbb{C}$, each with a square-integrable estimate and the same single-probe second moment $\mathbb{E}\lvert\boldsymbol{\omega}_j^{\mathsf{H}}\mathbf{A}\boldsymbol{\omega}_j-\operatorname{tr}\mathbf{A}\rvert^2=v$, for instance a value from a one-probe row. Any square $\mathbf{A}$. The real form with $\operatorname{Var}$ in hypothesis and conclusion is `NLAlib.variance_girardHutchinson`.'''
 algorithm_definition = 'NLAlib.IsIsotropic'
 algorithm_definition_label = 'Isotropy'
-statement_hash = '27db2d2774b2db6b4b19748fa8ab94a86fb831594770bc07373d680ef32a3892'
+statement_hash = 'a770da38c9c1d77901a02e4c5b0372b8b1fad73893f152daf0112dddf61640ff'

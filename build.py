@@ -727,7 +727,7 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
     # explicit theorems that have an asymptotic form: an exact row must not cite one
     paired = set(targets.values())
     allowed_resource = {'label', 'bound', 'kind'}
-    out = []
+    out, stale = [], []
     for rate in entries:
         required_text(rate, ['theorem', 'guarantee', 'statement_hash'], f'rate {rate["id"]}')
         if 'notes' in rate and not isinstance(rate['notes'], str):
@@ -778,7 +778,9 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
         digest = hashlib.sha256((HTML_COMMENT.sub('', d.get('signature') or '') + '\n' +
                                 HTML_COMMENT.sub('', d.get('doc') or '')).encode('utf-8')).hexdigest()
         if rate['statement_hash'] != digest:
-            raise ValueError(f'rate {rate["id"]}: statement_hash mismatch; review curated mathematics')
+            # collected, so one build lists every row to review
+            stale.append(f'{rate["id"]} ({rate["theorem"]}, now {digest})')
+            continue
         resources = rate.get('resources')
         if not isinstance(resources, list) or not resources:
             raise ValueError(f'rate {rate["id"]}: resources must be nonempty')
@@ -797,6 +799,9 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
                     'result': d['_results'][0] if d['_results'] else None,
                     'status': 'reviewed', 'group': rate['guarantee'],
                     'c': cells(f, i, j, rate.get('label'), resources, exact)})
+    if stale:
+        raise ValueError('statement_hash mismatch; review curated mathematics of rates:\n  '
+                         + '\n  '.join(stale))
 
     # every other asymptotic pair is a pending row, with what the library says about it
     reviewed = {e['overview'] for e in out}
@@ -880,6 +885,7 @@ def collections_page(cfg, results, decls, index, modules, aliases):
     curated_defs = {name for c in collections for g in c.get('groups', [])
                     for name in g.get('definitions', [])}
     seen_topics = set()
+    unknown = []  # every unknown name, reported together after the loop
     for collection in collections:
         required_text(collection, ['title', 'description', 'topic'], 'collection')
         topic = collection['topic']
@@ -898,7 +904,8 @@ def collections_page(cfg, results, decls, index, modules, aliases):
             for rid in group.get('results', []):
                 rid = aliases.get(rid, rid)
                 if rid not in results:
-                    raise ValueError(f'collection {collection["id"]}: unknown result {rid}')
+                    unknown.append(f'collection {collection["id"]}: unknown result {rid}')
+                    continue
                 if rid in group_results:
                     raise ValueError(f'collection group {group["id"]}: duplicate result {rid}'
                                      ' (an id merged into another counts as that one)')
@@ -908,7 +915,8 @@ def collections_page(cfg, results, decls, index, modules, aliases):
             for name in group.get('definitions', []):
                 i = index.get(name)
                 if i is None or decls[i]['kind'] not in DEF_KINDS:
-                    raise ValueError(f'collection {collection["id"]}: unknown definition {name}')
+                    unknown.append(f'collection {collection["id"]}: unknown definition {name}')
+                    continue
                 if decls[i].get('explorerRole') == 'support':
                     raise ValueError(f'collection group {group["id"]}: support definition {name}')
                 if i in group_defs:
@@ -929,6 +937,8 @@ def collections_page(cfg, results, decls, index, modules, aliases):
                 raise ValueError(f'collection {collection["id"]}: reserved fallback group id other')
             rendered.append({'id': 'other', 'title': 'Other results and definitions', 'entries': fallback})
         out.append({**collection, 'groups': rendered})
+    if unknown:
+        raise ValueError('\n'.join(unknown))
     return out
 
 
@@ -1098,9 +1108,9 @@ def build(data, bib, out):
     facets_cfg = load_toml('facets.toml')
     source_names = facets_cfg.get('sources', {})
     overrides = facets_cfg.get('overrides', {})
-    for name in overrides:
-        if name not in index:
-            raise ValueError(f'facets.toml: override for unknown declaration {name}')
+    unknown = [name for name in overrides if name not in index]
+    if unknown:
+        raise ValueError('facets.toml: override for unknown declaration(s): ' + ', '.join(unknown))
     facet_of = {}
     for i, d in enumerate(decls):
         if d['kind'] != 'theorem':
