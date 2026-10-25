@@ -172,7 +172,7 @@ primary = "Matrix.PosSemidef.integral_specNorm_sub_nystrom_pow_mul_le_singularGa
 
 [randomized-svd-tail]
 title = "Randomized SVD: tail bounds"
-primary = "NLAlib.measureReal_not_frobNorm_sub_rsvd_sq_le_le_of_hasLaw_gaussianMatrix"
+primary = "NLAlib.measureReal_frobNorm_sub_rsvd_sq_gt_le_of_hasLaw_gaussianMatrix"
 aliases = ["Tropp–Webber RSVD1", "RSVD tail", "RSVD high probability", "RSVD deviation bound"]
 
 [randomized-svd-deviation-bound]

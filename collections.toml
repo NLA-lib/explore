@@ -81,8 +81,8 @@ results = ["jl-rademacher", "rademacher-ose", "jl-subgaussian", "subgaussian-ose
 [[collections.groups]]
 id = "shared"
 title = "Shared sketching theory"
-definitions = ["NLAlib.HasSubspaceInjection", "NLAlib.HasSubspaceEmbedding", "NLAlib.IsIsotropicSketch", "NLAlib.HasJLProperty", "NLAlib.HasJLMoment", "NLAlib.IsObliviousSubspaceEmbedding", "NLAlib.IsObliviousSubspaceInjection", "NLAlib.IsProjectionCostPreserving", "NLAlib.IsSubspaceInjection", "NLAlib.IsSubspaceEmbedding", "NLAlib.HasGramTraceMoment"]
-results = ["ose-def", "osi-def", "subspace-injection", "jl-lemma", "amm-ose", "projection-cost-preserving-sketch"]
+definitions = ["NLAlib.HasSubspaceInjection", "NLAlib.HasSubspaceEmbedding", "NLAlib.IsIsotropicSketch", "NLAlib.HasJLProperty", "NLAlib.HasJLMoment", "NLAlib.IsObliviousSubspaceEmbedding", "NLAlib.IsObliviousSubspaceInjection", "NLAlib.IsProjectionCostPreserving", "NLAlib.HasProjectionCostPreserving", "NLAlib.IsSubspaceInjection", "NLAlib.IsSubspaceEmbedding", "NLAlib.HasGramTraceMoment"]
+results = ["jl-lemma", "amm-ose", "projection-cost-preserving-sketch"]
 
 [[collections]]
 id = "regression"
