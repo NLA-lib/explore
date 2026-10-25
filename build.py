@@ -7,8 +7,10 @@ Inputs:
   data/explore-data.json  written by NLAlib's scripts/Explore.lean (in CI, downloaded from the
                           rolling `explore-data` release of NLA-lib/NLAlib)
   --bib                   NLAlib's docs/references.bib at the same commit (optional)
-  topics.toml             titles, order and blurbs for the library's directories (optional per
-                          directory: a directory without an entry gets a title from its name)
+  topics.toml             the shelf order; titles, order and blurbs for the library's directories
+                          (optional per directory: a directory without an entry gets a title from its name)
+  collections.toml        the shelves: curated groups of result ids and definitions, and the
+                          `sources` module prefixes whose unclassified results land on each shelf
   results.toml            per `Result:` id overrides: title, aliases, latex, primary,
                           merge_into (all optional)
   facets.toml             overrides of the facets inferred from declaration names (facets.py),
@@ -886,7 +888,21 @@ def collections_page(cfg, results, decls, index, modules, aliases):
                     for name in g.get('definitions', [])}
     seen_topics = set()
     unknown = []  # every unknown name, reported together after the loop
-    for collection in collections:
+
+    # `sources` (module prefixes, default the folder of the same name) feed the fallback group: an
+    # unclassified result or definition goes to the collection with the longest matching prefix,
+    # so a new result lands on exactly one shelf
+    def depth(module, c):
+        prefixes = c.get('sources', [f'NLAlib.{c.get("topic")}'])
+        if not isinstance(prefixes, list) or not all(isinstance(p, str) and re.fullmatch(r'NLAlib(\.\w+)*', p)
+                                                      for p in prefixes):
+            raise ValueError(f'collection {c.get("id")}: sources must be a list of module prefixes')
+        return max((len(p) for p in prefixes if module == p or module.startswith(p + '.')), default=0)
+
+    def home(mods):
+        best = max(((max(depth(m, c) for m in mods), -k) for k, c in enumerate(collections)), default=(0, 0))
+        return -best[1] if best[0] else None
+    for k, collection in enumerate(collections):
         required_text(collection, ['title', 'description', 'topic'], 'collection')
         topic = collection['topic']
         if not re.fullmatch(r'[A-Z][A-Za-z0-9]*', topic):
@@ -925,12 +941,10 @@ def collections_page(cfg, results, decls, index, modules, aliases):
                 entries.append({'type': 'd', 'i': i})
                 used_defs.add(i)
             rendered.append({**group, 'entries': entries})
-        topic = collection['topic']
-        matches = lambda d: modules.get(d['module'], {}).get('topic') == topic
         fallback = [{'type': 'r', 'rid': rid} for rid, r in results.items()
-                    if rid not in curated_results and any(matches(decls[i]) for i in r['decls'])]
+                    if rid not in curated_results and home([decls[i]['module'] for i in r['decls']]) == k]
         fallback += [{'type': 'd', 'i': i} for i, d in enumerate(decls)
-                     if matches(d) and d['kind'] in DEF_KINDS
+                     if d['kind'] in DEF_KINDS and home([d['module']]) == k
                      and d.get('explorerRole') != 'support' and d['name'] not in curated_defs]
         if fallback:
             if any(g['id'] == 'other' for g in groups):
@@ -1298,10 +1312,15 @@ def build(data, bib, out):
             topics.append({'id': collection['topic'], 'title': tc.get('title', collection['title']),
                            'blurb': tc.get('blurb', collection['description']), 'subs': []})
     topics.sort(key=lambda t: top_rank(t['id']))
+    # shelves (task topics) head the home page in this order; the other folders form the source browser
+    shelves = topics_cfg.get('shelves', [])
+    missing = [s for s in shelves if not any(t['id'] == s for t in topics)]
+    if missing or len(set(shelves)) != len(shelves):
+        raise ValueError(f'topics.toml shelves: unknown or repeated topics {", ".join(missing) or shelves}')
     site = {
         'commit': data.get('commit'), 'date': data.get('date'), 'repo': REPO,
         'ref': data.get('commit') or topics_cfg.get('ref', 'scaffold'),
-        'topics': topics, 'modules': modules, 'results': out_results, 'decls': out_decls,
+        'topics': topics, 'shelves': shelves, 'modules': modules, 'results': out_results, 'decls': out_decls,
         'resultAlias': alias, 'aliasFocus': merged_focus,
         'nodes': nodes, 'bib': {k: v for k, v in bib.items() if k in cited},
         'synonyms': synonyms,

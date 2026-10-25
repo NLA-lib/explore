@@ -66,7 +66,7 @@ notation = '''Real matrices $\mathbf{A}\in\mathbb{R}^{m\times n}$; Nyström rows
 [[families]]
 id = 'regression'
 algorithms = ['sketch-and-solve']
-title = 'Regression'
+title = 'Least squares'
 subject_label = 'Algorithm'
 description = '''Compare sufficient sketch sizes for relative least-squares residual error. The error is the squared Frobenius norm of the residual.'''
 notation = '''For fixed matrices $\mathbf{A}\in\Bbbk^{m\times n}$ and $\mathbf{B}\in\Bbbk^{m\times q}$ over the scalar field permitted by the row, let $r=\operatorname{rank}\mathbf{A}$ and $\operatorname{OPT}_{\mathrm{LS}}^2=\min_{\mathbf{Y}}\|\mathbf{B}-\mathbf{A}\mathbf{Y}\|_{\mathsf{F}}^2=\|(\mathbf{I}-\mathbf{A}\mathbf{A}^{+})\mathbf{B}\|_{\mathsf{F}}^2$. A sketch $\mathbf{S}\in\Bbbk^{s\times m}$ produces $\widehat{\mathbf{X}}=\mathsf{sketchAndSolve}(\mathbf{A},\mathbf{S},\mathbf{B})=(\mathbf{S}\mathbf{A})^{+}\mathbf{S}\mathbf{B}$. For absolute $\varepsilon_0>0$, the rates assume $0<\varepsilon\le\varepsilon_0$. The input matrices are fixed before drawing the sketch; expectations and probabilities concern that draw. Resource thresholds, parameter ranges, rank restrictions, sketch normalization and any ambient-dimension cap are supplied by each reviewed row and its exact theorem. Gaussian and Haar rows use real inputs; the CountSketch tail also permits complex inputs. No full-column-rank assumption or coefficient-error guarantee is inferred.'''
