@@ -394,25 +394,25 @@ statement_hash = '18888b5dbf9decfe132f4dd5a8ed691c435fc07e4b8637a35fedcb5b8282a5
 
 [[rates]]
 id = '''gn-late-gaussian'''
-theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_truncatedSVD_generalizedNystrom_sq_le_of_hasLaw_gaussianMatrix'''
+theorem = '''NLAlib.exists_forall_integral_frobNorm_sub_truncatedSVD_generalizedNystrom_sq_le_one_add_of_hasLaw_gaussianMatrix'''
 guarantee = '''expected-relative-frobenius'''
-resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(k/\varepsilon)$ suffices''' }, { label = '''Co-range columns p''', kind = 'samples', bound = '''$O(\ell/\varepsilon)$ suffices''' }]
-notes = '''Output rank $\le k$.'''
+resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(k/\varepsilon)$ suffices''' }, { label = '''Co-range columns p''', kind = 'samples', bound = '''$O(k/\varepsilon)$ suffices ($p \ge 4\ell$)''' }]
+notes = '''Output rank $\le k$. Supersedes the earlier $p = O(\ell/\varepsilon)$ bound `NLAlib.exists_forall_integral_frobNorm_sub_truncatedSVD_generalizedNystrom_sq_le_of_hasLaw_gaussianMatrix`. Explicit form: `NLAlib.integral_frobNorm_sub_truncatedSVD_generalizedNystrom_sq_le_one_add_of_hasLaw_gaussianMatrix` ($\ell \ge 3500004\,k/\varepsilon$).'''
 algorithm_definition = '''NLAlib.generalizedNystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''9c2567ec0950d66a8f63da090a8877f2d432f3c2a56325b6599ebbcb9e38d6d8'''
+statement_hash = '''e971a445c511c525c40f14734ab7af55a8a89a8e84f6499dc1d640028777a8f6'''
 
 [[rates]]
 id = 'gn-late-gaussian-lower'
 kind = 'lower'
 label = 'lower bound'
 pairs_with = 'gn-late-gaussian'
-tightness = 'gap'
+tightness = 'tight'
 result = 'truncated-gn-lower-bound'
 theorem = 'NLAlib.mul_le_of_forall_integral_frobNorm_sub_truncatedSVD_generalizedNystrom_fromBlocks_sq_le'
 guarantee = 'expected-relative-frobenius'
 resources = [{ label = 'Co-range columns p', kind = 'samples', bound = '''$p-\ell-1\ge\frac{k(n-\ell)}{(n-k)\varepsilon}$ necessary''' }]
-notes = '''Gaussian test matrices; Epperly and Webber's instance $\operatorname{diag}(a\mathbf{I}_k,\mathbf{I}_{n-k})$, $a\ge1$; $k+2\le\ell$, $\ell+2\le p$. So $p=\Omega(k/\varepsilon)$ for $n\gg\ell$, against the upper bound's $p=O(\ell/\varepsilon)$ with $\ell=O(k/\varepsilon)$: a gap, open. The limit form: `NLAlib.eventually_le_integral_frobNorm_sub_truncatedSVD_generalizedNystrom_fromBlocks_sq`. New, no printed source (research note OP2).'''
+notes = '''Gaussian test matrices; Epperly and Webber's instance $\operatorname{diag}(a\mathbf{I}_k,\mathbf{I}_{n-k})$, $a\ge1$; $k+2\le\ell$, $\ell+2\le p$. So $p=\Omega(k/\varepsilon)$ for $n\gg\ell$, matching the upper bound's $p=O(k/\varepsilon)$. The limit form: `NLAlib.eventually_le_integral_frobNorm_sub_truncatedSVD_generalizedNystrom_fromBlocks_sq`. New, no printed source (research note OP2).'''
 algorithm_definition = 'NLAlib.generalizedNystrom'
 sketch_definition = 'NLAlib.gaussianMatrix'
 statement_hash = '9c555f26663ad061826b5b1027afcd94549b6e540eb3a9d3ac0ab97ddae238ad'
