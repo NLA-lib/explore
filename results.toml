@@ -7,8 +7,6 @@
 #   aliases = ["Weyl's eigenvalue inequality"]          # extra names for the search
 #   latex = "For Hermitian $A, B$: $$\\lambda_{i+j}(A+B) \\le \\lambda_i(A) + \\lambda_j(B).$$"
 #   primary = "NLAlib.some_explicit_theorem"               # headline explicit declaration
-#   novelty = "new"                    # new | improved | extended | corrected | none: a tag
-#                                      # after the title ("new" is derived; see below)
 #
 #   [some-old-id]
 #   merge_into = "weyl-inequality"     # show this result's members on that page instead
@@ -17,19 +15,6 @@
 # "The" (the build drops one), "expected error" rather than "average" or "mean", "tail bound"
 # rather than "with high probability" or "deviation", "late-truncated" for truncation after the
 # algorithm. The build warns about a title that does not.
-#
-# Novelty. A library-original result carries a coloured tag after its title (its page, the
-# shelves, search hits, the Books and file pages, its Rates row), with a tooltip and a legend:
-#   new        no published counterpart (red);
-#   improved   a published result with a sharper or explicit constant, a better rate, or a weaker
-#              hypothesis;
-#   extended   a published result generalized to a new setting (field, sketch law, output);
-#   corrected  a published statement fixed (a missing hypothesis, a wrong constant).
-# "new" is derived: a member docstring saying "No printed source. New (…)" (NLAlib's marker, on the
-# OP1 and OP2 lower bounds). A bare "No printed source." is an uncited classical fact (the
-# chi-square law, the gamma ratio) and is not new. The other categories, and new results NLAlib
-# does not mark that way yet, are set here; `novelty = "none"` drops a derived tag. The routine
-# formal generality of a port ("there for real matrices, here over any field") is not tagged.
 #
 # A merged id keeps working: `#r/<old id>` opens the merged page at the statement that headed
 # the old one. A merged entry takes only `aliases` besides `merge_into`.
@@ -56,13 +41,11 @@ aliases = ["Sampling without replacement OSI"]
 title = "Early-truncated generalized Nyström"
 aliases = ["Early-truncated GN"]
 primary = "NLAlib.integral_frobNorm_sub_earlyTruncatedGeneralizedNystrom_sq_le_one_add_mul_of_hasLaw_gaussianMatrix"
-novelty = "improved"  # explicit constants for the rate TYUC17 §7.3.1 states with unspecified ones (CEMMP15 Thm 12 for the tail); Chen–Persson manuscript
 
 [etrsvd]
 title = "Early-truncated randomized SVD"
 aliases = ["Early-truncated RSVD"]
 primary = "NLAlib.integral_frobNorm_sub_earlyTruncatedRSVD_sq_le_one_add_mul_of_hasLaw_gaussianMatrix"
-novelty = "improved"  # explicit constants for the rate TYUC17 §7.3.1 states with unspecified ones (CEMMP15 Thm 12 for the tail); Chen–Persson manuscript
 
 [generalized-nystrom-expected-error]
 title = "Generalized Nyström: expected error"
@@ -72,7 +55,6 @@ primary = "NLAlib.integral_frobNorm_sub_generalizedNystrom_sq_le_of_hasLaw_gauss
 title = "Late-truncated generalized Nyström: expected error"
 aliases = ["Truncated GN"]
 primary = "NLAlib.integral_frobNorm_sub_truncatedSVD_generalizedNystrom_sq_le_one_add_mul_of_hasLaw_gaussianMatrix"
-novelty = "improved"  # (1+ε) where [TYUC17, Cor. 6.4] has the constant-2 first-moment bound; Chen–Persson
 
 [randomized-svd-expected-error]
 title = "Randomized SVD: expected error"
@@ -227,27 +209,3 @@ title = "Filtered range finder: expected error"
 
 [reverse-eckart-young]
 title = "Reverse Eckart–Young for late-truncated Nyström"
-
-# Library-original results of the unpublished Chen–Persson manuscript (NLAlib PORT_LOWRANK.md §7:
-# ported, never cited, docstrings saying "Proved without a literature source"). That phrase also
-# stands on proofs of known facts written without a source in hand, so they are listed by hand
-# until NLAlib marks them "No printed source. New (…)". Its etgn, etrsvd and tgn-expected-error
-# are tagged improved above: a published bound or rate exists for each.
-[perturbed-truncation]
-novelty = "new"
-
-[early-truncation-structural-bound]
-novelty = "new"
-
-# Published results generalized here
-[generalized-nystrom-tail]
-novelty = "extended"  # [CEMT25, Cor. 2.8] over R, dimension ℓ; here any RCLike field, min(rank A, ℓ), and a truncated form
-
-[amm-countsketch]
-novelty = "extended"  # [Woodruff14, Thm 14] computes A = B = x over R; the general exact moment is proved here
-
-[countsketch-second-moment]
-novelty = "extended"  # [CEMT25, Lemma B.1] for self-adjoint M, uncentred; here centred, any M, any field
-
-[range-recovery-k-queries]
-novelty = "extended"  # [ZhangEtAl26, Lemma 4.2] for rank-k projector outputs; here any output of rank < d

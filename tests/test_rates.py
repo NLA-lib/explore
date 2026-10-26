@@ -64,23 +64,6 @@ class RatesTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'primary'):
                 self.render({'results.toml': {'bound': {'primary': primary}}}, ds)
 
-    def test_novelty_derives_new_from_the_docstring_marker(self):
-        ds = [decl('N.e1', 'Result: bound'), decl('N.a1', 'Asymptotic: N.e1')]
-        site, _ = self.render({}, ds)
-        self.assertNotIn('novelty', site['results']['bound'])
-        # "No printed source. New (…)" on any member marks the result new; a bare one does not
-        marked = [decl('N.e1', 'No printed source. New (research note OP1).\nResult: bound'), ds[1]]
-        for docs, novelty in ((marked, 'new'), ([decl('N.e1', 'No printed source.\nResult: bound'), ds[1]], None)):
-            site, _ = self.render({}, docs)
-            self.assertEqual(site['results']['bound'].get('novelty'), novelty)
-        # results.toml sets the other categories, or overrides the derived one
-        for config, docs, novelty in (('improved', ds, 'improved'), ('extended', marked, 'extended'), ('none', marked, None)):
-            site, _ = self.render({'results.toml': {'bound': {'novelty': config}}}, docs)
-            self.assertEqual(site['results']['bound'].get('novelty'), novelty, config)
-        for config in ({'bound': {'novelty': 'novel'}}, {'missing': {'novelty': 'new'}}, {'bound': {'new': True}}):
-            with self.subTest(config=config), self.assertRaisesRegex(ValueError, 'nov|new'):
-                self.render({'results.toml': config}, ds)
-
     def test_collections_validate_and_preserve_future_entries(self):
         ds = [dict(decl('N.e1', 'Result: bound'), module='NLAlib.LowRank.Test'),
               dict(decl('N.e2', 'Result: future'), module='NLAlib.LowRank.Test'),
@@ -422,7 +405,7 @@ class RatesTests(unittest.TestCase):
         self.assertEqual((upper['lower'], lower['pairs_with'], lower['tightness']), (['lower'], 'rate', 'gap'))
         # the lower theorem is the row's second statement, so it is no "bound without a rate form"
         self.assertNotIn(lower['overview'], [x['i'] for x in site['rates'].get('norate', [])])
-        # a lower theorem without a Result id may name its result (for the "new" tag, the link)
+        # a lower theorem without a Result id may name its result (its link)
         self.assertIsNone(lower['result'])
         named = copy.deepcopy(cfg); named['rates'][1]['result'] = 'bound'
         site, _ = self.render({'rates.toml': named}, ds)

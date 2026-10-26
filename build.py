@@ -12,7 +12,7 @@ Inputs:
   collections.toml        the shelves: curated groups of result ids and definitions, and the
                           `sources` module prefixes whose unclassified results land on each shelf
   results.toml            per `Result:` id overrides: title, aliases, latex, primary,
-                          merge_into, novelty (all optional)
+                          merge_into (all optional)
   facets.toml             overrides of the facets inferred from declaration names (facets.py),
                           keyed by declaration name, and short names of citation keys
   synonyms.toml           search synonyms, mathematical words to library names
@@ -44,13 +44,6 @@ HTML_COMMENT = re.compile(r'<!--.*?-->', re.S)
 ASYMPTOTIC_LINE = re.compile(r'^\s*Asymptotic:[ \t]*(?:\n[ \t]*)?([\w.]+)[ \t]*$', re.M)
 RESULT_LINE = re.compile(r'^\s*Result:\s*(.+?)\s*$', re.M)
 BOLD_NAME = re.compile(r'^\s*\*\*(.+?)\*\*')
-# what a library-original result adds to the literature (results.toml `novelty`): new (no published
-# counterpart), improved (a published result made sharper), extended (generalized to a new setting),
-# corrected (a published statement fixed). 'new' is derived: a member's docstring says
-# "No printed source. New (…)", NLAlib's marker; a bare "No printed source." is an uncited
-# classical fact, not a new one
-NOVELTY = ('new', 'improved', 'extended', 'corrected')
-NEW_MARKER = re.compile(r'No printed source\.\s+New\b')
 
 
 def load_toml(name):
@@ -1138,11 +1131,7 @@ def build(data, bib, out):
         if 'variant_labels' in cfg:
             raise ValueError(f'result {configured_id}: variant_labels is retired; statement labels are '
                              'generated from facets (override one in facets.toml)')
-        if 'new' in cfg:
-            raise ValueError(f'result {configured_id}: new is spelled novelty = "new"')
-        if 'novelty' in cfg and cfg['novelty'] not in (*NOVELTY, 'none'):
-            raise ValueError(f'result {configured_id}: novelty must be one of {", ".join(NOVELTY)} or none')
-        for field in ('primary', 'novelty'):
+        for field in ('primary',):
             if field in cfg and configured_id not in results:
                 raise ValueError(f'result {configured_id}: {field} configured for unknown or alias result')
 
@@ -1226,11 +1215,6 @@ def build(data, bib, out):
             r['decls'], forms, pair['explicit'], title, info, source_names)
         out_results[rid].update(rows=rows, cols=columns, row=default, merged=r.get('merged', []))
         out_results[rid]['aliases'] = out_results[rid]['aliases'] + r.get('extra_aliases', [])
-        # the explorer tags the title of a library-original result with its novelty; 'new' is read
-        # from the docstrings, results.toml `novelty` sets or overrides it ('none' drops it)
-        derived = 'new' if any(NEW_MARKER.search(decls[j].get('doc') or '') for j in r['decls']) else 'none'
-        if cfg.get('novelty', derived) != 'none':
-            out_results[rid]['novelty'] = cfg.get('novelty', derived)
 
     # --- graph nodes: a result (all its declarations together) or a documented definition.
     # Every other declaration is a helper; dependencies are collapsed through helpers.

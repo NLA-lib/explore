@@ -49,19 +49,7 @@
     --rule: #d6d6d6;
     --panel: min(52vw, 820px);
     --mono: 'JuliaMono', 'DejaVu Sans Mono', 'Menlo', 'Consolas', monospace;
-    /* novelty tags after a result title: white text on a mid-dark ground, at least 5:1 contrast,
-       so they read on a light or a dark page */
-    --novelty-ink: #ffffff;
-    --novelty-new: #c62828;
-    --novelty-improved: #8a5300;
-    --novelty-extended: #1f5fa8;
-    --novelty-corrected: #6a3d9a;
     --gap: #9a5b00;
-}
-
-@media (prefers-color-scheme: dark) {
-    /* the pages keep a light ground; deeper tones keep the white text's contrast under forced dark */
-    :root { --novelty-new: #b71c1c; --novelty-improved: #7a4a00; --novelty-extended: #1a5296; --novelty-corrected: #5e3589; }
 }
 
 html {
@@ -352,29 +340,6 @@ ul.entries > li {
     font-size: 82%;
     line-height: 1.4;
 }
-
-.novelty-tag {
-    display: inline-block;
-    margin-left: 0.4em;
-    padding: 0.05em 0.4em 0.1em;
-    border-radius: 3px;
-    background: var(--novelty-new);
-    color: var(--novelty-ink);
-    font-size: 68%;
-    font-weight: 600;
-    font-style: normal;
-    letter-spacing: 0.03em;
-    line-height: 1.2;
-    vertical-align: 0.15em;
-    white-space: nowrap;
-    text-decoration: none;
-}
-.novelty-tag.novelty-improved { background: var(--novelty-improved); }
-.novelty-tag.novelty-extended { background: var(--novelty-extended); }
-.novelty-tag.novelty-corrected { background: var(--novelty-corrected); }
-.panelhead h2 .novelty-tag { font-size: 45%; vertical-align: 0.4em; }
-.novelty-legend { font-size: 82%; color: var(--faint); line-height: 1.7; }
-.novelty-legend .novelty-tag { margin-left: 0; }
 
 .wip {
     font-size: 70%;
