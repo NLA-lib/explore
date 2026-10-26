@@ -371,6 +371,26 @@ class RatesTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'statement_hash'):
             self.render({'rates.toml': bad}, ds)
 
+    def test_lower_rows_pair_with_a_reviewed_rate(self):
+        ds, cfg, digest = self.exact_fixture()
+        cfg['rates'][1].update(id='lower', kind='lower', pairs_with='rate')
+        site, _ = self.render({'rates.toml': cfg}, ds)
+        upper, lower = site['rates']['entries']
+        self.assertEqual((lower['kind'], lower['overview'], lower['explicit']), ('lower', 2, 2))
+        self.assertEqual((lower['c']['form'], upper['c']['form']), ('lower', 'rate'))
+        self.assertEqual(upper['lower'], ['lower'])
+        # pairs_with is required on a lower row, names a reviewed rate row, and only there
+        for change in (dict(pairs_with='missing'), dict(pairs_with='lower')):
+            bad = copy.deepcopy(cfg); bad['rates'][1].update(change)
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, 'reviewed rate row'):
+                self.render({'rates.toml': bad}, ds)
+        bad = copy.deepcopy(cfg); del bad['rates'][1]['pairs_with']
+        with self.assertRaisesRegex(ValueError, 'pairs_with'):
+            self.render({'rates.toml': bad}, ds)
+        bad = copy.deepcopy(cfg); bad['rates'][0]['pairs_with'] = 'lower'
+        with self.assertRaisesRegex(ValueError, 'pairs_with'):
+            self.render({'rates.toml': bad}, ds)
+
     def test_exact_rows_reject_pairings_and_unknown_kinds(self):
         ds, cfg, digest = self.exact_fixture()
         for theorem, sig, i in (('N.asym', 'sig', 1), ('N.exp', '', 0)):

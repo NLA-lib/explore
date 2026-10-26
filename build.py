@@ -605,7 +605,7 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
                         'doc', 'signature', 'statement', 'source', 'title', 'description', 'filters',
                         'algorithm_definition', 'sketch_definition', 'algorithm_definition_index',
                         'sketch_definition_index', 'algorithm_definition_label', 'label', 'status',
-                        'group', 'c'}
+                        'group', 'c', 'pairs_with', 'lower'}
     family_filters = {}
     family_subjects = {}
     family_of_algorithm = {}
@@ -719,7 +719,7 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
              'detail': label or '; '.join(f.get('details') or []) or None,
              'source': ', '.join(short[:2]) or None, 'sources': long or None,
              'resources': list(dict.fromkeys(r['kind'] for r in resources if r.get('kind'))) or None,
-             'form': 'exact' if exact else 'rate'}
+             'form': exact or 'rate'}
         if c['law']:
             c['law_class'] = class_of.get(c['law'], LAW_CLASS_DEFAULT)
         return {k: v for k, v in c.items() if v is not None}
@@ -736,9 +736,13 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
             raise ValueError(f'rate {rate["id"]}: invalid notes')
         if 'family' in rate and rate['family'] not in family_ids:
             raise ValueError(f'rate {rate["id"]}: unknown family {rate["family"]}')
-        exact = 'kind' in rate
-        if exact and rate['kind'] != 'exact':
+        # 'exact' (an identity) and 'lower' (a lower bound matching the reviewed row `pairs_with`)
+        # cite one theorem
+        exact = rate.get('kind')
+        if 'kind' in rate and exact not in ('exact', 'lower'):
             raise ValueError(f'rate {rate["id"]}: unknown kind {rate["kind"]!r}')
+        if ('pairs_with' in rate) != (exact == 'lower'):
+            raise ValueError(f'rate {rate["id"]}: pairs_with is required on, and only on, a lower row')
         for key, value in rate.items():
             if key != 'resources' and (not isinstance(value, str) or (key != 'notes' and not value.strip())):
                 raise ValueError(f'rate {rate["id"]}: empty or invalid scalar metadata {key}')
@@ -763,7 +767,7 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
         if exact:
             # an exact identity: one theorem, no asymptotic declaration on either side
             if i is None or decls[i]['kind'] != 'theorem':
-                raise ValueError(f'rate {rate["id"]}: missing exact theorem {rate["theorem"]}')
+                raise ValueError(f'rate {rate["id"]}: missing {exact} theorem {rate["theorem"]}')
             if i in targets or i in paired:
                 raise ValueError(f'rate {rate["id"]}: exact row cites a theorem with an asymptotic pairing; '
                                  'use an asymptotic row')
@@ -804,6 +808,13 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
     if stale:
         raise ValueError('statement_hash mismatch; review curated mathematics of rates:\n  '
                          + '\n  '.join(stale))
+    by_id = {e['id']: e for e in out}
+    for e in out:
+        if e.get('kind') == 'lower':
+            upper = by_id.get(e['pairs_with'])
+            if upper is None or upper.get('kind') or upper['family'] != e['family']:
+                raise ValueError(f'rate {e["id"]}: pairs_with must name a reviewed rate row of its family')
+            upper.setdefault('lower', []).append(e['id'])
 
     # every other asymptotic pair is a pending row, with what the library says about it
     reviewed = {e['overview'] for e in out}
@@ -852,7 +863,7 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
             e['c']['regime'] = 'gapless'
 
     # the explicit bounds of a family's algorithms that have no asymptotic form
-    pair_members = set(targets) | paired
+    pair_members = set(targets) | paired | {e['overview'] for e in out if e.get('kind') == 'lower'}
     norate, seen = [], set()
     for rid, r in results.items():
         for row in r.get('rows', []):
