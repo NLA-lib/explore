@@ -12,7 +12,7 @@ Inputs:
   collections.toml        the shelves: curated groups of result ids and definitions, and the
                           `sources` module prefixes whose unclassified results land on each shelf
   results.toml            per `Result:` id overrides: title, aliases, latex, primary,
-                          merge_into (all optional)
+                          merge_into, novelty (all optional)
   facets.toml             overrides of the facets inferred from declaration names (facets.py),
                           keyed by declaration name, and short names of citation keys
   synonyms.toml           search synonyms, mathematical words to library names
@@ -44,6 +44,13 @@ HTML_COMMENT = re.compile(r'<!--.*?-->', re.S)
 ASYMPTOTIC_LINE = re.compile(r'^\s*Asymptotic:[ \t]*(?:\n[ \t]*)?([\w.]+)[ \t]*$', re.M)
 RESULT_LINE = re.compile(r'^\s*Result:\s*(.+?)\s*$', re.M)
 BOLD_NAME = re.compile(r'^\s*\*\*(.+?)\*\*')
+# what a library-original result adds to the literature (results.toml `novelty`): new (no published
+# counterpart), improved (a published result made sharper), extended (generalized to a new setting),
+# corrected (a published statement fixed). 'new' is derived: a member's docstring says
+# "No printed source. New (…)", NLAlib's marker; a bare "No printed source." is an uncited
+# classical fact, not a new one
+NOVELTY = ('new', 'improved', 'extended', 'corrected')
+NEW_MARKER = re.compile(r'No printed source\.\s+New\b')
 
 
 def load_toml(name):
@@ -605,7 +612,7 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
                         'doc', 'signature', 'statement', 'source', 'title', 'description', 'filters',
                         'algorithm_definition', 'sketch_definition', 'algorithm_definition_index',
                         'sketch_definition_index', 'algorithm_definition_label', 'label', 'status',
-                        'group', 'c', 'pairs_with', 'lower'}
+                        'group', 'c', 'pairs_with', 'tightness', 'lower'}
     family_filters = {}
     family_subjects = {}
     family_of_algorithm = {}
@@ -736,13 +743,15 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
             raise ValueError(f'rate {rate["id"]}: invalid notes')
         if 'family' in rate and rate['family'] not in family_ids:
             raise ValueError(f'rate {rate["id"]}: unknown family {rate["family"]}')
-        # 'exact' (an identity) and 'lower' (a lower bound matching the reviewed row `pairs_with`)
-        # cite one theorem
+        # 'exact' (an identity) and 'lower' (a lower bound) cite one theorem; a lower row with
+        # `pairs_with` is shown in the row of the reviewed rate it matches, one without in its own
         exact = rate.get('kind')
         if 'kind' in rate and exact not in ('exact', 'lower'):
             raise ValueError(f'rate {rate["id"]}: unknown kind {rate["kind"]!r}')
-        if ('pairs_with' in rate) != (exact == 'lower'):
-            raise ValueError(f'rate {rate["id"]}: pairs_with is required on, and only on, a lower row')
+        if 'pairs_with' in rate and exact != 'lower':
+            raise ValueError(f'rate {rate["id"]}: pairs_with is allowed only on a lower row')
+        if 'tightness' in rate and ('pairs_with' not in rate or rate['tightness'] not in ('tight', 'gap')):
+            raise ValueError(f'rate {rate["id"]}: tightness (tight or gap) needs pairs_with')
         for key, value in rate.items():
             if key != 'resources' and (not isinstance(value, str) or (key != 'notes' and not value.strip())):
                 raise ValueError(f'rate {rate["id"]}: empty or invalid scalar metadata {key}')
@@ -801,8 +810,12 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
         if alg in family_of_algorithm and family_of_algorithm[alg] != family:
             raise ValueError(f'rate {rate["id"]}: its facets put it in family {family_of_algorithm[alg]} '
                              f'(algorithm {alg}), its guarantee in {family}')
+        # an exact or lower row whose theorem has no `Result:` id may name the result it belongs to
+        if 'result' in rate and (not exact or d['_results'] or rate['result'] not in results):
+            raise ValueError(f'rate {rate["id"]}: result names a known result, only on an exact or lower '
+                             'row whose theorem has no Result id')
         out.append({**rate, **definition_links, 'family': family, 'overview': i, 'explicit': j,
-                    'result': d['_results'][0] if d['_results'] else None,
+                    'result': d['_results'][0] if d['_results'] else rate.get('result'),
                     'status': 'reviewed', 'group': rate['guarantee'],
                     'c': cells(f, i, j, rate.get('label'), resources, exact)})
     if stale:
@@ -810,7 +823,7 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
                          + '\n  '.join(stale))
     by_id = {e['id']: e for e in out}
     for e in out:
-        if e.get('kind') == 'lower':
+        if e.get('kind') == 'lower' and 'pairs_with' in e:
             upper = by_id.get(e['pairs_with'])
             if upper is None or upper.get('kind') or upper['family'] != e['family']:
                 raise ValueError(f'rate {e["id"]}: pairs_with must name a reviewed rate row of its family')
@@ -1125,7 +1138,11 @@ def build(data, bib, out):
         if 'variant_labels' in cfg:
             raise ValueError(f'result {configured_id}: variant_labels is retired; statement labels are '
                              'generated from facets (override one in facets.toml)')
-        for field in ('primary',):
+        if 'new' in cfg:
+            raise ValueError(f'result {configured_id}: new is spelled novelty = "new"')
+        if 'novelty' in cfg and cfg['novelty'] not in (*NOVELTY, 'none'):
+            raise ValueError(f'result {configured_id}: novelty must be one of {", ".join(NOVELTY)} or none')
+        for field in ('primary', 'novelty'):
             if field in cfg and configured_id not in results:
                 raise ValueError(f'result {configured_id}: {field} configured for unknown or alias result')
 
@@ -1209,6 +1226,11 @@ def build(data, bib, out):
             r['decls'], forms, pair['explicit'], title, info, source_names)
         out_results[rid].update(rows=rows, cols=columns, row=default, merged=r.get('merged', []))
         out_results[rid]['aliases'] = out_results[rid]['aliases'] + r.get('extra_aliases', [])
+        # the explorer tags the title of a library-original result with its novelty; 'new' is read
+        # from the docstrings, results.toml `novelty` sets or overrides it ('none' drops it)
+        derived = 'new' if any(NEW_MARKER.search(decls[j].get('doc') or '') for j in r['decls']) else 'none'
+        if cfg.get('novelty', derived) != 'none':
+            out_results[rid]['novelty'] = cfg.get('novelty', derived)
 
     # --- graph nodes: a result (all its declarations together) or a documented definition.
     # Every other declaration is a helper; dependencies are collapsed through helpers.

@@ -49,6 +49,19 @@
     --rule: #d6d6d6;
     --panel: min(52vw, 820px);
     --mono: 'JuliaMono', 'DejaVu Sans Mono', 'Menlo', 'Consolas', monospace;
+    /* novelty tags after a result title: white text on a mid-dark ground, at least 5:1 contrast,
+       so they read on a light or a dark page */
+    --novelty-ink: #ffffff;
+    --novelty-new: #c62828;
+    --novelty-improved: #8a5300;
+    --novelty-extended: #1f5fa8;
+    --novelty-corrected: #6a3d9a;
+    --gap: #9a5b00;
+}
+
+@media (prefers-color-scheme: dark) {
+    /* the pages keep a light ground; deeper tones keep the white text's contrast under forced dark */
+    :root { --novelty-new: #b71c1c; --novelty-improved: #7a4a00; --novelty-extended: #1a5296; --novelty-corrected: #5e3589; }
 }
 
 html {
@@ -339,6 +352,29 @@ ul.entries > li {
     font-size: 82%;
     line-height: 1.4;
 }
+
+.novelty-tag {
+    display: inline-block;
+    margin-left: 0.4em;
+    padding: 0.05em 0.4em 0.1em;
+    border-radius: 3px;
+    background: var(--novelty-new);
+    color: var(--novelty-ink);
+    font-size: 68%;
+    font-weight: 600;
+    font-style: normal;
+    letter-spacing: 0.03em;
+    line-height: 1.2;
+    vertical-align: 0.15em;
+    white-space: nowrap;
+    text-decoration: none;
+}
+.novelty-tag.novelty-improved { background: var(--novelty-improved); }
+.novelty-tag.novelty-extended { background: var(--novelty-extended); }
+.novelty-tag.novelty-corrected { background: var(--novelty-corrected); }
+.panelhead h2 .novelty-tag { font-size: 45%; vertical-align: 0.4em; }
+.novelty-legend { font-size: 82%; color: var(--faint); line-height: 1.7; }
+.novelty-legend .novelty-tag { margin-left: 0; }
 
 .wip {
     font-size: 70%;
@@ -967,7 +1003,22 @@ body[data-page="rates"] .rate-notation > :not(summary), body[data-page="rates"] 
 .rates-table td.c-stat, .rates-table td.c-output, .rates-table td.c-regime { white-space: nowrap; }
 .rates-table td.c-source { color: var(--faint); min-width: 7em; }
 .rates-table td.c-law, .rates-table td.c-output { min-width: 5.5em; }
-.rates-table td.c-resources { min-width: 14em; }
+.rates-table td.c-resources, .rates-table td.c-lower { min-width: 14em; }
+.rates-table td.c-lower_source { color: var(--faint); min-width: 7em; }
+.rate-lower + .rate-lower, .rate-lower-source + .rate-lower-source { margin-top: 0.5em; }
+.tightness-tag {
+    display: inline-block;
+    font-size: 78%;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1px solid currentColor;
+    padding: 0 0.35em;
+    border-radius: 2px;
+    vertical-align: 0.1em;
+}
+.tightness-tag.tight { color: var(--ink); }
+.tightness-tag.gap { color: var(--gap); border-style: dashed; }
+.rate-lower-head { margin: 1.2em 0 0.3em; }
 .rates-table .katex { font-size: 1.12em; }
 .rate-toggle {
     border: none; background: none; padding: 0 0.2em; font: inherit; color: var(--faint); cursor: pointer;
@@ -1022,11 +1073,14 @@ body[data-page="rates"] .rate-notation > :not(summary), body[data-page="rates"] 
         padding: 0.45em 0.4em 0.45em 2em; border-top: 1px solid #eee; }
     .rates-table tr.rate-row td { display: inline; padding: 0; border: none; background: none !important; white-space: normal; }
     .rates-table tr.rate-row td:empty { display: none; }
-    .rates-table tr.rate-row td:not(.pick):not(.c-resources):not(:empty) ~ td:not(.c-resources):not(:empty)::before {
+    .rates-table tr.rate-row td:not(.pick):not(.c-resources):not(.c-lower):not(:empty) ~ td:not(.c-resources):not(.c-lower):not(:empty)::before {
         content: "\00a0·\00a0"; color: var(--faint); }
     .rates-table tr.rate-row td.c-law, .rates-table tr.rate-row td.c-output, .rates-table tr.rate-row td.c-source { min-width: 0; }
     .rate-expanded { font-size: 105%; }
     .rates-table tr.rate-row td.c-resources { display: block; order: 10; flex-basis: 100%; min-width: 0; margin-top: 0.25em; }
+    .rates-table tr.rate-row td.c-lower { display: block; order: 11; flex-basis: 100%; min-width: 0; margin-top: 0.25em; }
+    .rates-table tr.rate-row td.c-lower:not(:empty)::before { content: "Lower bound: "; color: var(--faint); }
+    .rates-table tr.rate-row td.c-lower_source { order: 12; }
     .rates-table tr.rate-row td.pick { position: absolute; left: 0.3em; top: 0.4em; width: auto; }
     .rates-table tr.rate-row.on { background: #ecece8; box-shadow: inset 3px 0 0 var(--ink); }
     .rates-table tr.rate-row.on td.pick { box-shadow: none; }
