@@ -360,12 +360,12 @@ results = ["range-recovery-k-queries"]
 
 [[collections.groups]]
 id = "low-rank"
-title = "Low-rank approximation: the estimators' factors are sharp"
+title = "Low-rank approximation"
 results = ["randomized-svd-lower-bound", "randomized-nystrom-lower-bound", "generalized-nystrom-lower-bound", "early-truncated-rsvd-lower-bound", "truncated-gn-lower-bound"]
 
 [[collections.groups]]
 id = "regression"
-title = "Sketch-and-solve: the Haar sketch is minimax optimal"
+title = "Sketch-and-solve"
 results = ["sketch-and-solve-lower-bound"]
 
 [[collections.groups]]
