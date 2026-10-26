@@ -24,8 +24,10 @@ for this pass to avoid edits to Lean files currently owned by another agent.
 
 `collections.toml` gives results and definitions a browsing location independent of their source
 module. Result IDs and declaration routes are unchanged. Shared results may occur in several
-collections; unclassified new results and concepts in a configured topic stay visible in an
-automatic fallback group. Module browsing and source breadcrumbs remain available. Explicit
+collections; unclassified new results and concepts stay visible in the automatic fallback group
+of the collection whose `sources` module prefix matches them most specifically. Since 2026-10-25
+the collections are the home page's task shelves (`topics.toml` `shelves`, decision EXPLORER (a)
+of the Organization report), and the folders not on a shelf form a collapsed source browser. Module browsing and source breadcrumbs remain available. Explicit
 preferred declarations in `results.toml` choose the headline and paired overview deliberately.
 
 ## Validation contract

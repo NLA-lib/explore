@@ -292,22 +292,30 @@
       (entries.length ? `<ul class="entries">${entries.map(entryHtml).join('')}</ul>` : '');
   }
 
+  // The shelves (task topics, in topics.toml order) come first; the remaining source folders sit
+  // in a collapsed source browser below them.
   function renderCatalogue() {
-    $('#content').innerHTML = D.topics.map(t => {
+    const shelves = D.shelves || [];
+    const html = t => {
       const flat = t.subs.length === 1 && t.subs[0].title === t.title;
       const collection = (D.collections || []).find(c => c.topic === t.id);
       const sourceBody = t.subs.map(s => section(`s-${s.id}`, 'sub', 'h3', s.title, counts(s.modules), s.modules.map(moduleHtml).join(''))).join('');
-      const collectionBody = collection ? (collection.description ? `<p class="topic-blurb">${md(collection.description, { inline: true })}</p>` : '') + collection.groups.map(g => section(`collection-${collection.id}-${g.id}`, 'sub', 'h3', g.title, '', `<ul class="entries">${g.entries.filter(e => e.type === 'r' ? D.results[e.rid] : decls[e.i]).map(entryHtml).join('')}</ul>`)).join('') + (sourceBody ? `<details class="source-modules" id="source-modules-${esc(collection.id)}"${openSections.has(`source-modules-${collection.id}`) ? ' open' : ''}><summary>Browse source modules</summary>${sourceBody}</details>` : '') : '';
+      const collectionBody = collection ? (collection.description ? `<p class="topic-blurb">${md(collection.description, { inline: true })}</p>` : '') + collection.groups.map(g => section(`collection-${collection.id}-${g.id}`, 'sub', 'h3', g.title, '', `<ul class="entries">${g.entries.filter(e => e.type === 'r' ? D.results[e.rid] : decls[e.i]).map(entryHtml).join('')}</ul>`)).join('') + (!sourceBody ? '' : collection.modules === 'inline' ? sourceBody : `<details class="source-modules" id="source-modules-${esc(collection.id)}"${openSections.has(`source-modules-${collection.id}`) ? ' open' : ''}><summary>Browse source modules</summary>${sourceBody}</details>`) : '';
       const body = collection ? collectionBody : (t.blurb ? `<p class="topic-blurb">${md(t.blurb, { inline: true })}</p>` : '') +
         t.subs.map(s => {
           const inner = (s.blurb ? `<p class="sub-blurb">${md(s.blurb, { inline: true })}</p>` : '') +
             s.modules.map(moduleHtml).join('');
           return flat ? inner : section(`s-${s.id}`, 'sub', 'h3', s.title, counts(s.modules), inner);
         }).join('');
-      const unique = collection && new Set(collection.groups.flatMap(g => g.entries.map(e => e.type === 'r' ? 'r:' + e.rid : 'd:' + e.i)));
+      const unique = collection && collection.modules !== 'inline' && new Set(collection.groups.flatMap(g => g.entries.map(e => e.type === 'r' ? 'r:' + e.rid : 'd:' + e.i)));
       const total = unique ? `${unique.size} entries` : counts(t.subs.flatMap(s => s.modules));
       return section(`t-${t.id}`, 'topic', 'h2', t.title, total, body);
-    }).join('');
+    };
+    const shelved = shelves.map(id => topicById.get(id)).filter(Boolean);
+    const folders = D.topics.filter(t => !shelves.includes(t.id));
+    $('#content').innerHTML = shelved.map(html).join('') + (!shelved.length ? folders.map(html).join('') : !folders.length ? '' :
+      `<details class="source-modules source-browser" id="source-browser"${openSections.has('source-browser') ? ' open' : ''}><summary>Browse the other source folders</summary>` +
+      `<p class="topic-blurb">The library's folders follow its import layers; the shelves above group the same results by task. Folders that are shelves are browsable inside their shelf.</p>${folders.map(html).join('')}</details>`);
   }
 
   $('#content').addEventListener('toggle', ev => {

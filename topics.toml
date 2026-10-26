@@ -1,12 +1,18 @@
 # Titles, order and one-line blurbs for the directories of NLAlib, used by build.py.
-# A topic is a directory under NLAlib/ (a layer), a subtopic a directory one level below it.
+# A topic is a directory under NLAlib/ (a layer), a subtopic a directory one level below it, or
+# a shelf that collections.toml introduces. `shelves` lists the task shelves the home page shows
+# first, in this order; the other folders go into the collapsed source browser below them.
 # Every key is optional: a directory without an entry is shown with a title made from its name
 # (`SubGaussianVector` -> "Sub-Gaussian vector") and sorted alphabetically after the listed ones.
 # Files directly under a layer go to the subtopic named in that layer's `assign` table, or to
 # `General`. Keep this file in step with the layer design notes in NLAlib's docs/design/.
 
-order = ["Matrix", "Polynomial", "Probability", "Krylov", "RandomMatrix", "Sketching",
-         "Regression", "LowRank", "Estimation", "Solvers", "ForMathlib"]
+shelves = ["LinearSystems", "LowRank", "Sketching", "Estimation", "MatrixFunctions", "Polynomial",
+           "Eigenvalues", "Concentration", "LowerBounds", "Matrix"]
+
+# source folders, in import-layer order
+order = ["Matrix", "Polynomial", "Krylov", "Probability", "RandomMatrix", "Sketching",
+         "Regression", "Solvers", "LowRank", "Estimation", "ForMathlib"]
 
 [Matrix]
 title = "Matrix analysis"
@@ -34,7 +40,7 @@ SubGaussian.title = "Sub-Gaussian variables"
 SubExponential.title = "Sub-exponential variables"
 SubGaussianVector.title = "Sub-Gaussian vectors"
 RandomVectors.title = "Random vectors and their laws"
-QuadraticForm.title = "Quadratic forms and trace estimation"
+QuadraticForm.title = "Quadratic forms"
 Entropy.title = "The entropy method"
 MatrixValued.title = "Matrix-valued random variables"
 MatrixConcentration.title = "Matrix concentration"
@@ -78,4 +84,21 @@ blurb = "General facts with no NLAlib vocabulary in their statements, declared i
 
 [Regression]
 title = "Regression"
-blurb = "Sketch-and-solve, sketch-and-precondition and their least-squares foundations."
+blurb = "Randomized least-squares solvers: sketch-and-solve, sketch-and-precondition and iterative sketching. Browse them with the Krylov and row-action solvers on the Solve Ax = b shelf."
+
+[Solvers]
+title = "Solvers"
+blurb = "Randomized Kaczmarz and sketch-and-project, also on the Solve Ax = b shelf."
+
+[Estimation]
+title = "Trace and spectral-density estimation"
+blurb = "Trace and spectral-density estimators: Girard–Hutchinson, Hutch++, stochastic Lanczos quadrature, the probe spectral measure and random-start methods."
+
+[LowRank]
+title = "Low-rank approximation"
+
+[Polynomial]
+title = "Polynomial approximation"
+
+[Sketching]
+title = "Sketches and embeddings"

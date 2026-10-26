@@ -6,6 +6,8 @@
 # re-read with the independent-coordinate row at 24b5d47ac04eb4ee5adb1203e6a888cc2ab287e3 (hashes
 # unchanged), and at a4f8773 after the Hutch++ proofs (hashes unchanged); publish
 # a4f877336325611783c2f3af6bafe51e2fc11ab1 or later before deployment.
+# Hashes of 15 rows refreshed at NLAlib 1c35f6f after docstring-only edits (audit P2, C9 policy;
+# Lean statements unchanged since 47b95ab).
 # Compare every changed summary with its exact theorem before updating statement_hash.
 
 # Rows are generated from every asymptotic pair of the library (and the exact rows below); the
@@ -64,7 +66,7 @@ notation = '''Real matrices $\mathbf{A}\in\mathbb{R}^{m\times n}$; Nyström rows
 [[families]]
 id = 'regression'
 algorithms = ['sketch-and-solve']
-title = 'Regression'
+title = 'Least squares'
 subject_label = 'Algorithm'
 description = '''Compare sufficient sketch sizes for relative least-squares residual error. The error is the squared Frobenius norm of the residual.'''
 notation = '''For fixed matrices $\mathbf{A}\in\Bbbk^{m\times n}$ and $\mathbf{B}\in\Bbbk^{m\times q}$ over the scalar field permitted by the row, let $r=\operatorname{rank}\mathbf{A}$ and $\operatorname{OPT}_{\mathrm{LS}}^2=\min_{\mathbf{Y}}\|\mathbf{B}-\mathbf{A}\mathbf{Y}\|_{\mathsf{F}}^2=\|(\mathbf{I}-\mathbf{A}\mathbf{A}^{+})\mathbf{B}\|_{\mathsf{F}}^2$. A sketch $\mathbf{S}\in\Bbbk^{s\times m}$ produces $\widehat{\mathbf{X}}=\mathsf{sketchAndSolve}(\mathbf{A},\mathbf{S},\mathbf{B})=(\mathbf{S}\mathbf{A})^{+}\mathbf{S}\mathbf{B}$. For absolute $\varepsilon_0>0$, the rates assume $0<\varepsilon\le\varepsilon_0$. The input matrices are fixed before drawing the sketch; expectations and probabilities concern that draw. Resource thresholds, parameter ranges, rank restrictions, sketch normalization and any ambient-dimension cap are supplied by each reviewed row and its exact theorem. Gaussian and Haar rows use real inputs; the CountSketch tail also permits complex inputs. No full-column-rank assumption or coefficient-error guarantee is inferred.'''
@@ -136,7 +138,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\log
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.HasJLProperty'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''6686237465d505251c666f092e555663a7e38f9a6e32a719a5aaa9ebb0d7ace5'''
+statement_hash = '''55da2af0cd417f19655d2137abac2b36de29ecc35bcb83f68e1f4c45ef8ef344'''
 
 [[rates]]
 id = '''jl-haar'''
@@ -146,7 +148,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\log
 notes = '''$\delta\le1/2$. $s\le n$.'''
 algorithm_definition = '''NLAlib.HasJLProperty'''
 sketch_definition = '''NLAlib.haarFrame'''
-statement_hash = '''bb93f1c8e91da1a585cc7f4fe8d000d24eb47f59b746db199d015ba81da71d0a'''
+statement_hash = '''6ecc3813ca3d051a95dd00d643f61621cef858d721c7b666e47c7bac13402ec5'''
 
 [[rates]]
 id = '''jl-rademacher'''
@@ -156,7 +158,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\log
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.HasJLProperty'''
 sketch_definition = '''NLAlib.rademacherMatrix'''
-statement_hash = '''fc9810da51a1903cb7febbe852cf865d4742d600484f4fbe654c9f79af7754f5'''
+statement_hash = '''18c7ca29b6643b3c80a9c1762b2adfa5624e5299b8c3718e0502f95418b5328c'''
 
 [[rates]]
 id = '''jl-sub-gaussian'''
@@ -166,7 +168,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(c^2 
 notes = '''$\delta\le1/2$. $s>0$; independent isotropic rows, proxy $c$.'''
 algorithm_definition = '''NLAlib.HasJLProperty'''
 sketch_definition = '''NLAlib.IsSubgaussianVector'''
-statement_hash = '''d2fd5ddb4aecb29eaaf8fc7558e815a65c6a18d599fd89f25f0666ddf3a637c5'''
+statement_hash = '''de8f502419e57fbc4c924a18ebd3a89555ce54198c3def02adcaaa67d9e097a5'''
 
 [[rates]]
 id = '''ose-countsketch'''
@@ -196,7 +198,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O((d+\
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.rademacherMatrix'''
-statement_hash = '''c62af3c0d4252f00bc1dc2415bc4f7db331472695c6d2be8af3480ffa9843a5c'''
+statement_hash = '''73f1dc6c066c85f5efa4cfbb6b5c41178ec3d25fce24a3e3a67bcb31ae99b335'''
 
 [[rates]]
 id = '''ose-row-sampling-with-replacement'''
@@ -216,7 +218,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\lo
 notes = '''$\delta\le1/2$. $s\le n$; $\ell_i(\mathbf{U})\le L/n$.'''
 algorithm_definition = '''NLAlib.HasSubspaceEmbedding'''
 sketch_definition = '''NLAlib.samplingSketchWithoutReplacement'''
-statement_hash = '''766679ba595ef5fbf09d7fef9c1495f7d70b69b065550e963847c5324111e56b'''
+statement_hash = '''a1dafcc8504f1f3fe54955220aaa465f3be288da8abe157fc47b6f1a2274f411'''
 
 [[rates]]
 id = '''ose-srht-with-replacement'''
@@ -226,7 +228,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\bet
 notes = '''$\delta\le1/2$. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.srhtWithReplacement'''
-statement_hash = '''ba73fa13b2c06a45390d8a2ade766622a52db0570aa5fc2470b317bc005a2a5e'''
+statement_hash = '''92d744d7c6213bc4d30a77da89e415d567dc3e00ad36a70a49f44c1950c3a54e'''
 
 [[rates]]
 id = '''ose-srht-without-replacement'''
@@ -236,7 +238,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\bet
 notes = '''$\delta\le1/2$. $s\le n$. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.srht'''
-statement_hash = '''70ca4b568848bc7e869a05e1b10db8fc2646eedbf9b97b53e7b6b993b8daef42'''
+statement_hash = '''b0ab2b25572e453d913f2a8b647e8d5321657187cfbea7308071f4239c718bd7'''
 
 [[rates]]
 id = '''ose-sub-gaussian'''
@@ -256,7 +258,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O((d+\
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''894f84241199ccf651db040502607c78a7d64d19edface145e5e6104f1b2608b'''
+statement_hash = '''32ddb917d0cd7c61466f0f9cd7d170fe14206b44f2979b93cd18bc62987a441f'''
 
 [[rates]]
 id = '''osi-row-sampling-with-replacement'''
@@ -266,7 +268,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\lo
 notes = '''$\ell_i(\mathbf{U})\le Lp_i$.'''
 algorithm_definition = '''NLAlib.HasSubspaceInjection'''
 sketch_definition = '''NLAlib.samplingSketch'''
-statement_hash = '''2f6c36222be6c19d2dc4aabe23cf93fe09858e5bc5a372d14304bee5b7c7a732'''
+statement_hash = '''ce73a8bf7885c325f6c5fbb700af0e8ffcc8b0b2f98dd850a911eb1d6767769f'''
 
 [[rates]]
 id = '''osi-row-sampling-without-replacement'''
@@ -276,7 +278,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\lo
 notes = '''$s\le n$; $\ell_i(\mathbf{U})\le L/n$.'''
 algorithm_definition = '''NLAlib.HasSubspaceInjection'''
 sketch_definition = '''NLAlib.samplingSketchWithoutReplacement'''
-statement_hash = '''c16b641e8e7ce34421cb6505a8ef0a9565c8a89b8f54a855bfa284ff1311fa67'''
+statement_hash = '''2e31d69edf4ca39e576b140c78442f7f997e6880697af32fd395d03ef6d621c4'''
 
 [[rates]]
 id = '''osi-srht-with-replacement'''
@@ -286,7 +288,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\bet
 notes = '''$\delta\le1/2$. $s>0$, $n>0$. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
 sketch_definition = '''NLAlib.srhtWithReplacement'''
-statement_hash = '''e559895accfc5b8e422ca2f55ed87417af98cfe249e5076681c7b489c11e9bfd'''
+statement_hash = '''9e622ad68591b41c58375ad487736f67ce8d32b89e67dbc0c186c4118a425a1a'''
 
 [[rates]]
 id = '''osi-srht-without-replacement'''
@@ -296,7 +298,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\bet
 notes = '''$\delta\le1/2$. $s\le n$. $s>0$ for injection. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
 sketch_definition = '''NLAlib.srht'''
-statement_hash = '''318dfc9dcc15c2388b0df09b3df6f268c9cab1246d6548bbe09c52626dd7e1ad'''
+statement_hash = '''ee527d31cc079f5261130739f8368633f9a003edc443293b6a4c6ba4bed51ba4'''
 
 [[rates]]
 id = '''rsvd-basic-gaussian'''
@@ -736,7 +738,7 @@ guarantee = 'trace-several-probes'
 resources = [{ label = 'Variance', bound = '''$\operatorname{Var}\Bigl[\dfrac{n}{k}\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})\Bigr]=\dfrac{2n(n-k)}{k(n-1)(n+2)}\Bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-\dfrac{(\operatorname{tr}\mathbf{A})^2}{n}\Bigr)$''' }]
 notes = '''Real symmetric $\mathbf{A}$; $\mathbf{\Omega}=\sqrt{n}\,\mathbf{Q}$ for an $n\times k$ Haar frame $\mathbf{Q}$, with $1\le k\le n$ and $n\ge2$. The compression $\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})$ itself has variance $\frac{2k(n-k)}{(n-1)n(n+2)}\bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-(\operatorname{tr}\mathbf{A})^2/n\bigr)$ (`NLAlib.variance_trace_conjTranspose_mul_mul_of_hasLaw_haarFrame`), and for any real $\mathbf{A}$ the same with $\|\mathbf{H}\|_{\mathsf{F}}$ (`NLAlib.variance_trace_conjTranspose_mul_mul_of_hasLaw_haarFrame_hermitianPart`).'''
 algorithm_definition = 'NLAlib.haarFrame'
-statement_hash = '85eaeac068930a212a0a0e7379e3b98cce1beaae82d1afe91b2dd3f481faaee5'
+statement_hash = 'bcee19ee8e372788d0ef2e16ee04f612be527793ef34d71519f2863e4552ef1d'
 
 [[rates]]
 id = 'trace-independent-probes'
@@ -748,4 +750,4 @@ resources = [{ label = '$\mathbb{E}\lvert\operatorname{tr}\mathbf{A}-\cdot\rvert
 notes = '''$m\ge1$ independent isotropic probes $\boldsymbol{\omega}_j$ (the columns of $\mathbf{\Omega}$), over $\mathbb{R}$ or $\mathbb{C}$, each with a square-integrable estimate and the same single-probe second moment $\mathbb{E}\lvert\boldsymbol{\omega}_j^{\mathsf{H}}\mathbf{A}\boldsymbol{\omega}_j-\operatorname{tr}\mathbf{A}\rvert^2=v$, for instance a value from a one-probe row. Any square $\mathbf{A}$. The real form with $\operatorname{Var}$ in hypothesis and conclusion is `NLAlib.variance_girardHutchinson`.'''
 algorithm_definition = 'NLAlib.IsIsotropic'
 algorithm_definition_label = 'Isotropy'
-statement_hash = 'a770da38c9c1d77901a02e4c5b0372b8b1fad73893f152daf0112dddf61640ff'
+statement_hash = 'e2703d87f2e87c80c5efb9453ab7b8c42cd077d6277c5e9586bafd055dc42960'

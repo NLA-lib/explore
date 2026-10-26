@@ -286,6 +286,37 @@ class RatesTests(unittest.TestCase):
         self.assertEqual(site['collections'][0]['groups'][0]['entries'],
                          [{'type': 'r', 'rid': 'solve'}, {'type': 'd', 'i': 2}])
 
+    def test_shelf_sources_route_new_results_to_one_shelf(self):
+        mod = lambda name, module: dict(decl(name, f'Result: {name[2:]}'), module=module)
+        ds = [mod('N.cg', 'NLAlib.Krylov.LinearSystems.CG'), mod('N.lanczos', 'NLAlib.Krylov.Processes.Lanczos'),
+              mod('N.sharp', 'NLAlib.Krylov.LinearSystems.WorstCase'), mod('N.loose', 'NLAlib.ForMathlib.Misc')]
+        index = {d['name']: i for i, d in enumerate(ds)}
+        rs = {d['name'][2:]: {'decls': [i]} for i, d in enumerate(ds)}
+        shelf = lambda topic, sources: dict(id=topic.lower(), topic=topic, title=topic, description='D',
+                                            sources=sources, groups=[])
+        cfg = {'collections': [shelf('LinearSystems', ['NLAlib.Krylov.LinearSystems']),
+                               shelf('Eigenvalues', ['NLAlib.Krylov']),
+                               shelf('LowerBounds', ['NLAlib.Krylov.LinearSystems.WorstCase'])]}
+        out = b.collections_page(cfg, rs, ds, index, {}, {})
+        other = {c['topic']: [e['rid'] for g in c['groups'] for e in g['entries']] for c in out}
+        # the longest matching prefix wins; a module under no prefix is on no shelf
+        self.assertEqual(other, {'LinearSystems': ['cg'], 'Eigenvalues': ['lanczos'], 'LowerBounds': ['sharp']})
+        bad = copy.deepcopy(cfg); bad['collections'][0]['sources'] = 'NLAlib.Krylov'
+        with self.assertRaisesRegex(ValueError, 'sources'):
+            b.collections_page(bad, rs, ds, index, {}, {})
+        # shelves must name topics, and the site lists them in order
+        for shelves, ok in ((['Eigenvalues', 'LinearSystems'], True), (['Missing'], False), (['Eigenvalues'] * 2, False)):
+            config = {'collections.toml': cfg, 'topics.toml': {'shelves': shelves}}
+            with self.subTest(shelves=shelves), tempfile.TemporaryDirectory() as tmp, \
+                    patch.object(b, 'load_toml', side_effect=lambda name: config.get(name, {})):
+                data = dict(decls=copy.deepcopy(ds), modules=[dict(name='NLAlib.Krylov.Processes.Lanczos', path='x.lean')])
+                if ok:
+                    b.build(data, {}, Path(tmp) / 'site')
+                    self.assertEqual(json.loads((Path(tmp) / 'site/data.json').read_text())['shelves'], shelves)
+                else:
+                    with self.assertRaisesRegex(ValueError, 'shelves'):
+                        b.build(data, {}, Path(tmp) / 'site')
+
     def test_family_subject_is_configured_scalar_and_labels_are_nonempty(self):
         cfg = copy.deepcopy(self.cfg)
         cfg['families'][0].update(subject_field='preconditioner', subject_label='Preconditioner',

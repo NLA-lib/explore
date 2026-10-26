@@ -112,17 +112,28 @@ explicit/asymptotic toggle; a Result id is recorded when it has one. No runtime 
 claim is inferred from a theorem name. See
 [docs/rates-design.md](docs/rates-design.md#rates-from-facets-2026-10-19).
 
-`collections.toml` organizes the Explorer independently of Lean import paths. Low-rank results
-are grouped under RSVD, generalized Nyström, PSD Nyström and shared theory. Each group references
-existing result IDs and definition names, retaining canonical URLs. Newly extracted results in
-a configured topic appear in an automatic additional group until classified. Source modules
-remain available in a collapsed browser. Sketching has Gaussian, Haar, Sparse, Trig and Other
-groups, plus shared theory. Regression is a peer topic with sketch-and-solve,
-sketch-and-precondition and least-squares foundations. Collections can introduce a topic before
-its source directory exists, so the presentation works across a module migration. Explicitly
-classified results do not reappear in another collection's automatic fallback. A result may appear in more than
-one group. File moves preserve Rates and collection references because they use declaration names
-and result IDs; source paths and line numbers come from each fresh extraction. See
+The home page is organized by **task shelves**, not by source folder. `topics.toml` `shelves`
+lists them in order: Solve Ax = b and least squares; Low-rank approximation; Sketches and
+embeddings; Trace and spectral-density estimation; Matrix functions and quadrature; Polynomial
+approximation; Eigenvalues and Krylov processes; Concentration and random matrices; Lower bounds
+(matvec model); Matrix analysis. Each shelf is a collection in `collections.toml`, whose groups
+list existing result IDs and definition names from any folder, keeping their canonical URLs; a
+result may sit in several groups and shelves (CG is under Solve Ax = b, its worst cases also under
+Lower bounds). A shelf may be a folder (LowRank, Sketching, Estimation, Polynomial, Matrix: its
+source modules follow in a collapsed browser, or inline with `modules = "inline"`) or not
+(LinearSystems, MatrixFunctions, Eigenvalues, Concentration, LowerBounds). The other folders
+(Krylov, Probability, RandomMatrix, Regression, Solvers, ForMathlib) sit in a collapsed source
+browser below the shelves; the folders follow NLAlib's import layers (`order`).
+
+A collection's `sources` lists module prefixes (default: the folder named by its `topic`). A
+result or definition that no group lists appears in the "Other results and definitions" group
+of the collection whose prefix matches its module most specifically, so a new result lands on
+exactly one shelf until it is classified (a new `NLAlib.Krylov.LinearSystems.WorstCase` result
+goes to Lower bounds, not Solve Ax = b). Unknown result ids, definitions, shelves and malformed
+prefixes fail the build, all listed together. Prefixes may name folders that do not exist yet,
+so the presentation works across a module migration. File moves preserve Rates and collection
+references because they use declaration names and result IDs; source paths and line numbers come
+from each fresh extraction. See
 [the migration direction](docs/rates-design.md#preparing-the-source-library-reorganization).
 
 `results.toml` can set `primary` to an exact explicit declaration belonging to that result.
@@ -238,13 +249,13 @@ rejects them.
 |---|---|
 | `build.py` | `data/explore-data.json` (+ `references.bib`) → `site/` |
 | `web/` | the page: `index.html`, `app.js`, `style.css`, fonts, KaTeX 0.16.22 (MIT) |
-| `topics.toml` | titles, order and blurbs of topics and subtopics; where loose files go |
+| `topics.toml` | the shelf order (`shelves`); titles, layer order and blurbs of folders and subfolders; where loose files go |
 | `results.toml` | optional title, aliases, LaTeX statement, primary and `merge_into` per result id |
 | `facets.py` | facets of a bound read from its name (and of a sketch property); the statements table of a result page; the Rates cells |
 | `facets.toml` | per-declaration facet overrides and short names of citation keys |
 | `synonyms.toml` | search synonyms (`pseudoinverse` → `pinv`) |
 | `rates.toml` | Rates families, guarantees and the reviewed overlay (summaries keyed by theorem and statement hash) |
-| `collections.toml` | result and definition groupings independent of source modules |
+| `collections.toml` | the shelves: result and definition groups independent of source modules, and the `sources` prefixes that place new results |
 | `books.toml` | key books for the Books page: chapters, sections, numbered results (numbers and short names only) |
 
 ## Local build

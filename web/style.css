@@ -889,6 +889,7 @@ button:focus-visible, select:focus-visible {
 }
 
 .source-modules { margin-top: 1em; font-size: 90%; }
+.source-browser { margin-top: 2.5em; }
 .source-modules > summary { font-style: italic; text-decoration: underline; }
 
 /* Rates: one table per family in the look of a result page's statements table; group rows are
