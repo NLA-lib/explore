@@ -58,6 +58,21 @@
   });
 
   const resultTitle = rid => D.results[rid]?.title ?? rid;
+  // a library-original result ends its title with a tag of its novelty (results.toml `novelty`)
+  const NOVELTY = {
+    new: 'New: proved here first, with no published counterpart',
+    improved: 'Improved: a published result, here with a sharper or explicit constant, a better rate or a weaker hypothesis',
+    extended: 'Extended: a published result, here generalized to a new setting (field, sketch law, output)',
+    corrected: 'Corrected: a published statement, fixed here (a missing hypothesis, a wrong constant)' };
+  const noveltyBadge = n => `<span class="novelty-tag novelty-${esc(n)}" title="${esc(NOVELTY[n])}">${esc(n)}</span>`;
+  const noveltyTag = rid => NOVELTY[D.results[rid]?.novelty] ? ' ' + noveltyBadge(D.results[rid].novelty) : '';
+  // the legend of the tags in use, where tagged titles are listed
+  function noveltyLegend() {
+    const used = new Set(Object.values(D.results).map(r => r.novelty));
+    const keys = Object.keys(NOVELTY).filter(n => used.has(n));
+    return keys.length ? `<p class="novelty-legend">Tags after a title: ${keys.map(n =>
+      `${noveltyBadge(n)} ${esc(NOVELTY[n].replace(/^\w+: /, ''))}`).join('; ')}.</p>` : '';
+  }
   // a graph box is SVG text, so a title's maths is written out plainly: `$\chi^2$` is χ²
   const GREEK = { alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', epsilon: 'ε', varepsilon: 'ε',
     theta: 'θ', Theta: 'Θ', kappa: 'κ', lambda: 'λ', mu: 'μ', sigma: 'σ', Sigma: 'Σ', chi: 'χ',
@@ -248,7 +263,7 @@
     if (e.type === 'r') {
       const r = D.results[e.rid];
       const anyWip = r.decls.some(j => decls[j].s);
-      return `<li><a class="entry-title" href="#r/${encodeURIComponent(e.rid)}">${md(r.title, { inline: true })}</a>` +
+      return `<li><a class="entry-title" href="#r/${encodeURIComponent(e.rid)}">${md(r.title, { inline: true })}</a>${noveltyTag(e.rid)}` +
         (anyWip ? '<span class="wip">proof in progress</span>' : '') +
         `<span class="desc">${descHtml(overviewOf(r))}</span></li>`;
     }
@@ -313,7 +328,7 @@
     };
     const shelved = shelves.map(id => topicById.get(id)).filter(Boolean);
     const folders = D.topics.filter(t => !shelves.includes(t.id));
-    $('#content').innerHTML = shelved.map(html).join('') + (!shelved.length ? folders.map(html).join('') : !folders.length ? '' :
+    $('#content').innerHTML = noveltyLegend() + shelved.map(html).join('') + (!shelved.length ? folders.map(html).join('') : !folders.length ? '' :
       `<details class="source-modules source-browser" id="source-browser"${openSections.has('source-browser') ? ' open' : ''}><summary>Browse the other source folders</summary>` +
       `<p class="topic-blurb">The library's folders follow its import layers; the shelves above group the same results by task. Folders that are shelves are browsable inside their shelf.</p>${folders.map(html).join('')}</details>`);
   }
@@ -500,18 +515,40 @@
   // the result page with this row selected; an exact theorem without a Result id is its own page
   function rateRoute(e, i = e.overview) { return e.result ? rowRoute(e.result, i) : declRoute(i); }
 
+  // a lower bound with `pairs_with` is shown in the row of the reviewed rate it matches
+  // (function declarations: the page renders before the module body below runs to its end)
+  function upperOf(e) { return e.kind === 'lower' && e.pairs_with ? rateById(e.pairs_with) : undefined; }
+  function lowersOf(e) { return (e.lower || []).map(id => rateById(id)).filter(Boolean); }
+
   function rateColumns(f, rows) {
     // a plain output is no information where no row is truncated
     const value = (e, k) => (k === 'output' && e.c?.output === 'plain' ? '' : e.c?.[k] ?? '');
     const vary = k => new Set(rows.map(e => value(e, k))).size > 1;
+    const lower = rows.some(e => e.lower?.length);
     return [{ k: 'algorithm', t: f.subject_label || 'Algorithm' },
       ...['law', 'output', 'regime', 'detail'].filter(k => vary(k) || (k === 'detail' && rows.some(e => e.c?.detail)))
         .map(k => ({ k, t: RATE_COLUMN_TITLES[k] })),
-      { k: 'stat', t: 'Statistic' }, { k: 'resources', t: f.resources_label || 'Resources' }, { k: 'source', t: 'Source' }];
+      { k: 'stat', t: 'Statistic' }, { k: 'resources', t: lower ? 'Upper bound' : f.resources_label || 'Resources' },
+      { k: 'source', t: 'Source' },
+      ...(lower ? [{ k: 'lower', t: 'Lower bound' }, { k: 'lower_source', t: 'Lower-bound source' }] : [])];
   }
 
-  function rateCell(e, k) {
+  function tightnessTag(l) {
+    const why = { tight: 'The lower bound matches the upper bound', gap: 'A gap: the lower bound is below the upper bound' }[l.tightness];
+    return why ? `<span class="tightness-tag ${esc(l.tightness)}" title="${esc(why)}">${esc(l.tightness)}</span> ` : '';
+  }
+  function rateResourcesHtml(e) {
+    const notes = Array.isArray(e.notes) ? e.notes.join(' ') : e.notes;
+    return (e.resources || []).map(r => `<div class="rate-resource"><span class="rate-res-label">${md(r.label, { inline: true })}:</span> ${md(r.bound, { inline: true })}</div>`).join('') +
+      (notes ? `<p class="rate-caveat"><strong>${e.kind ? 'Hypotheses' : 'Parameters'}:</strong> ${md(notes, { inline: true })}</p>` : '');
+  }
+  function rateSourceHtml(e) { return (e.c?.source ? md(e.c.source, { inline: true }) : '') + noveltyTag(e.result); }
+
+  // `split`: the table has lower-bound columns, where an unpaired lower bound puts its bound
+  function rateCell(e, k, split) {
     const c = e.c || {};
+    const own = split && e.kind === 'lower';
+    if (own && (k === 'resources' || k === 'source')) return '';
     if (k === 'algorithm') {
       const name = c.algorithm || short(decls[e.overview].n);
       const long = RATES.algorithms?.[c.algorithm];
@@ -522,14 +559,15 @@
         return '<span class="pending-tag">pending review</span>' +
           `<div class="rate-pending-statement">${statementHtml(null, e.overview)}</div>`;
       }
-      const notes = Array.isArray(e.notes) ? e.notes.join(' ') : e.notes;
-      // a lower bound and the reviewed rate it matches link to each other
-      const pair = (ids, label) => ids.map(id => rateById(id)).filter(Boolean).map(p =>
-        `<p class="rate-pair">${label} <a href="#rate/${esc(p.id)}">${esc(p.c?.algorithm || p.id)} · ${md((p.resources || []).map(r => r.bound).join('; '), { inline: true })}</a></p>`).join('');
-      return (e.resources || []).map(r => `<div class="rate-resource"><span class="rate-res-label">${md(r.label, { inline: true })}:</span> ${md(r.bound, { inline: true })}</div>`).join('') +
-        (notes ? `<p class="rate-caveat"><strong>${e.kind ? 'Hypotheses' : 'Parameters'}:</strong> ${md(notes, { inline: true })}</p>` : '') +
-        pair(e.pairs_with ? [e.pairs_with] : [], 'Matches the upper bound') + pair(e.lower || [], 'Lower bound:');
+      return rateResourcesHtml(e);
     }
+    if (k === 'source') return rateSourceHtml(e);
+    // the paired lower bounds, beside the upper bound, with how they compare
+    if (k === 'lower') {
+      return (own ? [e] : lowersOf(e)).map(l =>
+        `<div class="rate-lower" id="rate-lower-${esc(l.id)}">${tightnessTag(l)}${rateResourcesHtml(l)}</div>`).join('');
+    }
+    if (k === 'lower_source') return (own ? [e] : lowersOf(e)).map(l => `<div class="rate-lower-source">${rateSourceHtml(l)}</div>`).join('');
     return c[k] ? md(c[k], { inline: true }) : '';
   }
 
@@ -537,7 +575,7 @@
     const open = openRates.has(e.id);
     return `<tr class="rate-row${e.status === 'pending' ? ' pending' : ''}${open ? ' on' : ''}" id="rate-row-${esc(e.id)}" data-rate="${esc(e.id)}">` +
       `<td class="pick"><button type="button" class="rate-toggle" aria-expanded="${open}" aria-controls="rate-detail-${esc(e.id)}" title="Show the theorem here">${open ? '▾' : '▸'}<span class="sr"> Show the theorem</span></button></td>` +
-      cols.map(c => `<td class="c-${c.k}" data-label="${esc(c.t)}">${rateCell(e, c.k)}</td>`).join('') + '</tr>' +
+      cols.map(c => `<td class="c-${c.k}" data-label="${esc(c.t)}">${rateCell(e, c.k, cols.some(x => x.k === 'lower'))}</td>`).join('') + '</tr>' +
       `<tr class="rate-theorem" id="rate-detail-${esc(e.id)}" data-rate="${esc(e.id)}"${open ? '' : ' hidden'}><td colspan="${cols.length + 1}"><div class="rate-expanded"></div></td></tr>`;
   }
 
@@ -596,15 +634,18 @@
   function renderRates() {
     renderRateFilters();
     const query = rateSearchWords($('#q').value);
-    const entries = RATES.entries.filter(e => Object.entries(rateFilters).every(([k, v]) => rateMatches(e, k, v)) &&
-      query.every(q => rateWords(e).some(w => w.includes(q))));
+    const matched = new Set(RATES.entries.filter(e => Object.entries(rateFilters).every(([k, v]) => rateMatches(e, k, v)) &&
+      query.every(q => rateWords(e).some(w => w.includes(q)))));
+    // a rate row is shown when it or one of its paired lower bounds matches ("Lower bound" finds it)
+    const entries = RATES.entries.filter(e => !upperOf(e) && (matched.has(e) || lowersOf(e).some(l => matched.has(l))));
     const n = s => entries.filter(s).length;
-    const parts = [[n(e => e.status === 'reviewed' && !e.kind), 'reviewed rate', 'reviewed rates'],
-      [n(e => e.kind === 'lower'), 'lower bound', 'lower bounds'],
+    const paired = n(e => lowersOf(e).length);
+    const parts = [[n(e => e.status === 'reviewed' && !e.kind), 'reviewed rate', 'reviewed rates', paired ? ` (${paired} with a lower bound)` : ''],
+      [n(e => e.kind === 'lower'), 'unpaired lower bound', 'unpaired lower bounds'],
       [n(e => e.status === 'pending'), 'pending review', 'pending review'], [n(e => e.kind === 'exact'), 'exact value', 'exact values']]
-      .filter(([k]) => k).map(([k, one, many]) => `${k} ${k === 1 ? one : many}`);
+      .filter(([k]) => k).map(([k, one, many, more = '']) => `${k} ${k === 1 ? one : many}${more}`);
     const sections = RATES.families.map(f => {
-      const all = RATES.entries.filter(e => e.family === f.id);
+      const all = RATES.entries.filter(e => e.family === f.id && !upperOf(e));
       const rows = entries.filter(e => e.family === f.id);
       const norate = norateFor(f, query);
       if (!rows.length && !norate.length) return '';
@@ -622,7 +663,7 @@
     $('#content').innerHTML = entries.length || sections
       ? `<p class="searchnote">${entries.length ? `${entries.length} row${entries.length === 1 ? '' : 's'}${parts.length ? ': ' + parts.join(', ') : ''}. ` +
         'Resources, exact values and parameter caveats are stated per row; pending rows show the theorem as the library states it.'
-        : 'No rate matches these filters; the bounds below have no asymptotic form yet.'}</p>` + sections
+        : 'No rate matches these filters; the bounds below have no asymptotic form yet.'}</p>` + noveltyLegend() + sections
       : '<p class="empty">No rates match these filters.</p><button type="button" id="reset-rates">Reset filters and search</button>';
     $('#reset-rates')?.addEventListener('click', resetRates);
     for (const id of openRates) {
@@ -652,6 +693,10 @@
       statementHtml(null, i) +
       `<p class="rate-links"><a href="${BASE}${rateRoute(e, i)}">Result page</a> · ${links} · <a href="${sourceUrl(i)}" target="_blank" rel="noopener">Source ↗</a>` +
       (defs.length ? ' · ' + defs.join(' · ') : '') + '</p>' +
+      lowersOf(e).map(l => `<h4 class="rate-lower-head">Lower bound${l.tightness ? ` (${esc(l.tightness)})` : ''}${noveltyTag(l.result)}</h4>` +
+        statementHtml(null, l.overview) +
+        `<p class="rate-links"><a href="${BASE}${rateRoute(l)}">Result page</a> · <a href="${BASE}${declRoute(l.overview)}">Theorem</a> · ` +
+        `<a href="${sourceUrl(l.overview)}" target="_blank" rel="noopener">Source ↗</a></p>`).join('') +
       (e.status === 'pending' ? '<p class="rate-pending-note">No reviewed summary yet: the row shows the asymptotic theorem as the library states it, and its cells are read from the declaration’s name.</p>' : '');
   }
 
@@ -702,8 +747,9 @@
   // `#rate/<id>` (or `#rate/<declaration>`, the link of a pending row) and `#rate-row-<id>`
   function focusRate(key) {
     const bare = key.replace(/^NLAlib\./, '');
-    const e = rateById(key) || RATES.entries.find(x => x.theorem === key || x.theorem.replace(/^NLAlib\./, '') === bare);
+    let e = rateById(key) || RATES.entries.find(x => x.theorem === key || x.theorem.replace(/^NLAlib\./, '') === bare);
     if (!e) return;
+    e = upperOf(e) || e;
     if (!document.getElementById('rate-row-' + e.id)) resetRates();
     toggleRate(e.id, true);
     // below the search bar, which stays at the top of the window
@@ -725,7 +771,7 @@
       'the results of the library that cite it.';
     $('#byline').innerHTML = `From NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
     const link = t => t.r !== undefined
-      ? `<a href="#r/${encodeURIComponent(t.r)}">${md(resultTitle(t.r), { inline: true })}</a>`
+      ? `<a href="#r/${encodeURIComponent(t.r)}">${md(resultTitle(t.r), { inline: true })}</a>${noveltyTag(t.r)}`
       : `<a href="#d/${encodeURIComponent(t.d)}"><code>${esc(short(t.d))}</code></a>`;
     const links = refs => refs.map(link).join(', ');
     const item = it => {
@@ -864,12 +910,12 @@
     if (it.type === 's') {
       const { rid, row } = statementOf(it.key);
       return `<li><a class="entry-title" href="${hitRoute(it)}">${md(row.l || decls[row.e].nm || short(decls[row.e].n), { inline: true })}</a>` +
-        `<span class="kind">statement</span><span class="desc">${md(D.results[rid].title, { inline: true })}` +
+        `<span class="kind">statement</span><span class="desc">${md(D.results[rid].title, { inline: true })}${noveltyTag(rid)}` +
         `${row.s ? ' · ' + md(row.s, { inline: true }) : ''}</span></li>`;
     }
     if (it.type === 'r') {
       const r = D.results[it.key];
-      return `<li><a class="entry-title" href="#r/${encodeURIComponent(it.key)}">${md(r.title, { inline: true })}</a>` +
+      return `<li><a class="entry-title" href="#r/${encodeURIComponent(it.key)}">${md(r.title, { inline: true })}</a>${noveltyTag(it.key)}` +
         `<span class="kind">result</span><span class="desc">${descHtml(overviewOf(r))}` +
         ` <em>${md(D.modules[r.module]?.title || '', { inline: true })}</em></span></li>`;
     }
@@ -1169,7 +1215,7 @@
     }
     const nDecls = new Set(rows.flatMap(row => [row.o, row.e])).size;
     const body = $('#panelbody');
-    body.innerHTML = headHtml(md(r.title, { inline: true }), 'Theorem') +
+    body.innerHTML = headHtml(md(r.title, { inline: true }) + noveltyTag(rid), 'Theorem') +
       `<div class="subtitle"><code>${esc(rid)}</code>${r.ids.map(x => `, <code>${esc(x)}</code>`).join('')}` +
       ` · ${rows.length > 1 ? `${rows.length} statements, ` : ''}${nDecls} formal statement${nDecls > 1 ? 's' : ''}` +
       `${(r.merged || []).length ? ' · includes ' + r.merged.map(x => `<code>${esc(x)}</code>`).join(', ') : ''}` +
@@ -1276,7 +1322,7 @@
     if (!mod) return showMissing();
     const inMod = decls.map((d, i) => [d, i]).filter(([d]) => d.m === name);
     const item = ([d, i]) => `<li><a href="${declRoute(i)}"><code>${esc(short(d.n))}</code></a>` +
-      `${d.r.length ? ` <em>${md(resultTitle(d.r[0]), { inline: true })}</em>` : ''}${wip(d)}` +
+      `${d.r.length ? ` <em>${md(resultTitle(d.r[0]), { inline: true })}</em>${noveltyTag(d.r[0])}` : ''}${wip(d)}` +
       (d.fs ? `<span class="desc">${descHtml(i)}</span>` : '') + '</li>';
     const results = inMod.filter(([d]) => d.r.length);
     const defs = inMod.filter(([d]) => !d.r.length && isDef(d) && !isSupport(d));

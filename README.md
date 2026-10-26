@@ -39,11 +39,21 @@ tail bound.
   statement as the library states it, in a group named after its generated cell ("Frobenius norm ·
   tail bound $\mathbb{P}[\|\cdot\|_{\mathsf F}^2 > t]$").
 - An **exact** row (`kind = 'exact'`) records an identity, for trace estimation.
-- A **lower-bound** row (`kind = 'lower'`, with `pairs_with = '<rate id>'`) cites one theorem,
-  like an exact row, and names the reviewed rate of its family it matches; the two rows link to
-  each other, and the Form filter has *Lower bound*. The lower bounds of `NLAlib.LowerBounds`
+- A **lower bound** (`kind = 'lower'`) cites one theorem, like an exact row. With
+  `pairs_with = '<rate id>'` it is shown in the row of the reviewed rate of its family it matches:
+  the family's table gains *Lower bound* and *Lower-bound source* columns beside *Upper bound* and
+  *Source*, with a tightness tag from `tightness = 'tight' | 'gap'`, and ▸ expands both theorems.
+  A lower bound without `pairs_with` keeps a row of its own. The Form filter's *Lower bound* finds
+  the rows that have one; `#rate/<lower id>` opens its rate's row. A lower theorem without a
+  `Result:` id may name its result (`result = '<id>'`). The lower bounds of `NLAlib.LowerBounds`
   (Epperly–Webber's sharp factors, early-truncated RSVD, truncated GN, sketch-and-solve) are paired
   this way.
+
+Library-original results carry a **novelty tag** after their title wherever it is shown (result
+page, shelves, search, Books and file pages, Rates rows), with a tooltip and a legend on the home
+and Rates pages: *new* (red, no published counterpart), *improved*, *extended*, *corrected*. *new*
+is derived from NLAlib's docstring marker "No printed source. New (…)"; the others, and new results
+not yet marked, are `novelty = '…'` in `results.toml` (see its header).
 
 The page has one table per family, in the look of the statements table: guarantee group rows
 with their full statement and definitions in a disclosure, generated columns shown when they vary
