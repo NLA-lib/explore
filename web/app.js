@@ -13,7 +13,7 @@
   const PAGE = document.body.dataset.page || 'main';
   const BASE = document.body.dataset.base || '';
 
-  $(`.menu a[data-page="${PAGE}"]`)?.classList.add('here');
+  $(`.menu a[data-page="${PAGE === 'report' ? 'reports' : PAGE}"]`)?.classList.add('here');
 
   let D;
   try {
@@ -58,6 +58,9 @@
   });
 
   const resultTitle = rid => D.results[rid]?.title ?? rid;
+  const REPORTS = D.reports || [];
+  const reportById = new Map(REPORTS.map(r => [r.id, r]));
+  const reportUrl = id => BASE + 'reports/' + encodeURIComponent(id) + '/';
   // a graph box is SVG text, so a title's maths is written out plainly: `$\chi^2$` is χ²
   const GREEK = { alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', epsilon: 'ε', varepsilon: 'ε',
     theta: 'θ', Theta: 'Θ', kappa: 'κ', lambda: 'λ', mu: 'μ', sigma: 'σ', Sigma: 'Σ', chi: 'χ',
@@ -133,14 +136,19 @@
     return (src !== null && typeset(src)) || `<code>${esc(text)}</code>`;
   }
 
-  function inline(src, lenient, bold) {
+  function inline(src, lenient, bold, report) {
     const slots = [];
     const short = [];       // whether each kept span is short enough never to need a break inside
     const keep = (html, len = 99) => { short.push(len <= 30); return `\u0000${slots.push(html) - 1}\u0000`; };
-    let s = src.replace(/(`+)([\s\S]*?[^`])\1(?!`)|\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g,
-      (m, ticks, code, display, math) =>
+    // in a report, `[[NLAlib.foo]]`, `[[result:id|text]]` and `[[report:id]]` are links (build.py
+    // has checked that each target exists)
+    const spans = report ? /(`+)([\s\S]*?[^`])\1(?!`)|\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$|\[\[([^\[\]|\n]+?)(?:\|([^\[\]\n]+))?\]\]/g
+      : /(`+)([\s\S]*?[^`])\1(?!`)|\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g;
+    let s = src.replace(spans,
+      (m, ticks, code, display, math, target, text) =>
         code !== undefined ? keep(codeSpan(code, lenient, bold), code.length) :
-        display !== undefined ? keep(tex(display, true)) : keep(tex(math, false), math.length));
+        display !== undefined ? keep(tex(display, true)) :
+        math !== undefined ? keep(tex(math, false), math.length) : keep(reportLink(target.trim(), text)));
     s = esc(s)
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/(^|[^*\w])\*([^*\s](?:[^*]*[^*\s])?)\*(?!\*)/g, '$1<em>$2</em>')
@@ -160,15 +168,18 @@
 
   function md(src, opts = {}) {
     if (!src) return '';
-    const inl = t => inline(t, opts.lenient, opts.bold);
+    const inl = t => inline(t, opts.lenient, opts.bold, opts.report);
     if (opts.inline) return inl(src);
     const out = [];
     const blocks = src.replace(/\r/g, '').split(/\n\s*\n/);
     for (const block of blocks) {
       const lines = block.split('\n');
+      const directive = opts.report && /^\{\{\s*(\w+)(?:\s+(\S+?))?\s*\}\}$/.exec(block.trim());
+      if (directive) { out.push(opts.report(directive[1], directive[2])); continue; }
       const head = /^(#{1,6})\s+(.*)$/.exec(lines[0]);
       if (head) {
-        const lvl = Math.min(6, head[1].length + 2);
+        // a report's `##` sections sit under its title (h2); a docstring's headings lower still
+        const lvl = Math.min(6, head[1].length + (opts.report ? 1 : 2));
         out.push(`<h${lvl}>${inl(head[2])}</h${lvl}>`);
         lines.shift();
         if (!lines.length) continue;
@@ -313,7 +324,10 @@
     };
     const shelved = shelves.map(id => topicById.get(id)).filter(Boolean);
     const folders = D.topics.filter(t => !shelves.includes(t.id));
-    $('#content').innerHTML = shelved.map(html).join('') + (!shelved.length ? folders.map(html).join('') : !folders.length ? '' :
+    const reports = REPORTS.length ? section('t-reports', 'topic', 'h2', 'Reports', `${REPORTS.length} report${REPORTS.length > 1 ? 's' : ''}`,
+      '<p class="topic-blurb">Short papers on how groups of results are proved and fit together. ' +
+      `<a href="${BASE}reports/">All reports</a></p><ul class="entries">${REPORTS.map(reportItem).join('')}</ul>`) : '';
+    $('#content').innerHTML = reports + shelved.map(html).join('') + (!shelved.length ? folders.map(html).join('') : !folders.length ? '' :
       `<details class="source-modules source-browser" id="source-browser"${openSections.has('source-browser') ? ' open' : ''}><summary>Browse the other source folders</summary>` +
       `<p class="topic-blurb">The library's folders follow its import layers; the shelves above group the same results by task. Folders that are shelves are browsable inside their shelf.</p>${folders.map(html).join('')}</details>`);
   }
@@ -343,6 +357,10 @@
     initRates();
   } else if (PAGE === 'books') {
     renderBooks();
+  } else if (PAGE === 'reports') {
+    renderReports();
+  } else if (PAGE === 'report') {
+    // rendered at the end of this script: a report uses the panel's constants defined below
   } else {
     $('#byline').innerHTML = `${nResults} named results, ${nDefs} definitions and ${decls.length} declarations, ` +
       `from NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
@@ -785,6 +803,173 @@
     }).join('');
   }
 
+  // ------------------------------------------------------------------ reports
+
+  // Short papers (reports/*.md in this repository) on how a group of results is proved and how
+  // its results fit together. build.py has checked every link, statement and citation; the body is
+  // Markdown rendered like the docstrings, with `[[…]]` links, `{{statement NAME}}` (the
+  // declaration's statement from the library, so it never drifts) and `{{diagram}}`.
+  function reportLink(target, text) {
+    const m = /^(result|report):(.+)$/.exec(target);
+    const label = text && inline(text.trim());
+    const broken = `<span class="broken" title="unresolved link">${esc(target)}</span>`;
+    if (m && m[1] === 'result') {
+      const rid = D.resultAlias?.[m[2].trim()] ?? m[2].trim();
+      return D.results[rid] ? `<a href="#r/${encodeURIComponent(rid)}">${label || md(resultTitle(rid), { inline: true })}</a>` : broken;
+    }
+    if (m) {
+      const r = reportById.get(m[2].trim());
+      return r ? `<a href="${reportUrl(r.id)}">${label || md(r.title, { inline: true })}</a>` : broken;
+    }
+    const i = byName.get(target) ?? byName.get('NLAlib.' + target);
+    return i === undefined ? broken : `<a href="${declRoute(i)}">${label || `<code>${esc(short(decls[i].n))}</code>`}</a>`;
+  }
+
+  // a statement cited by a report: the library's own statement, its result and declaration, and a
+  // flag when it changed since the report recorded its hash
+  function reportStatement(rep, name) {
+    const i = byName.get(name) ?? byName.get('NLAlib.' + name);
+    if (i === undefined) return '';
+    const d = decls[i];
+    const rid = d.r[0];
+    // the statement's own name, unless it is the result's title (`The error of …` for `Error of …`)
+    const own = d.nm && d.nm.replace(/^The (\S)/, (m, c) => c.toUpperCase());
+    const title = rid ? `<a href="${rowRoute(rid, i)}">${md(resultTitle(rid), { inline: true })}</a>` +
+      (own && own.toLowerCase() !== resultTitle(rid).toLowerCase() ? ` <span class="formname">· ${md(own, { inline: true })}</span>` : '')
+      : `${KIND_NAMES[d.k] ?? d.k}${d.nm ? ' · ' + md(d.nm, { inline: true }) : ''}`;
+    const stale = rep.stale.includes(d.n);
+    return `<figure class="report-stmt${stale ? ' stale' : ''}" id="stmt-${esc(d.n)}">` +
+      `<div class="label"><span>${title}</span><span class="opts"><a href="${declRoute(i)}"><code>${esc(short(d.n))}</code></a>` +
+      `<a class="srclink" href="${sourceUrl(i)}" target="_blank" rel="noopener">source ↗</a></span></div>` +
+      statementHtml(null, i) +
+      (stale ? `<p class="stale-note">${rep.unrecorded.includes(d.n)
+        ? 'No reviewed version of this statement is recorded for this report.'
+        : 'This statement changed in the library after the report was written: the text around it may be out of date.'}</p>` : '') +
+      '</figure>';
+  }
+
+  // The dependency picture: the report's results and declarations in layers from the top (what
+  // the others build on) down, an arrow from X to Y when Y's statements or proofs use X (through
+  // declarations the report does not cover). A layer wider than the column wraps.
+  function reportDiagram(g) {
+    if (!g.nodes.length) return '';
+    const layers = [];
+    for (const n of g.nodes) (layers[n.l] ||= []).push(n.k);
+    const W = 700, BOX = 20, HGAP = 10, VGAP = 30, WRAP = 8, PADX = 8, MAXW = 220;
+    const width = k => Math.min(MAXW, Math.max(50, measure(nodeLabel(k)) + 2 * PADX));
+    const rows = [];
+    for (const layer of layers.filter(Boolean)) {
+      let row = [], used = 0;
+      for (const k of layer) {
+        const w = width(k);
+        if (row.length && used + w > W - 16) { rows.push({ nodes: row, used, wrap: true }); row = []; used = 0; }
+        row.push([k, w]); used += w + HGAP;
+      }
+      rows.push({ nodes: row, used, wrap: false });
+    }
+    const pos = new Map();
+    const parts = [];
+    let y = 6;
+    for (const row of rows) {
+      let x = Math.max(8, (W - row.used + HGAP) / 2);
+      for (const [k, w] of row.nodes) {
+        pos.set(k, { x, y, w });
+        const label = nodeLabel(k);
+        parts.push(`<g class="node${k.startsWith('d:') ? ' def' : ''}" data-key="${esc(k)}"><title>${esc(label)}</title>` +
+          `<rect x="${x}" y="${y}" width="${w}" height="${BOX}" rx="2"></rect>` +
+          `<text x="${x + PADX}" y="${y + 14}">${esc(fit(label, w - 2 * PADX))}</text></g>`);
+        x += w + HGAP;
+      }
+      y += BOX + (row.wrap ? WRAP : VGAP);
+    }
+    const H = y - VGAP + 10;
+    const edges = g.edges.map(([a, b]) => {
+      const p = pos.get(a), q = pos.get(b);
+      if (!p || !q || p.y >= q.y) return '';
+      const x1 = p.x + p.w / 2, y1 = p.y + BOX, x2 = q.x + q.w / 2, y2 = q.y, my = (y1 + y2) / 2;
+      return `<path class="edge" data-a="${esc(a)}" data-b="${esc(b)}" d="M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2 - 4}"></path>` +
+        `<path class="edge" data-a="${esc(a)}" data-b="${esc(b)}" d="M${x2 - 3},${y2 - 4} L${x2},${y2} L${x2 + 3},${y2 - 4}"></path>`;
+    });
+    return `<figure class="report-diagram"><div class="graph"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` +
+      `${edges.join('')}${parts.join('')}</svg></div><figcaption class="legend">Generated from the library: the results (solid boxes) ` +
+      'and declarations (dashed) this report covers, an arrow from X down to Y when the statement or proof of Y uses X, ' +
+      'directly or through declarations the report does not cover (arrows implied by longer chains are left out). ' +
+      'Hover over a box to highlight its arrows; click it to open it.</figcaption></figure>';
+  }
+
+  function staleSummary(rep) {
+    const changed = rep.stale.length - rep.unrecorded.length, plural = n => n > 1 ? 's' : '';
+    return [changed && `${changed} cited statement${plural(changed)} changed in the library since this report was reviewed`,
+      rep.unrecorded.length && `${rep.unrecorded.length} cited statement${plural(rep.unrecorded.length)} not yet reviewed for it`]
+      .filter(Boolean).join('; ');
+  }
+
+  function byline(r) { return [r.authors.join(', '), r.date, r.status].filter(Boolean).map(esc).join(' · '); }
+
+  function renderReport(id) {
+    const rep = reportById.get(id);
+    $('h1').textContent = 'NLA-lib Reports';
+    $('#searchbar').hidden = true;
+    $('#byline').innerHTML = `Statements and links from NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
+    if (!rep) { $('#content').innerHTML = '<p>No report has that name. <a href="../">All reports</a></p>'; return; }
+    const directive = (kind, arg) => kind === 'statement' ? reportStatement(rep, arg) : kind === 'diagram' ? reportDiagram(rep.graph) : '';
+    const covers = [...rep.results.map(rid => `<a href="#r/${encodeURIComponent(rid)}">${md(resultTitle(rid), { inline: true })}</a>`),
+      ...rep.declarations.map(n => reportLink(n))];
+    const refs = rep.cites.map(key => {
+      const b = D.bib[key];
+      return `<li><strong>${esc(key)}</strong>.${b ? ` ${esc(b.text)}${b.url ? ` <a href="${esc(b.url)}" target="_blank" rel="noopener">link</a>` : ''}` : ''}</li>`;
+    });
+    const related = rep.related.map(r => reportById.get(r)).filter(Boolean);
+    $('#content').innerHTML = `<article class="report">` +
+      `<p class="report-kind"><a href="${BASE}reports/">Reports</a>${rep.status ? ` · <span class="report-status">${esc(rep.status)}</span>` : ''}</p>` +
+      `<h2 class="report-title">${md(rep.title, { inline: true })}</h2>` +
+      `<p class="report-byline">${byline(rep)}</p>` +
+      (rep.stale.length ? `<p class="stale-note">${staleSummary(rep)} (marked below).</p>` : '') +
+      `<div class="abstract"><span class="label">Abstract</span>${md(rep.abstract, { report: directive })}</div>` +
+      (covers.length ? `<p class="report-covers"><span class="label">Covers</span>${covers.join(' · ')}</p>` : '') +
+      `<div class="report-body">${md(rep.body, { report: directive })}</div>` +
+      (refs.length ? `<h3>References</h3><p class="refwarn">${REFS_WARNING}</p><ul class="refs">${refs.join('')}</ul>` : '') +
+      (related.length ? `<h3>Related reports</h3><ul class="entries">${related.map(r => `<li><a class="entry-title" href="${reportUrl(r.id)}">${md(r.title, { inline: true })}</a></li>`).join('')}</ul>` : '') +
+      '</article>';
+    const diagram = $('.report-diagram', $('#content'));
+    diagram?.addEventListener('click', ev => {
+      const g = ev.target.closest('.node[data-key]');
+      if (g) location.hash = nodeRoute(g.dataset.key);
+    });
+    diagram?.addEventListener('mouseover', ev => {
+      const g = ev.target.closest('.node[data-key]');
+      diagram.querySelectorAll('path.edge').forEach(p =>
+        p.classList.toggle('hot', !!g && (p.dataset.a === g.dataset.key || p.dataset.b === g.dataset.key)));
+    });
+  }
+
+  function reportItem(r) {
+    const count = (n, what) => n && `${n} ${what}${n > 1 ? 's' : ''}`;
+    const covers = [count(r.results.length, 'result'), count(r.declarations.length, 'declaration')].filter(Boolean).join(', ');
+    const meta = [byline(r), covers && 'covers ' + covers].filter(Boolean).join(' · ');
+    return `<li><a class="entry-title" href="${reportUrl(r.id)}">${md(r.title, { inline: true })}</a>` +
+      (meta ? `<span class="kind">${meta}</span>` : '') +
+      `<span class="desc">${md(r.abstract, { inline: true, report: () => '' })}</span></li>`;
+  }
+
+  function renderReports() {
+    document.title = 'Reports · NLAlib explorer';
+    $('h1').textContent = 'NLA-lib Reports';
+    $('#searchbar').hidden = true;
+    $('#intro').hidden = false;
+    $('#intro').textContent = 'Short papers on how groups of the library\'s results are proved and how they fit ' +
+      'together. Their statements and links come from the library, and are checked at every build.';
+    $('#byline').innerHTML = `From NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
+    $('#content').innerHTML = REPORTS.length ? `<ul class="entries reports">${REPORTS.map(reportItem).join('')}</ul>` : '<p>No reports yet.</p>';
+  }
+
+  // "Discussed in": the reports covering a result or declaration, on its page
+  function discussedIn(rid, name) {
+    const hits = REPORTS.filter(r => (rid && r.results.includes(rid)) || (name && r.declarations.includes(name)));
+    return hits.length ? `<p class="discussed">Discussed in: ${hits.map(r =>
+      `<a href="${reportUrl(r.id)}">${md(r.title, { inline: true })}</a>`).join(', ')}</p>` : '';
+  }
+
   // ------------------------------------------------------------------ search
 
   const STOP = new Set(('a an and are as at be by for from if in into is it its of on or that the then ' +
@@ -1204,7 +1389,7 @@
       `<div class="subtitle"><code>${esc(rid)}</code>${r.ids.map(x => `, <code>${esc(x)}</code>`).join('')}` +
       ` · ${rows.length > 1 ? `${rows.length} statements, ` : ''}${nDecls} formal statement${nDecls > 1 ? 's' : ''}` +
       `${(r.merged || []).length ? ' · includes ' + r.merged.map(x => `<code>${esc(x)}</code>`).join(', ') : ''}` +
-      `${r.aliases.length ? ' · also known as ' + r.aliases.map(esc).join(', ') : ''}</div>`;
+      `${r.aliases.length ? ' · also known as ' + r.aliases.map(esc).join(', ') : ''}</div>` + discussedIn(rid);
 
     let table = null;
     if (rows.length > 1) {
@@ -1294,7 +1479,7 @@
     const body = $('#panelbody');
     const def = isDef(d) && !isSupport(d);
     body.innerHTML = headHtml(`<code>${esc(short(d.n))}</code>`, KIND_NAMES[d.k] ?? d.k) +
-      `<div class="subtitle">${md(D.modules[d.m]?.title || d.m, { inline: true })}</div>` +
+      `<div class="subtitle">${md(D.modules[d.m]?.title || d.m, { inline: true })}</div>` + discussedIn(null, d.n) +
       (d.stmt ? '<div class="label">Statement</div>' + statementHtml(null, i) : '');
     body.append(declSection(i, { first: true }));
     body.append(graphSection(def ? ['d:' + d.n, 'i:' + i] : [null, 'i:' + i], def ? ['nodes', 'decls'] : ['decls']));
@@ -1378,6 +1563,7 @@
     else if (m[1] === 'd') showDecl(arg);
     else showModule(arg);
   }
+  if (PAGE === 'report') renderReport(document.body.dataset.report);
   window.addEventListener('hashchange', route);
   route();
 })();

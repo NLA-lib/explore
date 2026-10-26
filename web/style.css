@@ -1067,3 +1067,124 @@ details.topic, details.sub { scroll-margin-top: 4rem; }
 .result-statement .formname {
     margin: 0.2em 0 0.45em;
 }
+
+/* ---------- reports ---------- */
+
+.report-kind {
+    font-size: 70%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 1.4em 0 -1.2em;
+}
+
+.report-kind a {
+    text-decoration: none;
+}
+
+.report-status {
+    color: var(--gap);
+}
+
+.report-title {
+    margin-bottom: 0.2em;
+}
+
+.report-byline {
+    font-size: 85%;
+    color: var(--faint);
+    margin-top: 0;
+}
+
+.report .abstract {
+    font-size: 90%;
+    border-left: 2px solid var(--rule);
+    padding-left: 0.8em;
+    margin: 1.2em 0;
+}
+
+.report .abstract .label, .report-covers .label {
+    display: block;
+    margin: 0 0 0.2em;
+}
+
+.report .abstract p {
+    margin: 0;
+}
+
+.report-covers {
+    font-size: 82%;
+    line-height: 1.5;
+}
+
+.report-body {
+    line-height: 1.5;
+}
+
+.report-body h3 {
+    font-size: 21px;
+    margin-top: 1.8em;
+}
+
+.report-body h4 {
+    font-size: 19px;
+    font-style: italic;
+    font-weight: 400;
+    margin: 1.4em 0 0.3em;
+}
+
+.report-body .katex-display {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+/* a cited statement: the library's own, under its result and declaration */
+figure.report-stmt {
+    margin: 1.1em 0;
+}
+
+figure.report-stmt .label {
+    margin: 0 0 0.3em;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 80%;
+}
+
+figure.report-stmt .label a {
+    text-decoration: none;
+}
+
+figure.report-stmt .formname {
+    font-weight: 400;
+    font-style: italic;
+}
+
+figure.report-stmt.stale .statement {
+    border-color: var(--gap);
+}
+
+.stale-note {
+    font-size: 78%;
+    color: var(--gap);
+    margin: 0.3em 0 0;
+}
+
+figure.report-diagram {
+    margin: 1.1em 0;
+}
+
+.broken {
+    color: var(--gap);
+    text-decoration: underline wavy;
+}
+
+/* "Discussed in: <report>" on a result or declaration */
+.discussed {
+    font-size: 80%;
+    margin: -0.4em 0 1em;
+}
+
+/* library names in a report's prose can be long: they break anywhere rather than overflow */
+.report code {
+    overflow-wrap: anywhere;
+}

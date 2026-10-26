@@ -158,6 +158,73 @@ and delimiter sizing. Plain matrix `P`, prose/code, and unrecognized or malforme
 left unchanged. Raw extracted documentation and Lean source remain untouched. The library's
 CONTRIBUTING §6 records the convention for future docstrings.
 
+## Reports (prototype)
+
+A **report** is a short paper about a group of results: what problem they address, the main
+results stated in mathematics, how each proof works at the level of its key library lemmas, how
+the results fit together, and what is not covered. Reports are written here, in `reports/`, one
+Markdown file per report; the [Reports page](https://nla-lib.org/explore/reports/) lists them, and
+each is served at `reports/<file name>/`. The home page lists them above the shelves, and a result
+or definition a report covers says "Discussed in: <report>" on its page.
+
+```markdown
++++
+title = "Stochastic Lanczos quadrature as averaged Gauss quadrature"
+authors = ["NLA-lib"]
+date = "2026-10-26"
+status = "draft"                  # optional, shown beside the date
+abstract = """Two to four sentences."""
+results = ["stochastic-lanczos-quadrature-error"]  # Result ids it covers (an alias id names its result)
+declarations = ["NLAlib.slqMeasure"]  # definitions and lemmas without a Result id it covers
+related = ["other-report"]        # other reports (file names without .md)
+
+[statements]                      # the reviewed version of each statement it cites
+"NLAlib.foo" = "<sha256>"
++++
+## Introduction
+
+… [[NLAlib.foo]] … [[NLAlib.foo|link text]] … [[result:stochastic-lanczos-quadrature-error]] …
+[[report:other-report]] … [Golub2009, §6.2] …
+
+{{statement NLAlib.foo}}
+
+{{diagram}}
+```
+
+- **Front matter** is TOML between `+++` lines (as in Hugo): the build already reads TOML, so no
+  new dependency; unknown fields fail the build.
+- **Links**: `[[name]]` links a declaration, `[[result:id]]` a result (its title is the link
+  text), `[[report:id]]` another report; `|text` sets the link text. A declaration link to a
+  member of a result opens the result page at that statement.
+- **Cited statements**: a paragraph `{{statement NAME}}` shows the declaration's statement as its
+  result page does (the docstring renderer, KaTeX), with links to its result, declaration and
+  source. The words are the library's, rendered from the current data, so they cannot drift;
+  what can drift is the report's prose around them. So each cited statement's hash (the Rates
+  `statement_hash`: SHA-256 of signature, newline, docstring, HTML comments removed) is recorded
+  under `[statements]`. When the library changes a cited statement, the build prints a warning
+  with the new hash and the report page marks that statement ("changed after the report was
+  written") until a reviewer rereads the text and records the new hash. Unlike Rates, a stale
+  hash does not fail the build: a report is prose that a reader can check against the statement
+  shown beside it, and a docstring edit in NLAlib should not stop the explorer deploying. (A
+  stale Rates summary is a table cell no reader can check, so it fails.)
+- **Diagram**: `{{diagram}}` draws the results and declarations of the front matter in layers, an
+  arrow from X to Y when Y's statement or proof uses X directly or through declarations the report
+  does not cover (from the extracted dependencies, like the result-page graph). It is generated,
+  so it follows the library.
+- **Citations** are written as in docstrings (`[Key, locator]`) and listed under References from
+  `references.bib`; the report body is otherwise the docstrings' Markdown (paragraphs, `-` lists,
+  `##` sections, `$…$` and `$$…$$`).
+- **Guards** (all listed together, like the collection guards): an unknown result id,
+  declaration, related report, link target or citation key, a statement of an unproved
+  declaration, a hash recorded for a statement the body does not cite, an unknown `[[kind:…]]` or
+  `{{directive}}`, a directive that is not a paragraph of its own, unmatched `[[`, malformed front
+  matter or an unsafe file name fail the build. Links inside code spans and maths are not read.
+
+Why Markdown files rather than a TOML table: a report is mostly prose with maths, and reads and
+diffs best as a document; the front matter holds only what the build checks. Why a report is
+not generated: the point is the exposition (the idea of a proof, which lemmas carry it), which the
+library's docstrings give one declaration at a time.
+
 ## Result pages: the statements table
 
 A result page lists every member of the result in a **statements table**: one row per
@@ -266,6 +333,7 @@ rejects them.
 | `rates.toml` | Rates families, guarantees and the reviewed overlay (summaries keyed by theorem and statement hash) |
 | `collections.toml` | the shelves: result and definition groups independent of source modules, and the `sources` prefixes that place new results |
 | `books.toml` | key books for the Books page: chapters, sections, numbered results (numbers and short names only) |
+| `reports/*.md` | reports: short papers on groups of results, Markdown with TOML front matter, checked against the data |
 
 ## Local build
 
