@@ -375,7 +375,7 @@
     if (field === 'algorithm') return RATES.algorithms?.[v] ?? v;
     if (field === 'stat_key') return RATES.statistics?.[v] ?? v;
     if (field === 'status') return { reviewed: 'Reviewed', pending: 'Pending review' }[v] ?? v;
-    if (field === 'form') return { rate: 'Asymptotic rate', exact: 'Exact value' }[v] ?? v;
+    if (field === 'form') return { rate: 'Asymptotic rate', exact: 'Exact value', lower: 'Lower bound' }[v] ?? v;
     return capital(v);
   }
 
@@ -387,7 +387,7 @@
     if (field === 'output') return ['plain', 'late-truncated', 'early-truncated'];
     if (field === 'regime') return ['gapless', 'gapped'];
     if (field === 'status') return ['reviewed', 'pending'];
-    if (field === 'form') return ['rate', 'exact'];
+    if (field === 'form') return ['rate', 'lower', 'exact'];
     if (field === 'law') return (RATES.lawClasses || []).flatMap(([, laws]) => laws);
     return [];
   }
@@ -523,8 +523,12 @@
           `<div class="rate-pending-statement">${statementHtml(null, e.overview)}</div>`;
       }
       const notes = Array.isArray(e.notes) ? e.notes.join(' ') : e.notes;
+      // a lower bound and the reviewed rate it matches link to each other
+      const pair = (ids, label) => ids.map(id => rateById(id)).filter(Boolean).map(p =>
+        `<p class="rate-pair">${label} <a href="#rate/${esc(p.id)}">${esc(p.c?.algorithm || p.id)} · ${md((p.resources || []).map(r => r.bound).join('; '), { inline: true })}</a></p>`).join('');
       return (e.resources || []).map(r => `<div class="rate-resource"><span class="rate-res-label">${md(r.label, { inline: true })}:</span> ${md(r.bound, { inline: true })}</div>`).join('') +
-        (notes ? `<p class="rate-caveat"><strong>${e.kind === 'exact' ? 'Hypotheses' : 'Parameters'}:</strong> ${md(notes, { inline: true })}</p>` : '');
+        (notes ? `<p class="rate-caveat"><strong>${e.kind ? 'Hypotheses' : 'Parameters'}:</strong> ${md(notes, { inline: true })}</p>` : '') +
+        pair(e.pairs_with ? [e.pairs_with] : [], 'Matches the upper bound') + pair(e.lower || [], 'Lower bound:');
     }
     return c[k] ? md(c[k], { inline: true }) : '';
   }
@@ -595,7 +599,8 @@
     const entries = RATES.entries.filter(e => Object.entries(rateFilters).every(([k, v]) => rateMatches(e, k, v)) &&
       query.every(q => rateWords(e).some(w => w.includes(q))));
     const n = s => entries.filter(s).length;
-    const parts = [[n(e => e.status === 'reviewed' && e.kind !== 'exact'), 'reviewed rate', 'reviewed rates'],
+    const parts = [[n(e => e.status === 'reviewed' && !e.kind), 'reviewed rate', 'reviewed rates'],
+      [n(e => e.kind === 'lower'), 'lower bound', 'lower bounds'],
       [n(e => e.status === 'pending'), 'pending review', 'pending review'], [n(e => e.kind === 'exact'), 'exact value', 'exact values']]
       .filter(([k]) => k).map(([k, one, many]) => `${k} ${k === 1 ? one : many}`);
     const sections = RATES.families.map(f => {
@@ -630,7 +635,7 @@
 
   function drawRateDetail(tr, explicit) {
     const e = rateById(tr.dataset.rate);
-    const exact = e.kind === 'exact';
+    const exact = !!e.kind;
     const paired = !exact && e.explicit !== e.overview;
     // a pending row already shows its asymptotic statement, so it opens on the explicit one
     if (explicit === undefined) explicit = tr.dataset.explicit ? tr.dataset.explicit === '1' : e.status === 'pending' && paired;

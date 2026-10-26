@@ -313,7 +313,7 @@ sources = ["NLAlib.Probability", "NLAlib.RandomMatrix", "NLAlib.ForMathlib.Proba
 id = "scalar"
 title = "Scalar tails"
 definitions = ["NLAlib.HasSubexponentialMGF"]
-results = ["markov-inequality", "chebyshev-inequality", "subgaussian-def", "subexponential-def", "bernstein-inequality", "subexponential-tail", "subgaussian-maximal-inequality", "bounded-differences", "mcdiarmid", "hoeffding-sampling-without-replacement", "ville-inequality"]
+results = ["markov-inequality", "chebyshev-inequality", "paley-zygmund-inequality", "subgaussian-def", "subexponential-def", "bernstein-inequality", "subexponential-tail", "subgaussian-maximal-inequality", "bounded-differences", "mcdiarmid", "hoeffding-sampling-without-replacement", "ville-inequality"]
 
 [[collections.groups]]
 id = "gaussian"
@@ -349,8 +349,29 @@ results = ["haar-frame-invariance", "haar-frame-uniqueness", "haar-frame-gram-sc
 id = "lower-bounds"
 topic = "LowerBounds"
 title = "Lower bounds (matvec model)"
-description = "Bounds that cannot be improved: the worst cases of CG and MINRES, the near-optimality factors of CG and Lanczos-FA, the hard instance for Nyström and the optimality of Rademacher probes. The query-model lower bounds and the estimator lower bounds join this shelf as they land."
-sources = ["NLAlib.Probability.QueryModel", "NLAlib.RandomMatrix.DeferredDecision", "NLAlib.LowRank.Optimality", "NLAlib.Krylov.LinearSystems.WorstCase", "NLAlib.Krylov.Functions.Optimality"]
+description = "Bounds that cannot be improved: the matrix–vector query model and exact range recovery; lower bounds for the randomized SVD, Nyström, generalized Nyström and sketch-and-solve, each beside the upper bound it matches; the worst cases of CG and MINRES, the near-optimality factors of CG and Lanczos-FA, the hard instance for Nyström and the optimality of Rademacher probes."
+sources = ["NLAlib.LowerBounds", "NLAlib.Krylov.LinearSystems.WorstCase", "NLAlib.Krylov.Functions.Optimality"]
+
+[[collections.groups]]
+id = "query-model"
+title = "The matrix–vector query model"
+definitions = ["NLAlib.QueryAlgorithm", "NLAlib.QueryAlgorithm.transcript", "NLAlib.QueryAlgorithm.run", "NLAlib.QueryAlgorithm.IsNonAdaptive", "NLAlib.QueryAlgorithm.IsMeasurable", "NLAlib.QueryAlgorithm.IsMeasurableFamily", "NLAlib.QueryAlgorithm.gramSimulation", "NLAlib.QueryAlgorithm.resample"]
+results = ["range-recovery-k-queries"]
+
+[[collections.groups]]
+id = "low-rank"
+title = "Low-rank approximation: the estimators' factors are sharp"
+results = ["randomized-svd-lower-bound", "randomized-nystrom-lower-bound", "generalized-nystrom-lower-bound", "early-truncated-rsvd-lower-bound", "truncated-gn-lower-bound"]
+
+[[collections.groups]]
+id = "regression"
+title = "Sketch-and-solve: the Haar sketch is minimax optimal"
+results = ["sketch-and-solve-lower-bound"]
+
+[[collections.groups]]
+id = "tools"
+title = "Tools"
+results = ["paley-zygmund-inequality"]
 
 [[collections.groups]]
 id = "krylov-sharp"

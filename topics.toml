@@ -12,7 +12,7 @@ shelves = ["LinearSystems", "LowRank", "Sketching", "Estimation", "MatrixFunctio
 
 # source folders, in import-layer order
 order = ["Matrix", "Polynomial", "Krylov", "Probability", "RandomMatrix", "Sketching",
-         "Regression", "Solvers", "LowRank", "Estimation", "ForMathlib"]
+         "Regression", "Solvers", "LowRank", "Estimation", "LowerBounds", "ForMathlib"]
 
 [Matrix]
 title = "Matrix analysis"
@@ -96,6 +96,14 @@ blurb = "Trace and spectral-density estimators: Girard–Hutchinson, Hutch++, st
 
 [LowRank]
 title = "Low-rank approximation"
+
+[LowerBounds]
+title = "Lower bounds (matvec model)"
+blurb = "The matrix–vector query model, and lower bounds paired with the algorithms that match them."
+order = ["QueryModel", "LowRank", "Regression"]
+QueryModel.title = "Matrix–vector query model"
+LowRank.title = "Low-rank approximation"
+Regression.title = "Sketch-and-solve regression"
 
 [Polynomial]
 title = "Polynomial approximation"

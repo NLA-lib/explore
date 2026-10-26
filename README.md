@@ -39,6 +39,11 @@ tail bound.
   statement as the library states it, in a group named after its generated cell ("Frobenius norm ·
   tail bound $\mathbb{P}[\|\cdot\|_{\mathsf F}^2 > t]$").
 - An **exact** row (`kind = 'exact'`) records an identity, for trace estimation.
+- A **lower-bound** row (`kind = 'lower'`, with `pairs_with = '<rate id>'`) cites one theorem,
+  like an exact row, and names the reviewed rate of its family it matches; the two rows link to
+  each other, and the Form filter has *Lower bound*. The lower bounds of `NLAlib.LowerBounds`
+  (Epperly–Webber's sharp factors, early-truncated RSVD, truncated GN, sketch-and-solve) are paired
+  this way.
 
 The page has one table per family, in the look of the statements table: guarantee group rows
 with their full statement and definitions in a disclosure, generated columns shown when they vary
@@ -119,9 +124,9 @@ approximation; Eigenvalues and Krylov processes; Concentration and random matric
 (matvec model); Matrix analysis. Each shelf is a collection in `collections.toml`, whose groups
 list existing result IDs and definition names from any folder, keeping their canonical URLs; a
 result may sit in several groups and shelves (CG is under Solve Ax = b, its worst cases also under
-Lower bounds). A shelf may be a folder (LowRank, Sketching, Estimation, Polynomial, Matrix: its
+Lower bounds). A shelf may be a folder (LowRank, Sketching, Estimation, LowerBounds, Polynomial, Matrix: its
 source modules follow in a collapsed browser, or inline with `modules = "inline"`) or not
-(LinearSystems, MatrixFunctions, Eigenvalues, Concentration, LowerBounds). The other folders
+(LinearSystems, MatrixFunctions, Eigenvalues, Concentration). The other folders
 (Krylov, Probability, RandomMatrix, Regression, Solvers, ForMathlib) sit in a collapsed source
 browser below the shelves; the folders follow NLAlib's import layers (`order`).
 
