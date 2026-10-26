@@ -58,21 +58,6 @@
   });
 
   const resultTitle = rid => D.results[rid]?.title ?? rid;
-  // a library-original result ends its title with a tag of its novelty (results.toml `novelty`)
-  const NOVELTY = {
-    new: 'New: proved here first, with no published counterpart',
-    improved: 'Improved: a published result, here with a sharper or explicit constant, a better rate or a weaker hypothesis',
-    extended: 'Extended: a published result, here generalized to a new setting (field, sketch law, output)',
-    corrected: 'Corrected: a published statement, fixed here (a missing hypothesis, a wrong constant)' };
-  const noveltyBadge = n => `<span class="novelty-tag novelty-${esc(n)}" title="${esc(NOVELTY[n])}">${esc(n)}</span>`;
-  const noveltyTag = rid => NOVELTY[D.results[rid]?.novelty] ? ' ' + noveltyBadge(D.results[rid].novelty) : '';
-  // the legend of the tags in use, where tagged titles are listed
-  function noveltyLegend() {
-    const used = new Set(Object.values(D.results).map(r => r.novelty));
-    const keys = Object.keys(NOVELTY).filter(n => used.has(n));
-    return keys.length ? `<p class="novelty-legend">Tags after a title: ${keys.map(n =>
-      `${noveltyBadge(n)} ${esc(NOVELTY[n].replace(/^\w+: /, ''))}`).join('; ')}.</p>` : '';
-  }
   // a graph box is SVG text, so a title's maths is written out plainly: `$\chi^2$` is χ²
   const GREEK = { alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', epsilon: 'ε', varepsilon: 'ε',
     theta: 'θ', Theta: 'Θ', kappa: 'κ', lambda: 'λ', mu: 'μ', sigma: 'σ', Sigma: 'Σ', chi: 'χ',
@@ -263,7 +248,7 @@
     if (e.type === 'r') {
       const r = D.results[e.rid];
       const anyWip = r.decls.some(j => decls[j].s);
-      return `<li><a class="entry-title" href="#r/${encodeURIComponent(e.rid)}">${md(r.title, { inline: true })}</a>${noveltyTag(e.rid)}` +
+      return `<li><a class="entry-title" href="#r/${encodeURIComponent(e.rid)}">${md(r.title, { inline: true })}</a>` +
         (anyWip ? '<span class="wip">proof in progress</span>' : '') +
         `<span class="desc">${descHtml(overviewOf(r))}</span></li>`;
     }
@@ -328,7 +313,7 @@
     };
     const shelved = shelves.map(id => topicById.get(id)).filter(Boolean);
     const folders = D.topics.filter(t => !shelves.includes(t.id));
-    $('#content').innerHTML = noveltyLegend() + shelved.map(html).join('') + (!shelved.length ? folders.map(html).join('') : !folders.length ? '' :
+    $('#content').innerHTML = shelved.map(html).join('') + (!shelved.length ? folders.map(html).join('') : !folders.length ? '' :
       `<details class="source-modules source-browser" id="source-browser"${openSections.has('source-browser') ? ' open' : ''}><summary>Browse the other source folders</summary>` +
       `<p class="topic-blurb">The library's folders follow its import layers; the shelves above group the same results by task. Folders that are shelves are browsable inside their shelf.</p>${folders.map(html).join('')}</details>`);
   }
@@ -542,7 +527,7 @@
     return (e.resources || []).map(r => `<div class="rate-resource"><span class="rate-res-label">${md(r.label, { inline: true })}:</span> ${md(r.bound, { inline: true })}</div>`).join('') +
       (notes ? `<p class="rate-caveat"><strong>${e.kind ? 'Hypotheses' : 'Parameters'}:</strong> ${md(notes, { inline: true })}</p>` : '');
   }
-  function rateSourceHtml(e) { return (e.c?.source ? md(e.c.source, { inline: true }) : '') + noveltyTag(e.result); }
+  function rateSourceHtml(e) { return e.c?.source ? md(e.c.source, { inline: true }) : ''; }
 
   // `split`: the table has lower-bound columns, where an unpaired lower bound puts its bound
   function rateCell(e, k, split) {
@@ -663,7 +648,7 @@
     $('#content').innerHTML = entries.length || sections
       ? `<p class="searchnote">${entries.length ? `${entries.length} row${entries.length === 1 ? '' : 's'}${parts.length ? ': ' + parts.join(', ') : ''}. ` +
         'Resources, exact values and parameter caveats are stated per row; pending rows show the theorem as the library states it.'
-        : 'No rate matches these filters; the bounds below have no asymptotic form yet.'}</p>` + noveltyLegend() + sections
+        : 'No rate matches these filters; the bounds below have no asymptotic form yet.'}</p>` + sections
       : '<p class="empty">No rates match these filters.</p><button type="button" id="reset-rates">Reset filters and search</button>';
     $('#reset-rates')?.addEventListener('click', resetRates);
     for (const id of openRates) {
@@ -693,7 +678,7 @@
       statementHtml(null, i) +
       `<p class="rate-links"><a href="${BASE}${rateRoute(e, i)}">Result page</a> · ${links} · <a href="${sourceUrl(i)}" target="_blank" rel="noopener">Source ↗</a>` +
       (defs.length ? ' · ' + defs.join(' · ') : '') + '</p>' +
-      lowersOf(e).map(l => `<h4 class="rate-lower-head">Lower bound${l.tightness ? ` (${esc(l.tightness)})` : ''}${noveltyTag(l.result)}</h4>` +
+      lowersOf(e).map(l => `<h4 class="rate-lower-head">Lower bound${l.tightness ? ` (${esc(l.tightness)})` : ''}</h4>` +
         statementHtml(null, l.overview) +
         `<p class="rate-links"><a href="${BASE}${rateRoute(l)}">Result page</a> · <a href="${BASE}${declRoute(l.overview)}">Theorem</a> · ` +
         `<a href="${sourceUrl(l.overview)}" target="_blank" rel="noopener">Source ↗</a></p>`).join('') +
@@ -771,7 +756,7 @@
       'the results of the library that cite it.';
     $('#byline').innerHTML = `From NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
     const link = t => t.r !== undefined
-      ? `<a href="#r/${encodeURIComponent(t.r)}">${md(resultTitle(t.r), { inline: true })}</a>${noveltyTag(t.r)}`
+      ? `<a href="#r/${encodeURIComponent(t.r)}">${md(resultTitle(t.r), { inline: true })}</a>`
       : `<a href="#d/${encodeURIComponent(t.d)}"><code>${esc(short(t.d))}</code></a>`;
     const links = refs => refs.map(link).join(', ');
     const item = it => {
@@ -910,12 +895,12 @@
     if (it.type === 's') {
       const { rid, row } = statementOf(it.key);
       return `<li><a class="entry-title" href="${hitRoute(it)}">${md(row.l || decls[row.e].nm || short(decls[row.e].n), { inline: true })}</a>` +
-        `<span class="kind">statement</span><span class="desc">${md(D.results[rid].title, { inline: true })}${noveltyTag(rid)}` +
+        `<span class="kind">statement</span><span class="desc">${md(D.results[rid].title, { inline: true })}` +
         `${row.s ? ' · ' + md(row.s, { inline: true }) : ''}</span></li>`;
     }
     if (it.type === 'r') {
       const r = D.results[it.key];
-      return `<li><a class="entry-title" href="#r/${encodeURIComponent(it.key)}">${md(r.title, { inline: true })}</a>${noveltyTag(it.key)}` +
+      return `<li><a class="entry-title" href="#r/${encodeURIComponent(it.key)}">${md(r.title, { inline: true })}</a>` +
         `<span class="kind">result</span><span class="desc">${descHtml(overviewOf(r))}` +
         ` <em>${md(D.modules[r.module]?.title || '', { inline: true })}</em></span></li>`;
     }
@@ -1215,7 +1200,7 @@
     }
     const nDecls = new Set(rows.flatMap(row => [row.o, row.e])).size;
     const body = $('#panelbody');
-    body.innerHTML = headHtml(md(r.title, { inline: true }) + noveltyTag(rid), 'Theorem') +
+    body.innerHTML = headHtml(md(r.title, { inline: true }), 'Theorem') +
       `<div class="subtitle"><code>${esc(rid)}</code>${r.ids.map(x => `, <code>${esc(x)}</code>`).join('')}` +
       ` · ${rows.length > 1 ? `${rows.length} statements, ` : ''}${nDecls} formal statement${nDecls > 1 ? 's' : ''}` +
       `${(r.merged || []).length ? ' · includes ' + r.merged.map(x => `<code>${esc(x)}</code>`).join(', ') : ''}` +
@@ -1322,7 +1307,7 @@
     if (!mod) return showMissing();
     const inMod = decls.map((d, i) => [d, i]).filter(([d]) => d.m === name);
     const item = ([d, i]) => `<li><a href="${declRoute(i)}"><code>${esc(short(d.n))}</code></a>` +
-      `${d.r.length ? ` <em>${md(resultTitle(d.r[0]), { inline: true })}</em>${noveltyTag(d.r[0])}` : ''}${wip(d)}` +
+      `${d.r.length ? ` <em>${md(resultTitle(d.r[0]), { inline: true })}</em>` : ''}${wip(d)}` +
       (d.fs ? `<span class="desc">${descHtml(i)}</span>` : '') + '</li>';
     const results = inMod.filter(([d]) => d.r.length);
     const defs = inMod.filter(([d]) => !d.r.length && isDef(d) && !isSupport(d));

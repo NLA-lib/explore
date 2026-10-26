@@ -138,7 +138,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\log
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.HasJLProperty'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''55da2af0cd417f19655d2137abac2b36de29ecc35bcb83f68e1f4c45ef8ef344'''
+statement_hash = 'ff7d31e775d05ace1fd696974feb49e15a16fad44bffe0a5a59180665832eedb'
 
 [[rates]]
 id = '''jl-haar'''
@@ -148,7 +148,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\log
 notes = '''$\delta\le1/2$. $s\le n$.'''
 algorithm_definition = '''NLAlib.HasJLProperty'''
 sketch_definition = '''NLAlib.haarFrame'''
-statement_hash = '''6ecc3813ca3d051a95dd00d643f61621cef858d721c7b666e47c7bac13402ec5'''
+statement_hash = '672a5d3614663845a8283204d8205bb49947901225ab2d9fc3368364dbe49bbd'
 
 [[rates]]
 id = '''jl-rademacher'''
@@ -158,7 +158,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\log
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.HasJLProperty'''
 sketch_definition = '''NLAlib.rademacherMatrix'''
-statement_hash = '''18c7ca29b6643b3c80a9c1762b2adfa5624e5299b8c3718e0502f95418b5328c'''
+statement_hash = 'aa7552d37116d7283d4f175b3f7bed3f222bcd231bbe23c900d6cd084700b954'
 
 [[rates]]
 id = '''jl-sub-gaussian'''
@@ -168,7 +168,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(c^2 
 notes = '''$\delta\le1/2$. $s>0$; independent isotropic rows, proxy $c$.'''
 algorithm_definition = '''NLAlib.HasJLProperty'''
 sketch_definition = '''NLAlib.IsSubgaussianVector'''
-statement_hash = '''de8f502419e57fbc4c924a18ebd3a89555ce54198c3def02adcaaa67d9e097a5'''
+statement_hash = 'cdf6f1c68d28da6a5b5ceb41b5a331329fd764a75b4e000f4623109dafa1d67e'
 
 [[rates]]
 id = '''ose-countsketch'''
@@ -178,7 +178,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(d^2/
 notes = '''$s>0$ when $n>0$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.countSketch'''
-statement_hash = '''5ed5672502811094db8a7eb7d0b2881d06441910161900c52d9b0ef4a48b9eb3'''
+statement_hash = 'd5e6ac3ef81605b4b99cc4f788b8f47c0e59bdfbe43a01be96200e3fb543ae12'
 
 [[rates]]
 id = '''ose-gaussian'''
@@ -188,7 +188,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O((d+\
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''4efa48d836c550f4b86df6ace6e64ccf010159a2de03378341f7f68cc1357e61'''
+statement_hash = 'a4c0c0dcb0d496267bd709fc89ffd90b26e0db6b7e516f64027af5e2240790f6'
 
 [[rates]]
 id = '''ose-rademacher'''
@@ -198,7 +198,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O((d+\
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.rademacherMatrix'''
-statement_hash = '''73f1dc6c066c85f5efa4cfbb6b5c41178ec3d25fce24a3e3a67bcb31ae99b335'''
+statement_hash = '9c8a6375c0ed72a8182ee068a1b5dc28bd3dff10e74e61122283c41752078358'
 
 [[rates]]
 id = '''ose-row-sampling-with-replacement'''
@@ -208,7 +208,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\lo
 notes = '''$\delta\le1/2$. $\ell_i(\mathbf{U})\le Lp_i$.'''
 algorithm_definition = '''NLAlib.HasSubspaceEmbedding'''
 sketch_definition = '''NLAlib.samplingSketch'''
-statement_hash = '''636c3650f343bfaf9119c689813e42b86a6ffbbf99d335b4098e34a33df68975'''
+statement_hash = '11c25847a11230aae5b9105357b3e6ff8abbaa1443b7091ec2ab6920d63ee6ab'
 
 [[rates]]
 id = '''ose-row-sampling-without-replacement'''
@@ -218,7 +218,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\lo
 notes = '''$\delta\le1/2$. $s\le n$; $\ell_i(\mathbf{U})\le L/n$.'''
 algorithm_definition = '''NLAlib.HasSubspaceEmbedding'''
 sketch_definition = '''NLAlib.samplingSketchWithoutReplacement'''
-statement_hash = '''a1dafcc8504f1f3fe54955220aaa465f3be288da8abe157fc47b6f1a2274f411'''
+statement_hash = 'aaaa0df349aa1ff72db064458c731bbaaef72cbca3709994e7782ecd81bc0873'
 
 [[rates]]
 id = '''ose-srht-with-replacement'''
@@ -228,7 +228,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\bet
 notes = '''$\delta\le1/2$. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.srhtWithReplacement'''
-statement_hash = '''92d744d7c6213bc4d30a77da89e415d567dc3e00ad36a70a49f44c1950c3a54e'''
+statement_hash = '8b597a36225fc734006aef59d41b60d22587781c117a0512a60f55865006f23a'
 
 [[rates]]
 id = '''ose-srht-without-replacement'''
@@ -238,7 +238,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\bet
 notes = '''$\delta\le1/2$. $s\le n$. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.srht'''
-statement_hash = '''b0ab2b25572e453d913f2a8b647e8d5321657187cfbea7308071f4239c718bd7'''
+statement_hash = 'cff65dc9e67cd329dcc6a13391ba4218fd9c123eb0d303daabb2d3d1d96cbb98'
 
 [[rates]]
 id = '''ose-sub-gaussian'''
@@ -248,7 +248,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(c^2 
 notes = '''$\delta\le1/2$. $s>0$; independent isotropic rows, proxy $c$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceEmbedding'''
 sketch_definition = '''NLAlib.IsSubgaussianVector'''
-statement_hash = '''72256bb2734447199a80859380a5e3099cb125767cfb3c64d8d9a8795318c55f'''
+statement_hash = 'eaac78e6c6e8d1ad12550263e97a6df4a588e580e3f0a794551c5ce4c797c9be'
 
 [[rates]]
 id = '''osi-gaussian'''
@@ -258,7 +258,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O((d+\
 notes = '''$\delta\le1/2$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''32ddb917d0cd7c61466f0f9cd7d170fe14206b44f2979b93cd18bc62987a441f'''
+statement_hash = 'd6cdea29e8548ef7046c250a7312cb306ad9af36fe8854eee0fc7df80c3e9054'
 
 [[rates]]
 id = '''osi-row-sampling-with-replacement'''
@@ -268,7 +268,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\lo
 notes = '''$\ell_i(\mathbf{U})\le Lp_i$.'''
 algorithm_definition = '''NLAlib.HasSubspaceInjection'''
 sketch_definition = '''NLAlib.samplingSketch'''
-statement_hash = '''ce73a8bf7885c325f6c5fbb700af0e8ffcc8b0b2f98dd850a911eb1d6767769f'''
+statement_hash = 'a44ff701e3b4c93b71e468bec2091282c912609f00ab1b2504508b17fb2ea777'
 
 [[rates]]
 id = '''osi-row-sampling-without-replacement'''
@@ -278,7 +278,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(L\lo
 notes = '''$s\le n$; $\ell_i(\mathbf{U})\le L/n$.'''
 algorithm_definition = '''NLAlib.HasSubspaceInjection'''
 sketch_definition = '''NLAlib.samplingSketchWithoutReplacement'''
-statement_hash = '''2e31d69edf4ca39e576b140c78442f7f997e6880697af32fd395d03ef6d621c4'''
+statement_hash = '802c866bb91d0998ede316e1854091683b974e4433d7c9321cd4aabb8e139d96'
 
 [[rates]]
 id = '''osi-srht-with-replacement'''
@@ -288,7 +288,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\bet
 notes = '''$\delta\le1/2$. $s>0$, $n>0$. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
 sketch_definition = '''NLAlib.srhtWithReplacement'''
-statement_hash = '''9e622ad68591b41c58375ad487736f67ce8d32b89e67dbc0c186c4118a425a1a'''
+statement_hash = 'bc749736d07da7da1f970ef2d1e1d474f8bc735caa4dd318e205234ec81f83a4'
 
 [[rates]]
 id = '''osi-srht-without-replacement'''
@@ -298,7 +298,7 @@ resources = [{ label = '''Sketch rows s''', kind = 'samples', bound = '''$O(\bet
 notes = '''$\delta\le1/2$. $s\le n$. $s>0$ for injection. Flatness $\beta$.'''
 algorithm_definition = '''NLAlib.IsObliviousSubspaceInjection'''
 sketch_definition = '''NLAlib.srht'''
-statement_hash = '''ee527d31cc079f5261130739f8368633f9a003edc443293b6a4c6ba4bed51ba4'''
+statement_hash = 'd165be8bf5934390688628c7941034733a460d8ee914f1d3135f6719005cdb42'
 
 [[rates]]
 id = '''rsvd-basic-gaussian'''
@@ -308,7 +308,7 @@ resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''a5807e4c53879ffb91df6992d0452b3054ceeac7df892308425d8f6f83272d0b'''
+statement_hash = '7dac7aaae74b16a52c4f49be6963b886b733b63ee37d24ae067e74fb19246cb1'
 
 [[rates]]
 id = '''rsvd-basic-rotation-invariant'''
@@ -318,7 +318,7 @@ resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.IsLeftUnitarilyInvariant'''
-statement_hash = '''87d96669747ab353bfa2e4f129644692f5aa5cd205d57ad31f36d6cb79972338'''
+statement_hash = '54b8d89f58d2a6834c9fb73d41ba06a1a2fa5d1bedd0369ca8e216f06ef17f7c'
 
 [[rates]]
 id = 'rsvd-rotation-invariant-lower'
@@ -332,7 +332,7 @@ resources = [{ label = 'Range columns ℓ', kind = 'samples', bound = '''factor 
 notes = '''Left unitarily invariant test matrix of full column rank a.s.; $k+2\le\ell\le r\le\min(m,n)$; some $\mathbf{A}$ of rank $r$ ($q$ in the theorem is $k$). As $r\to\infty$ the factor tends to the upper bound's $1+k/(\ell-k-1)$, so its $O(k/\varepsilon)$ is tight. [EpperlyWebber2026, Theorem 3.3].'''
 algorithm_definition = 'NLAlib.rsvd'
 sketch_definition = 'NLAlib.IsLeftUnitarilyInvariant'
-statement_hash = '650b393093c38ca5574c0b7ae117cccefd473fc2eb74cb419de947a0b96336eb'
+statement_hash = '577e369a0dba04063d33d53c538bf5a22ec75d74aeb3008886e97b527cd80bbd'
 
 [[rates]]
 id = '''rsvd-late-gaussian'''
@@ -342,7 +342,7 @@ resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(
 notes = '''Output rank $\le k$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''5135d85d6315fd8a1cca906dd1d1282d5f0c62103eda31ab6e6ca21f74a3dd99'''
+statement_hash = '479eaebd7fff64637d39d7d5305838c0c0fa2125e66607f612b2423fd1ea9753'
 
 [[rates]]
 id = '''rsvd-early-gaussian'''
@@ -352,7 +352,7 @@ resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(
 notes = '''Output rank $\le k$.'''
 algorithm_definition = '''NLAlib.earlyTruncatedRSVD'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''cd69fe2b4d401650f77682383a965e4e39b5ee8bd15d845aed80df0a1111e94e'''
+statement_hash = 'ca513eba3c18df5fbbf173447d165c4ae70be335bb57d40d3af0e02d30119f03'
 
 [[rates]]
 id = 'rsvd-early-gaussian-lower'
@@ -363,10 +363,10 @@ tightness = 'tight'
 theorem = 'NLAlib.exists_forall_le_integral_frobNorm_sub_earlyTruncatedRSVD_sq_of_hasLaw_gaussianMatrix'
 guarantee = 'expected-relative-frobenius'
 resources = [{ label = 'Range columns ℓ', kind = 'samples', bound = '''$\Omega(k/\varepsilon^2)$ necessary''' }]
-notes = '''Gaussian test matrix; $\mathbf{A}=\operatorname{diag}(\mathbf{I}_k,(1-\delta)\mathbf{I}_k)$, $\delta=\sqrt{k/\ell}/4$; $k\ge K_0$, $\ell\ge Ck$, existential constants. At $k=1$ with explicit constants, $\ell\ge10^{-4}/\varepsilon^2$ is necessary ($\ell\ge100$): `NLAlib.one_le_mul_card_of_forall_integral_frobNorm_sub_earlyTruncatedRSVD_sq_le`. Tight against the upper bound. New, no printed source (research note OP1).'''
+notes = '''Gaussian test matrix; $\mathbf{A}=\operatorname{diag}(\mathbf{I}_k,(1-\delta)\mathbf{I}_k)$, $\delta=\sqrt{k/\ell}/4$; $k\ge K_0$, $\ell\ge Ck$, existential constants. At $k=1$ with explicit constants, $\ell\ge10^{-4}/\varepsilon^2$ is necessary ($\ell\ge100$): `NLAlib.one_le_mul_card_of_forall_integral_frobNorm_sub_earlyTruncatedRSVD_sq_le`. Tight against the upper bound. From research note OP1.'''
 algorithm_definition = 'NLAlib.earlyTruncatedRSVD'
 sketch_definition = 'NLAlib.gaussianMatrix'
-statement_hash = 'ade27d945727158b846096dfb07d8352ce2c9529000c5a97cd79096fd6bdc7e6'
+statement_hash = '82ed6c6beb56b3eb675477e9d43f101080172a3bc2f000b62ecee9b4c42b53fb'
 
 [[rates]]
 id = '''gn-basic-gaussian'''
@@ -376,7 +376,7 @@ resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.generalizedNystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''0f59b4522a53bd568ec4a35de4a91c3948becc09b6c5455247e3ca2daa6087b6'''
+statement_hash = '588e787d9a7c572729e389b0150cfd3247154915d5551416063f118192350dc1'
 
 [[rates]]
 id = 'gn-gaussian-lower'
@@ -390,7 +390,7 @@ resources = [{ label = 'Range and co-range columns ℓ, p', kind = 'samples', bo
 notes = '''Left unitarily invariant range test matrix of full column rank a.s. (Gaussian included), independent Gaussian co-range; $k+2\le\ell\le r\le\min(m,n)$, $\ell+2\le p$; some $\mathbf{A}$ of rank $r$ ($q$ in the theorem is $k$). With a Haar co-range: `NLAlib.exists_lt_integral_frobNorm_sub_generalizedNystrom_sq_of_isLeftUnitarilyInvariant_of_hasLaw_haarFrame`. [EpperlyWebber2026, Theorem 4.2(b)].'''
 algorithm_definition = 'NLAlib.generalizedNystrom'
 sketch_definition = 'NLAlib.gaussianMatrix'
-statement_hash = '18888b5dbf9decfe132f4dd5a8ed691c435fc07e4b8637a35fedcb5b8282a556'
+statement_hash = '4212e987d2e5cbb9cf167345911007ae47779c9b43f39e53ae501a3f5650cb64'
 
 [[rates]]
 id = '''gn-late-gaussian'''
@@ -400,7 +400,7 @@ resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(
 notes = '''Output rank $\le k$. Supersedes the earlier $p = O(\ell/\varepsilon)$ bound `NLAlib.exists_forall_integral_frobNorm_sub_truncatedSVD_generalizedNystrom_sq_le_of_hasLaw_gaussianMatrix`. Explicit form: `NLAlib.integral_frobNorm_sub_truncatedSVD_generalizedNystrom_sq_le_one_add_of_hasLaw_gaussianMatrix` ($\ell \ge 3500004\,k/\varepsilon$).'''
 algorithm_definition = '''NLAlib.generalizedNystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''e971a445c511c525c40f14734ab7af55a8a89a8e84f6499dc1d640028777a8f6'''
+statement_hash = '17331884ec1f20bbb113d47ff76a617abf02f3d7af3182f06f9d989563cacf9c'
 
 [[rates]]
 id = 'gn-late-gaussian-lower'
@@ -412,10 +412,10 @@ result = 'truncated-gn-lower-bound'
 theorem = 'NLAlib.mul_le_of_forall_integral_frobNorm_sub_truncatedSVD_generalizedNystrom_fromBlocks_sq_le'
 guarantee = 'expected-relative-frobenius'
 resources = [{ label = 'Co-range columns p', kind = 'samples', bound = '''$p-\ell-1\ge\frac{k(n-\ell)}{(n-k)\varepsilon}$ necessary''' }]
-notes = '''Gaussian test matrices; Epperly and Webber's instance $\operatorname{diag}(a\mathbf{I}_k,\mathbf{I}_{n-k})$, $a\ge1$; $k+2\le\ell$, $\ell+2\le p$. So $p=\Omega(k/\varepsilon)$ for $n\gg\ell$, matching the upper bound's $p=O(k/\varepsilon)$. The limit form: `NLAlib.eventually_le_integral_frobNorm_sub_truncatedSVD_generalizedNystrom_fromBlocks_sq`. New, no printed source (research note OP2).'''
+notes = '''Gaussian test matrices; Epperly and Webber's instance $\operatorname{diag}(a\mathbf{I}_k,\mathbf{I}_{n-k})$, $a\ge1$; $k+2\le\ell$, $\ell+2\le p$. So $p=\Omega(k/\varepsilon)$ for $n\gg\ell$, matching the upper bound's $p=O(k/\varepsilon)$. The limit form: `NLAlib.eventually_le_integral_frobNorm_sub_truncatedSVD_generalizedNystrom_fromBlocks_sq`.'''
 algorithm_definition = 'NLAlib.generalizedNystrom'
 sketch_definition = 'NLAlib.gaussianMatrix'
-statement_hash = '9c555f26663ad061826b5b1027afcd94549b6e540eb3a9d3ac0ab97ddae238ad'
+statement_hash = '650e8541669e03903daa667fdcbf1836c29505b50f85b770d67bf53ee00c9122'
 
 [[rates]]
 id = '''gn-early-gaussian'''
@@ -425,7 +425,7 @@ resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(
 notes = '''Output rank $\le k$.'''
 algorithm_definition = '''NLAlib.earlyTruncatedGeneralizedNystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''92fd99c49d03a45f0a77c2b8134cf6d8226345b736f489bcd0b82d3d5aa06d94'''
+statement_hash = '67dfe063506b8ff2f7929aac4f8f80b65bc8c4576ef53097ee1d10226e9ff849'
 
 [[rates]]
 id = '''nystrom-basic-gaussian'''
@@ -435,7 +435,7 @@ resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''53dc767fa9c30ded48dfe8b3cf905df9b7dce7af7b0a921c7a973148c506a9bc'''
+statement_hash = '7fa0dc8772be3533b6629888acc0423592930ec687ab1b1c25e3a82568d9c632'
 
 [[rates]]
 id = '''nystrom-basic-rotation-invariant'''
@@ -445,7 +445,7 @@ resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(
 notes = '''$k\ge1$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.IsLeftUnitarilyInvariant'''
-statement_hash = '''76acc17f1867fab73c95b1d9c51dd0fd3b69d18f6088fcbaa5434c762b8bb53f'''
+statement_hash = '5777528594a18b4bede62d8f228f54673b120ba752834c2ce4443a3b0b0ba1a6'
 
 [[rates]]
 id = 'nystrom-rotation-invariant-lower'
@@ -459,7 +459,7 @@ resources = [{ label = 'Range columns ℓ', kind = 'samples', bound = '''factor 
 notes = '''Left unitarily invariant test matrix of full column rank a.s.; $k+2\le\ell\le r\le n$; some psd $\mathbf{H}$ of rank $r$ ($q$ in the theorem is $k$). As $r\to\infty$ the factor tends to the upper bound's $1+k/(\ell-k-1)$, so its $O(k/\varepsilon)$ is tight. [EpperlyWebber2026, Theorem 3.6(b)].'''
 algorithm_definition = 'NLAlib.nystrom'
 sketch_definition = 'NLAlib.IsLeftUnitarilyInvariant'
-statement_hash = '364479a0de79b67c6f429ba6aef7e09c0db94033e732957c893ab946602d23d3'
+statement_hash = '6ab5f8703c5ea12e7ec22af68f4c7eefd1d8b89376186dd0354e30a30e0019a6'
 
 [[rates]]
 id = '''nystrom-late-gaussian'''
@@ -469,7 +469,7 @@ resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(
 notes = '''Output rank $\le k$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''6df697c387891aae3d69ea3d9d68054bf3ebab88473d5419fe3ee27746840630'''
+statement_hash = '5d1752cea20e0c295ba3a38e024e05c3e26c7f4eb168c7fe3b6a156bd0a118a1'
 
 [[rates]]
 id = '''nystrom-late-rotation-invariant'''
@@ -479,7 +479,7 @@ resources = [{ label = '''Range columns ℓ''', kind = 'samples', bound = '''$O(
 notes = '''Output rank $\le k$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.IsLeftUnitarilyInvariant'''
-statement_hash = '''08c379df6a1fdff875baa3e48f569a266469c141e8c0ae44d9245d92c529708d'''
+statement_hash = 'ab387ea375f2c99cbccb93b6a73ce2b31dd41df6f60770d5a7397988af0b768a'
 
 [[guarantees]]
 id = 'expected-relative-regression-frobenius'
@@ -502,7 +502,7 @@ guarantee = '''expected-relative-regression-frobenius'''
 notes = '''Real inputs; unnormalized standard Gaussian sketch. Any rank $r\ge0$.'''
 algorithm_definition = '''NLAlib.sketchAndSolve'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''2859f44e5a6fc1e7ccfa8785cc9a17ed15e076e9c56b97482bb0d1f1db25bb7c'''
+statement_hash = '6033a9adf26e327499ba4b1d978714416a2489b7e38f24189ad3779fd57fc5a1'
 resources = [{label = 'Sketch rows s', kind = 'samples', bound = '''$O((r+1)/\varepsilon)$ suffices'''}]
 
 [[rates]]
@@ -512,7 +512,7 @@ guarantee = '''expected-relative-regression-frobenius'''
 notes = '''Real inputs; sketch $\mathbf{Q}^{\mathsf{H}}$ for an $m\times s$ Haar frame. $s\le m$; any rank $r\ge0$.'''
 algorithm_definition = '''NLAlib.sketchAndSolve'''
 sketch_definition = '''NLAlib.haarFrame'''
-statement_hash = '''3ea38288e0060e16c6a9bf5f9d3ac50b2dd7c8810b922eaebe5093f41d9f7bdb'''
+statement_hash = '2c0eed102302171541a72cac14cbd20600e412de1efc2cd12d423518be501e14'
 resources = [{label = 'Sketch rows s', kind = 'samples', bound = '''$O((r+1)/\varepsilon)$ suffices'''}]
 
 [[rates]]
@@ -526,7 +526,7 @@ guarantee = 'expected-relative-regression-frobenius'
 resources = [{ label = 'Sketch rows s', kind = 'samples', bound = '''factor $1+\frac{m-s}{m-r}\cdot\frac{r}{s-r-1}$ for every sketch law''' }]
 notes = '''Any random sketch of full rank a.s.; $r=\operatorname{rank}\mathbf{A}$, $r+2\le s$ ($\ell$ in the theorem is $s$); a rotated problem $\mathbf{U}\mathbf{A}$, $\mathbf{U}\mathbf{B}$, expectation in $[0,\infty]$. The Haar sketch attains the factor exactly, so it is minimax optimal. [EpperlyWebber2026, Theorem 2.2].'''
 algorithm_definition = 'NLAlib.sketchAndSolve'
-statement_hash = 'f49d138f8823613eeec7defb429c33081078f6d052d5a9158d2f1a9ad63901a3'
+statement_hash = 'cd3d0550587d2d544b4f606f1324a67485963826ba546a8d479f7dab1c5c57f1'
 
 [[rates]]
 id = '''regression-high-prob-gaussian'''
@@ -535,7 +535,7 @@ guarantee = '''high-prob-relative-regression-frobenius'''
 notes = '''Real inputs; unnormalized standard Gaussian sketch. $0<\delta\le1/2$; JL-moment sufficient rate; any rank $r\ge0$.'''
 algorithm_definition = '''NLAlib.sketchAndSolve'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''8c75167b0128d7bd06069ac91a8bd689fda0d930d72bf74c559b760e473ea4ab'''
+statement_hash = '1a76378a756864d6c262723cb66bb377fec660033152ffb0679c4016b5ab2c39'
 resources = [{label = 'Sketch rows s', kind = 'samples', bound = '''$O((r+1)\log(1/\delta)/\varepsilon)$ suffices'''}]
 
 [[rates]]
@@ -545,7 +545,7 @@ guarantee = '''high-prob-relative-regression-frobenius'''
 notes = '''Real or complex inputs; unscaled one-sign-per-column CountSketch. $\delta>0$; any rank $r\ge0$.'''
 algorithm_definition = '''NLAlib.sketchAndSolve'''
 sketch_definition = '''NLAlib.countSketch'''
-statement_hash = '''404998880bc5588f76c55ce8d346ecf51efc00248bca3dc503a69ddf05d133a5'''
+statement_hash = 'b6ff17de5f90666a14c14e2ff854d7c0e00225e453ac7bc199cf9ac2f5a39da6'
 resources = [{label = 'Sketch rows s', kind = 'samples', bound = '''$O(((r+1)^2+(r+1)/\varepsilon)/\delta)$ suffices'''}]
 
 [[guarantees]]
@@ -584,7 +584,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''No gap assumption. Output rank $\le q\ell$. Tropp–Webber form; its explicit theorem assumes $\sigma_r>0$ and $q\ge2$, the asymptotic form does not.'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''a9f02f5fb0fe172248db2a93a89aefb80e703f4a0584b88ff3b78b8dcdab1ab4'''
+statement_hash = '3fa3f7c7ba45db7f4a967619fc6747efd5ca7ba6b0482713bef45c469a53358c'
 
 [[rates]]
 id = '''rbki-gapless-late-spectral'''
@@ -594,7 +594,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''No gap assumption. Output rank $\le r$. Musco–Musco form: the $\log(1/\varepsilon)$ reflects that proof, not a cost of truncation (the Tropp–Webber form is proved only for the untruncated output).'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''f0cb81cd4741c2bb1f8cfe07b30843bc6b9af15e6cca64ac17f3f1b46c6d10b0'''
+statement_hash = '85559a80c26802b29699d63bab052d01743b7a35e02cf9d4ee07e1d2487cbb90'
 
 [[rates]]
 id = '''rbki-gapped-spectral'''
@@ -604,7 +604,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le q\ell$.'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''6bad0d167b24251afa8c48321a4505b8cac76078b584af0cd6fb311a0ec6f2ae'''
+statement_hash = '33561689e978a25f058f249e31538e33cc2cced9019144b590b76f7841095ae1'
 
 [[rates]]
 id = '''rbki-gapped-late-spectral'''
@@ -614,7 +614,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''131aa7148e218099e2f75c6c9b8f39884f0dfa8cf063e2fc7b991eeed00e4169'''
+statement_hash = '282782505f42c4c00747035e33c9c2153568d6ba3250430b9acb7cdbefbc6348'
 
 [[rates]]
 id = '''rsi-gapless-spectral'''
@@ -624,7 +624,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. No gap assumption. Output rank $\le\ell$. Tropp–Webber form; its explicit theorem assumes $\sigma_r>0$, the asymptotic form does not.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''8648dbd3248a0d7e317ab4288c8cafd36b3b5a29b6664be1eb6469ca3625c418'''
+statement_hash = '7d8fd587a8d54840241b1c0d78e27c17b6d81696f521d1451b925164408d5510'
 
 [[rates]]
 id = '''rsi-gapless-late-spectral'''
@@ -634,7 +634,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. No gap assumption. Output rank $\le r$. Musco–Musco form: the $\log(1/\varepsilon)$ reflects that proof, not a cost of truncation (the Tropp–Webber form is proved only for the untruncated output).'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''1b15bc4016cad0c6fc8efc709e967a8345790decf29e2988cb5a4990a9881dfb'''
+statement_hash = '3139cf53c1960734567061671da3caeb420139dab83bf5db7e62b86778df87d6'
 
 [[rates]]
 id = '''rsi-gapped-spectral'''
@@ -644,7 +644,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''b800a0f09bb90cb1328067b3f210d234cbb1a1091c4b870b6d7a6ff482f92c77'''
+statement_hash = '5244d9eeb44a262607e351d204798e8af7155e00b6e975e3b7c502d81142e31e'
 
 [[rates]]
 id = '''rsi-gapped-late-spectral'''
@@ -654,7 +654,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''3022f5c42a9b3f10c869bebc210c03fe2f7e579ee3acdcf5e8e059439f289aac'''
+statement_hash = '6c70665a653881fcc15d0999bd85302704764b07271bc2889cdef845977c76c5'
 
 [[rates]]
 id = '''rbki-gapped-frobenius'''
@@ -664,7 +664,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le q\ell$.'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''41875926845332d5c0c7906fe270b70aed50500fb7f8ad712e93d0a4c082e5dc'''
+statement_hash = 'eb74c36bd4a9d6ffbad102a0b941ca9612a8ea3c286f6acdf0b5e95291e40b5a'
 
 [[rates]]
 id = '''rbki-gapped-late-frobenius'''
@@ -674,7 +674,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.rbki'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''98956df4358f328f985454b04238dad8aec52e07f5af27523d633e0df3ce1637'''
+statement_hash = 'bfa026a71b336af0eadf140083af66eff3c40637be17fb02d822ea82615017f7'
 
 [[rates]]
 id = '''rsi-gapped-frobenius'''
@@ -684,7 +684,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''5ead1af2add58f19fecfa31b6292622e9244f8f9b3ee0334518822d460dc5872'''
+statement_hash = '6679c4458cf07c2c0dfb4fe0b5721c7837d0f1e8493478f6fbdc4fb9db34a9bc'
 
 [[rates]]
 id = '''rsi-gapped-late-frobenius'''
@@ -694,7 +694,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Randomized SVD at test matrix $(\mathbf{A}^{\mathsf{T}}\mathbf{A})^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}$ and $\sigma_t$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.rsvd'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''b5f458693bcfd34536e45cd7f60106723b5f72f92593d22b01fdf7b0105a1fc6'''
+statement_hash = '54ff99be3883ead867c87f51f441bc59362fe7c0284fa7d8f7a18bdd591b55fb'
 
 [[rates]]
 id = '''nysbki-gapless-spectral'''
@@ -704,7 +704,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''No gap assumption. Output rank $\le q\ell$. Tropp–Webber form; its explicit theorem assumes $\sigma_r(\mathbf{H})>0$ and $q\ge2$, the asymptotic form does not.'''
 algorithm_definition = '''NLAlib.nystromBKI'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''43ac0f8d7a55cfc0ff3abffea80ae5b4ce2bcf721ad1dbef49ae75478769283c'''
+statement_hash = '2415f7bcef39f78f620fa339cee3cf13cd2384c687294dad2a0319c20c46a2fc'
 
 [[rates]]
 id = '''nysbki-gapped-spectral'''
@@ -714,7 +714,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t$. Output rank $\le q\ell$.'''
 algorithm_definition = '''NLAlib.nystromBKI'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''6427617212c340ca826390f348ca9ba1b56bdfbe5784c1b83f3422e86126bc69'''
+statement_hash = '005f0afef5fccad057b8ae1a58649a72a10d1b369fbc27e1ca41ba9570302bc9'
 
 [[rates]]
 id = '''nyssi-gapless-spectral'''
@@ -724,7 +724,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Nyström at test matrix $\mathbf{H}^p\mathbf{X}$. No gap assumption. Output rank $\le\ell$. Tropp–Webber form; its explicit theorem assumes $\sigma_r(\mathbf{H})>0$, the asymptotic form does not.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''8bfdc7d76d32540a3e5e74c9f4798ca94edd24073c1d1642b79f7cb7398e5b4b'''
+statement_hash = '27e772c929feb7c5ce981c4e5c3826a2d524f5ebcf3186c2ccbff5b7f2c515e1'
 
 [[rates]]
 id = '''nyssi-gapped-spectral'''
@@ -734,7 +734,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Nyström at test matrix $\mathbf{H}^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t$. Output rank $\le\ell$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''31665e3f1c34ea4081a13b5ab074f9aeb667e5b4669496004cb877218206b374'''
+statement_hash = 'e9affa5757930d09385372eeb8d8cd6861166d1c40534dac01e8d92d1516fd68'
 
 [[rates]]
 id = '''nysbki-gapped-late-nuclear'''
@@ -744,7 +744,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.nystromBKI'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''eedebb2f043a82e9fa19e934cf1840daf20c2d86ab53ddebe1e6fc88555b4ae9'''
+statement_hash = '28d13c1af9e13b3ed61c5cde30176683aa8f7c679b6f1970adb3e883ab8fa892'
 
 [[rates]]
 id = '''nyssi-gapped-late-nuclear'''
@@ -754,7 +754,7 @@ resources = [{ label = '''Block size ℓ''', kind = 'block size', bound = '''$\e
 notes = '''Nyström at test matrix $\mathbf{H}^p\mathbf{X}$. Gap $\gamma>0$ between $\sigma_{r-1}(\mathbf{H})$ and $\sigma_t(\mathbf{H})$, with $r\ge1$ and $r\le t$. Output rank $\le r$.'''
 algorithm_definition = '''NLAlib.nystrom'''
 sketch_definition = '''NLAlib.gaussianMatrix'''
-statement_hash = '''7f0a7f2024e08b78780319f6922e13b6b36b11776cc322c48d38907f1bbfa7a7'''
+statement_hash = 'f3f8579191cf5e047d3c73a185fd789105b70205c3485cc605713af49ca5a5ee'
 
 [[guarantees]]
 id = 'trace-single-probe'
@@ -779,7 +779,7 @@ guarantee = 'trace-single-probe'
 resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=2\|\mathbf{A}\|_{\mathsf{F}}^2$''' }]
 notes = '''Real symmetric $\mathbf{A}$. For any real $\mathbf{A}$ the variance is $2\|\mathbf{H}\|_{\mathsf{F}}^2$, with $\mathbf{H}=\tfrac12(\mathbf{A}+\mathbf{A}^{\mathsf{T}})$: `NLAlib.variance_quadForm_of_hasLaw_gaussianVector_hermitianPart`.'''
 algorithm_definition = 'NLAlib.gaussianVector'
-statement_hash = 'fa407bc0dbe906eb165fd72e57a1751b311cf42a477b3be80d0835bc71ec531f'
+statement_hash = '2929fc93ca46347fac79fe7b06d0b353c448b806bd44480428f2186d1e19c435'
 
 [[rates]]
 id = 'trace-rademacher'
@@ -790,7 +790,7 @@ guarantee = 'trace-single-probe'
 resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=2\bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-\sum_i a_{ii}^2\bigr)$''' }]
 notes = '''Real symmetric $\mathbf{A}$. For any real $\mathbf{A}$ the variance is $2\bigl(\|\mathbf{H}\|_{\mathsf{F}}^2-\sum_i a_{ii}^2\bigr)$, with $\mathbf{H}=\tfrac12(\mathbf{A}+\mathbf{A}^{\mathsf{T}})$: `NLAlib.variance_quadForm_of_hasLaw_rademacherVector_hermitianPart`. Optimal among real probes with independent coordinates (Hutchinson): for real symmetric $\mathbf{A}$, $\operatorname{Var}(\boldsymbol{\varepsilon}^{\mathsf{T}}\mathbf{A}\boldsymbol{\varepsilon})\le\operatorname{Var}(\mathbf{x}^{\mathsf{T}}\mathbf{A}\mathbf{x})$ for every random vector $\mathbf{x}$ whose coordinates are independent and in $L^4$, each with mean $0$, variance $1$ and the same fourth moment, on any probability space: `NLAlib.variance_quadForm_le_of_hasLaw_rademacherVector`.'''
 algorithm_definition = 'NLAlib.rademacherVector'
-statement_hash = 'a5048f4a3529666ea7845c7faadc0220bbe4531eb7925e0f026cf76a96dd2b0e'
+statement_hash = '117b66e9acce7dc46339382732b46363e94db29f3b03c6110c03e0b6183eac75'
 
 [[rates]]
 id = 'trace-independent-coordinates'
@@ -800,7 +800,7 @@ label = 'Independent coordinates, fourth moment m₄'
 guarantee = 'trace-single-probe'
 resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=2\|\mathbf{A}\|_{\mathsf{F}}^2+(m_4-3)\sum_i a_{ii}^2$''' }]
 notes = '''Real symmetric $\mathbf{A}$; $\boldsymbol{\omega}$ has independent real coordinates $\omega_i$ in $L^4$ with $\mathbb{E}\,\omega_i=0$, $\mathbb{E}\,\omega_i^2=1$ and $\mathbb{E}\,\omega_i^4=m_4$ for every $i$. The real Gaussian ($m_4=3$) and Rademacher ($m_4=1$) rows are the special cases; since $m_4\ge1$, random signs give the least variance.'''
-statement_hash = 'e0dbdaa69c5301fd5c11bc78917ea6e4ff8ff5968f5202d647cedd8a3c333583'
+statement_hash = '98ac6851bbb3ac7c53d6c39d35026ff72a229a6f52f0ad8663b96e1564c29824'
 
 [[rates]]
 id = 'trace-real-sphere'
@@ -811,7 +811,7 @@ guarantee = 'trace-single-probe'
 resources = [{ label = 'Variance', bound = '''$\operatorname{Var}(\boldsymbol{\omega}^{\mathsf{T}}\mathbf{A}\boldsymbol{\omega})=\dfrac{2n}{n+2}\Bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-\dfrac{(\operatorname{tr}\mathbf{A})^2}{n}\Bigr)$''' }]
 notes = '''Real symmetric $\mathbf{A}$; $\boldsymbol{\omega}=\sqrt{n}\,\mathbf{u}$ with $\mathbf{u}$ uniform on the unit sphere of $\mathbb{R}^n$; every dimension $n$. For any real $\mathbf{A}$, replace $\|\mathbf{A}\|_{\mathsf{F}}$ by $\|\mathbf{H}\|_{\mathsf{F}}$, keeping $\operatorname{tr}\mathbf{A}$: `NLAlib.variance_quadForm_sqrt_smul_of_hasLaw_uniformSphereVector_hermitianPart`.'''
 algorithm_definition = 'NLAlib.uniformSphereVector'
-statement_hash = 'fb4e9202cf44efc3b7dd2d5528b9d6767128a8ef4a9519f94cb4b63d4153b14a'
+statement_hash = '5d11924b78b57521a231b59782eb66488c60f954f990038d4aa87b07bd7cf520'
 
 [[rates]]
 id = 'trace-haar-frame'
@@ -822,7 +822,7 @@ guarantee = 'trace-several-probes'
 resources = [{ label = 'Variance', bound = '''$\operatorname{Var}\Bigl[\dfrac{n}{k}\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})\Bigr]=\dfrac{2n(n-k)}{k(n-1)(n+2)}\Bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-\dfrac{(\operatorname{tr}\mathbf{A})^2}{n}\Bigr)$''' }]
 notes = '''Real symmetric $\mathbf{A}$; $\mathbf{\Omega}=\sqrt{n}\,\mathbf{Q}$ for an $n\times k$ Haar frame $\mathbf{Q}$, with $1\le k\le n$ and $n\ge2$. The compression $\operatorname{tr}(\mathbf{Q}^{\mathsf{T}}\mathbf{A}\mathbf{Q})$ itself has variance $\frac{2k(n-k)}{(n-1)n(n+2)}\bigl(\|\mathbf{A}\|_{\mathsf{F}}^2-(\operatorname{tr}\mathbf{A})^2/n\bigr)$ (`NLAlib.variance_trace_conjTranspose_mul_mul_of_hasLaw_haarFrame`), and for any real $\mathbf{A}$ the same with $\|\mathbf{H}\|_{\mathsf{F}}$ (`NLAlib.variance_trace_conjTranspose_mul_mul_of_hasLaw_haarFrame_hermitianPart`).'''
 algorithm_definition = 'NLAlib.haarFrame'
-statement_hash = 'bcee19ee8e372788d0ef2e16ee04f612be527793ef34d71519f2863e4552ef1d'
+statement_hash = 'c2be10a1a5a960ea0b3e5a737a79bdc9fa4675cb701e76fd58863ba3fc54dae2'
 
 [[rates]]
 id = 'trace-independent-probes'
@@ -834,4 +834,4 @@ resources = [{ label = '$\mathbb{E}\lvert\operatorname{tr}\mathbf{A}-\cdot\rvert
 notes = '''$m\ge1$ independent isotropic probes $\boldsymbol{\omega}_j$ (the columns of $\mathbf{\Omega}$), over $\mathbb{R}$ or $\mathbb{C}$, each with a square-integrable estimate and the same single-probe second moment $\mathbb{E}\lvert\boldsymbol{\omega}_j^{\mathsf{H}}\mathbf{A}\boldsymbol{\omega}_j-\operatorname{tr}\mathbf{A}\rvert^2=v$, for instance a value from a one-probe row. Any square $\mathbf{A}$. The real form with $\operatorname{Var}$ in hypothesis and conclusion is `NLAlib.variance_girardHutchinson`.'''
 algorithm_definition = 'NLAlib.IsIsotropic'
 algorithm_definition_label = 'Isotropy'
-statement_hash = 'e2703d87f2e87c80c5efb9453ab7b8c42cd077d6277c5e9586bafd055dc42960'
+statement_hash = '9d4afe9c6fbafe0566abca45bd06fe65e376df33caa00343afed0ef38f2bb553'

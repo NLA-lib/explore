@@ -49,12 +49,6 @@ tail bound.
   (Epperly–Webber's sharp factors, early-truncated RSVD, truncated GN, sketch-and-solve) are paired
   this way.
 
-Library-original results carry a **novelty tag** after their title wherever it is shown (result
-page, shelves, search, Books and file pages, Rates rows), with a tooltip and a legend on the home
-and Rates pages: *new* (red, no published counterpart), *improved*, *extended*, *corrected*. *new*
-is derived from NLAlib's docstring marker "No printed source. New (…)"; the others, and new results
-not yet marked, are `novelty = '…'` in `results.toml` (see its header).
-
 The page has one table per family, in the look of the statements table: guarantee group rows
 with their full statement and definitions in a disclosure, generated columns shown when they vary
 within the family, faint sources. A row's algorithm opens the statement on its result page with
