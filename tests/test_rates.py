@@ -16,7 +16,7 @@ class RatesTests(unittest.TestCase):
         self.row = dict(id='rate', theorem='N.asym', family='family', algorithm='algorithm',
                         variant='variant', sketch='Gaussian', norm='Frobenius', mode='expectation',
                         guarantee='relative-error', resources=[dict(label='columns', bound='$k/\\varepsilon$')],
-                        statement_hash=hashlib.sha256(('sig\n' + doc).encode()).hexdigest())
+                        statement_hash=hashlib.sha256('sig'.encode()).hexdigest())
         self.cfg = dict(guarantees=[dict(id='relative-error', family='family', title='Relative error', description='$1+\\varepsilon$', definitions=[])], families=[dict(id='family', title='Family', description='Description')], rates=[self.row])
 
     def render(self, config, ds=None):
@@ -63,23 +63,6 @@ class RatesTests(unittest.TestCase):
         for primary in ('missing', 'N.a1'):
             with self.assertRaisesRegex(ValueError, 'primary'):
                 self.render({'results.toml': {'bound': {'primary': primary}}}, ds)
-
-    def test_novelty_derives_new_from_the_docstring_marker(self):
-        ds = [decl('N.e1', 'Result: bound'), decl('N.a1', 'Asymptotic: N.e1')]
-        site, _ = self.render({}, ds)
-        self.assertNotIn('novelty', site['results']['bound'])
-        # "No printed source. New (…)" on any member marks the result new; a bare one does not
-        marked = [decl('N.e1', 'No printed source. New (research note OP1).\nResult: bound'), ds[1]]
-        for docs, novelty in ((marked, 'new'), ([decl('N.e1', 'No printed source.\nResult: bound'), ds[1]], None)):
-            site, _ = self.render({}, docs)
-            self.assertEqual(site['results']['bound'].get('novelty'), novelty)
-        # results.toml sets the other categories, or overrides the derived one
-        for config, docs, novelty in (('improved', ds, 'improved'), ('extended', marked, 'extended'), ('none', marked, None)):
-            site, _ = self.render({'results.toml': {'bound': {'novelty': config}}}, docs)
-            self.assertEqual(site['results']['bound'].get('novelty'), novelty, config)
-        for config in ({'bound': {'novelty': 'novel'}}, {'missing': {'novelty': 'new'}}, {'bound': {'new': True}}):
-            with self.subTest(config=config), self.assertRaisesRegex(ValueError, 'nov|new'):
-                self.render({'results.toml': config}, ds)
 
     def test_collections_validate_and_preserve_future_entries(self):
         ds = [dict(decl('N.e1', 'Result: bound'), module='NLAlib.LowRank.Test'),
@@ -360,7 +343,7 @@ class RatesTests(unittest.TestCase):
     def exact_fixture(self):
         """An exact identity beside the asymptotic pair: one theorem, hashed like any row."""
         ds = self.ds + [decl('N.identity', 'Var = 2. <!-- value two 2 -->', signature='isig')]
-        digest = lambda sig, doc: hashlib.sha256((sig + '\n' + b.HTML_COMMENT.sub('', doc)).encode()).hexdigest()
+        digest = lambda sig, doc: hashlib.sha256(sig.encode()).hexdigest()
         cfg = copy.deepcopy(self.cfg)
         cfg['families'][0]['resources_label'] = 'Exact value'
         cfg['rates'].append(dict(id='identity', kind='exact', theorem='N.identity', family='family',
@@ -422,7 +405,7 @@ class RatesTests(unittest.TestCase):
         self.assertEqual((upper['lower'], lower['pairs_with'], lower['tightness']), (['lower'], 'rate', 'gap'))
         # the lower theorem is the row's second statement, so it is no "bound without a rate form"
         self.assertNotIn(lower['overview'], [x['i'] for x in site['rates'].get('norate', [])])
-        # a lower theorem without a Result id may name its result (for the "new" tag, the link)
+        # a lower theorem without a Result id may name its result (its link)
         self.assertIsNone(lower['result'])
         named = copy.deepcopy(cfg); named['rates'][1]['result'] = 'bound'
         site, _ = self.render({'rates.toml': named}, ds)

@@ -23,8 +23,7 @@ SPEC = 'NLAlib.integral_specNorm_sub_rsvd_sq_le_of_hasLaw_gaussianMatrix'
 
 
 def digest(d):
-    return hashlib.sha256((b.HTML_COMMENT.sub('', d.get('signature') or '') + '\n' +
-                           b.HTML_COMMENT.sub('', d.get('doc') or '')).encode()).hexdigest()
+    return hashlib.sha256(b.HTML_COMMENT.sub('', d.get('signature') or '').encode()).hexdigest()
 
 
 class RatesFromFacets(unittest.TestCase):
@@ -79,8 +78,10 @@ class RatesFromFacets(unittest.TestCase):
         bad = copy.deepcopy(cfg); bad['rates'][0]['statement_hash'] = 'stale'
         with self.assertRaisesRegex(ValueError, 'statement_hash mismatch'):
             self.render(bad, ds)
-        # the hash covers the asymptotic docstring (without HTML comments) and signature
+        # the hash covers the signature only: a docstring edit keeps the row reviewed
         changed = copy.deepcopy(ds); changed[1]['doc'] = changed[1]['doc'].replace('suffices', 'is enough')
+        self.assertEqual(self.render(cfg, changed)['entries'][0]['status'], 'reviewed')
+        changed = copy.deepcopy(ds); changed[1]['signature'] = changed[1]['signature'] + ' '
         with self.assertRaisesRegex(ValueError, 'statement_hash mismatch'):
             self.render(cfg, changed)
         marker = copy.deepcopy(ds); marker[1]['doc'] = marker[1]['doc'].replace('marker', 'other marker')
