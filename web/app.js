@@ -58,6 +58,22 @@
   });
 
   const resultTitle = rid => D.results[rid]?.title ?? rid;
+
+  // algorithm pages (build.py, algorithms.py): members from the library's `Algorithm:` tags,
+  // results attached by rule, the status ladder
+  const ALG = D.algorithms || { pages: {}, families: [], decl: {}, aliases: {}, placed: {}, rungs: [], measures: {} };
+  const algTitle = id => ALG.pages[id]?.title ?? id;
+  const algRoute = (id, sec) => '#a/' + encodeURIComponent(id) + (sec ? '?s=' + encodeURIComponent(sec) : '');
+  const algLink = id => `<a href="${algRoute(id)}">${md(algTitle(id), { inline: true })}</a>`;
+  const alsoOf = new Map();
+  for (const [id, p] of Object.entries(ALG.pages)) {
+    for (const rid of p.also) { if (!alsoOf.has(rid)) alsoOf.set(rid, []); alsoOf.get(rid).push(id); }
+  }
+  const algOfDecl = i => ALG.decl[i];
+  // a shelf group: a link that opens it on the main page
+  const shelfLink = s => PAGE === 'main'
+    ? `<a href="#" data-scroll="collection-${esc(s[0])}-${esc(s[1])}">${esc(s[2])}</a>`
+    : `<a href="${BASE || './'}#open/collection-${esc(s[0])}-${esc(s[1])}">${esc(s[2])}</a>`;
   // a graph box is SVG text, so a title's maths is written out plainly: `$\chi^2$` is χ²
   const GREEK = { alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', epsilon: 'ε', varepsilon: 'ε',
     theta: 'θ', Theta: 'Θ', kappa: 'κ', lambda: 'λ', mu: 'μ', sigma: 'σ', Sigma: 'Σ', chi: 'χ',
@@ -194,7 +210,7 @@
   const stmtHtml = (i, inline) => md(decls[i].stmt, { lenient: true, bold: boldOf(i), inline });
   const descHtml = i => md(decls[i].fs, { inline: true, bold: boldOf(i) });
 
-  const stripResult = doc => (doc || '').replace(/^\s*Result:.*$/m, '')
+  const stripResult = doc => (doc || '').replace(/^\s*Result:.*$/m, '').replace(/^[ \t]*Algorithm:.*$/gm, '')
     .replace(/^[ \t]*Asymptotic:[ \t]*(?:[^\n]+|\n[ \t]*[\w.]+)[ \t]*$/gm, '')
     .replace(/\s*Port(?:ed)? (?:of|from) `[^`]+`(?:`[^`]*`|[^`.])*\./g, '').trimEnd();
 
@@ -262,11 +278,11 @@
   const RATES = D.rates || { entries: [], families: [], guarantees: [], groups: [], norate: [] };
   const RATE_FACETS = [
     ['family', 'Family'], ['algorithm', 'Algorithm'], ['measure', 'Error measure'], ['stat_key', 'Statistic'],
-    ['law', 'Law'], ['output', 'Output'], ['regime', 'Regime'], ['resource', 'Resource'], ['form', 'Form'],
+    ['law', 'Law'], ['output', 'Output'], ['regime', 'Regime'], ['precision', 'Precision'], ['resource', 'Resource'], ['form', 'Form'],
     ['source', 'Source'], ['status', 'Status']];
-  const RATE_COLUMN_TITLES = { law: 'Law', output: 'Output', regime: 'Regime', detail: 'Detail' };
+  const RATE_COLUMN_TITLES = { law: 'Law', output: 'Output', regime: 'Regime', precision: 'Precision', detail: 'Detail' };
   const openRates = new Set();
-  const RATE_GENERATED = { algorithm: 1, measure: 1, stat_key: 1, law: 1, output: 1, regime: 1, form: 1 };
+  const RATE_GENERATED = { algorithm: 1, measure: 1, stat_key: 1, law: 1, output: 1, regime: 1, precision: 1, form: 1 };
   const rateWordCache = new Map();
 
   // Topics and subtopics are <details>, closed at first; which are open survives a search.
@@ -278,9 +294,15 @@
     return [r && `${r} result${r > 1 ? 's' : ''}`, d && `${d} definition${d > 1 ? 's' : ''}`].filter(Boolean).join(', ');
   }
 
-  function section(id, cls, heading, title, n, body) {
+  function section(id, cls, heading, title, n, body, extra = '') {
     return `<details class="${cls}" id="${esc(id)}"${openSections.has(id) ? ' open' : ''}>` +
-      `<summary><${heading}>${esc(title)}<span class="n">${n}</span></${heading}></summary>${body}</details>`;
+      `<summary><${heading}>${esc(title)}${extra}<span class="n">${n}</span></${heading}></summary>${body}</details>`;
+  }
+
+  // a shelf group whose definitions include an algorithm's declarations names the algorithm
+  function groupAlgorithms(g) {
+    const ids = [...new Set(g.entries.filter(e => e.type === 'd').map(e => algOfDecl(e.i)).filter(Boolean))];
+    return ids.length ? ` <span class="algo-tag">Algorithm: ${ids.map(algLink).join(', ')}</span>` : '';
   }
 
   function moduleHtml(m) {
@@ -300,7 +322,7 @@
       const flat = t.subs.length === 1 && t.subs[0].title === t.title;
       const collection = (D.collections || []).find(c => c.topic === t.id);
       const sourceBody = t.subs.map(s => section(`s-${s.id}`, 'sub', 'h3', s.title, counts(s.modules), s.modules.map(moduleHtml).join(''))).join('');
-      const collectionBody = collection ? (collection.description ? `<p class="topic-blurb">${md(collection.description, { inline: true })}</p>` : '') + collection.groups.map(g => section(`collection-${collection.id}-${g.id}`, 'sub', 'h3', g.title, '', `<ul class="entries">${g.entries.filter(e => e.type === 'r' ? D.results[e.rid] : decls[e.i]).map(entryHtml).join('')}</ul>`)).join('') + (!sourceBody ? '' : collection.modules === 'inline' ? sourceBody : `<details class="source-modules" id="source-modules-${esc(collection.id)}"${openSections.has(`source-modules-${collection.id}`) ? ' open' : ''}><summary>Browse source modules</summary>${sourceBody}</details>`) : '';
+      const collectionBody = collection ? (collection.description ? `<p class="topic-blurb">${md(collection.description, { inline: true })}</p>` : '') + collection.groups.map(g => section(`collection-${collection.id}-${g.id}`, 'sub', 'h3', g.title, '', `<ul class="entries">${g.entries.filter(e => e.type === 'r' ? D.results[e.rid] : decls[e.i]).map(entryHtml).join('')}</ul>`, groupAlgorithms(g))).join('') + (!sourceBody ? '' : collection.modules === 'inline' ? sourceBody : `<details class="source-modules" id="source-modules-${esc(collection.id)}"${openSections.has(`source-modules-${collection.id}`) ? ' open' : ''}><summary>Browse source modules</summary>${sourceBody}</details>`) : '';
       const body = collection ? collectionBody : (t.blurb ? `<p class="topic-blurb">${md(t.blurb, { inline: true })}</p>` : '') +
         t.subs.map(s => {
           const inner = (s.blurb ? `<p class="sub-blurb">${md(s.blurb, { inline: true })}</p>` : '') +
@@ -330,7 +352,7 @@
     ev.preventDefault();
     if ($('#q').value) { $('#q').value = ''; runSearch(); }
     const target = document.getElementById(a.dataset.scroll);
-    if (!target) { location.href = BASE || './'; return; }
+    if (!target) { location.href = (BASE || './') + '#open/' + a.dataset.scroll; return; }
     for (let d = target; d; d = d.parentElement?.closest('details')) d.open = true;
     if (window.matchMedia('(max-width: 1000px)').matches) closePanel();
     target?.scrollIntoView({ behavior: 'smooth' });
@@ -343,6 +365,8 @@
     initRates();
   } else if (PAGE === 'books') {
     renderBooks();
+  } else if (PAGE === 'algorithms') {
+    renderAlgorithms();
   } else {
     $('#byline').innerHTML = `${nResults} named results, ${nDefs} definitions and ${decls.length} declarations, ` +
       `from NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
@@ -376,6 +400,7 @@
     if (field === 'stat_key') return RATES.statistics?.[v] ?? v;
     if (field === 'status') return { reviewed: 'Reviewed', pending: 'Pending review' }[v] ?? v;
     if (field === 'form') return { rate: 'Asymptotic rate', exact: 'Exact value', lower: 'Lower bound' }[v] ?? v;
+    if (field === 'precision') return capital(plainTex(v));
     return capital(v);
   }
 
@@ -511,7 +536,7 @@
     const vary = k => new Set(rows.map(e => value(e, k))).size > 1;
     const lower = rows.some(e => e.lower?.length);
     return [{ k: 'algorithm', t: f.subject_label || 'Algorithm' },
-      ...['law', 'output', 'regime', 'detail'].filter(k => vary(k) || (k === 'detail' && rows.some(e => e.c?.detail)))
+      ...['law', 'output', 'regime', 'precision', 'detail'].filter(k => vary(k) || (k === 'detail' && rows.some(e => e.c?.detail)))
         .map(k => ({ k, t: RATE_COLUMN_TITLES[k] })),
       { k: 'stat', t: 'Statistic' }, { k: 'resources', t: lower ? 'Upper bound' : f.resources_label || 'Resources' },
       { k: 'source', t: 'Source' },
@@ -641,7 +666,9 @@
       const table = rows.length ? `<div class="rate-scroll"><table class="rates-table"><thead><tr><th class="pick" scope="col"><span class="sr">Show the theorem</span></th>` +
         cols.map(c => `<th scope="col" class="c-${c.k}">${esc(c.t)}</th>`).join('') + '</tr></thead><tbody>' +
         groups.map(([g, rs]) => rateGroupHtml(f, g.title, cols, rs, g)).join('') + '</tbody></table></div>' : '';
+      const pages = [...new Set((f.algorithms || []).map(a => RATES.algorithmPages?.[a]).filter(Boolean))];
       return `<section class="rate-family" id="rate-family-${esc(f.id)}"><h2>${esc(f.title)}</h2>${f.description ? `<p class="topic-blurb">${md(f.description, { inline: true })}</p>` : ''}` +
+        (pages.length ? `<p class="algo-rel">Algorithm pages: ${pages.map(algLink).join(', ')}</p>` : '') +
         (f.notation ? `<details class="rate-notation" id="${esc(notationId)}"${openSections.has(notationId) ? ' open' : ''}><summary>Notation and assumptions</summary>${md(f.notation)}</details>` : '') +
         table + norateHtml(f, norate, !rows.length) + '</section>';
     }).join('');
@@ -674,7 +701,8 @@
       : `<a href="${BASE}${declRoute(e.overview)}">Asymptotic theorem</a> · <a href="${BASE}${declRoute(e.explicit)}">Explicit theorem</a>`;
     $('.rate-expanded', tr).innerHTML = '<div class="rate-detail-bar">' +
       (paired ? `<button type="button" class="rate-explicit${explicit ? ' on' : ''}" aria-pressed="${explicit}">Explicit bound</button>` : '') +
-      `<button type="button" class="rate-permalink" data-copy-rate="${esc(e.id)}">Copy link</button><span class="rate-copy-status" role="status"></span></div>` +
+      `<button type="button" class="rate-permalink" data-copy-rate="${esc(e.id)}">Copy link</button><span class="rate-copy-status" role="status"></span>` +
+      (RATES.algorithmPages?.[e.c?.algorithm] ? ` <a class="rate-algorithm" href="${algRoute(RATES.algorithmPages[e.c.algorithm])}">Algorithm page</a>` : '') + '</div>' +
       statementHtml(null, i) +
       `<p class="rate-links"><a href="${BASE}${rateRoute(e, i)}">Result page</a> · ${links} · <a href="${sourceUrl(i)}" target="_blank" rel="noopener">Source ↗</a>` +
       (defs.length ? ' · ' + defs.join(' · ') : '') + '</p>' +
@@ -830,6 +858,11 @@
     for (const [m, mod] of Object.entries(D.modules)) {
       add('m', m, [[mod.title, 3], [mod.summary, 1]], 0.9);
     }
+    // an algorithm is found by its title, aliases and id, before its results
+    for (const [id, p] of Object.entries(ALG.pages)) {
+      add('a', id, [[p.title, 4], [p.aliases.join(' '), 4], [id.replace(/-/g, ' '), 3],
+        [ALG.families.find(f => f.id === p.family)?.title, 1]], 1.6);
+    }
     const df = new Map();
     for (const it of items) for (const t of it.toks.keys()) df.set(t, (df.get(t) || 0) + 1);
     const idf = new Map([...df].map(([t, n]) => [t, Math.log(1 + items.length / n)]));
@@ -876,6 +909,8 @@
       }
       if (!covered) continue;
       score *= (covered / matches.length) ** 2 * it.prior;
+      // an algorithm the whole query names comes before its results
+      if (it.type === 'a' && covered === matches.length) score *= 10;
       scored.push([score, it]);
     }
     scored.sort((a, b) => b[0] - a[0]);
@@ -889,7 +924,7 @@
   };
   const hitRoute = it => it.type === 'r' ? '#r/' + encodeURIComponent(it.key)
     : it.type === 's' ? (({ rid, row }) => rowRoute(rid, row.o))(statementOf(it.key))
-    : it.type === 'm' ? '#m/' + encodeURIComponent(it.key) : declRoute(it.key);
+    : it.type === 'm' ? '#m/' + encodeURIComponent(it.key) : it.type === 'a' ? algRoute(it.key) : declRoute(it.key);
 
   function hitHtml(it) {
     if (it.type === 's') {
@@ -903,6 +938,11 @@
       return `<li><a class="entry-title" href="#r/${encodeURIComponent(it.key)}">${md(r.title, { inline: true })}</a>` +
         `<span class="kind">result</span><span class="desc">${descHtml(overviewOf(r))}` +
         ` <em>${md(D.modules[r.module]?.title || '', { inline: true })}</em></span></li>`;
+    }
+    if (it.type === 'a') {
+      const p = ALG.pages[it.key];
+      return `<li><a class="entry-title" href="${algRoute(it.key)}">${md(p.title, { inline: true })}</a>` +
+        `<span class="kind">algorithm</span><span class="desc">${decls[p.first]?.fs ? descHtml(p.first) : ''}</span></li>`;
     }
     if (it.type === 'm') {
       const mod = D.modules[it.key];
@@ -1204,7 +1244,8 @@
       `<div class="subtitle"><code>${esc(rid)}</code>${r.ids.map(x => `, <code>${esc(x)}</code>`).join('')}` +
       ` · ${rows.length > 1 ? `${rows.length} statements, ` : ''}${nDecls} formal statement${nDecls > 1 ? 's' : ''}` +
       `${(r.merged || []).length ? ' · includes ' + r.merged.map(x => `<code>${esc(x)}</code>`).join(', ') : ''}` +
-      `${r.aliases.length ? ' · also known as ' + r.aliases.map(esc).join(', ') : ''}</div>`;
+      `${r.aliases.length ? ' · also known as ' + r.aliases.map(esc).join(', ') : ''}</div>` +
+      algorithmOfResult(rid);
 
     let table = null;
     if (rows.length > 1) {
@@ -1293,8 +1334,11 @@
     if (d.r.length) return showResult(d.r[0], i);
     const body = $('#panelbody');
     const def = isDef(d) && !isSupport(d);
+    const own = algOfDecl(i);
+    const role = own && ALG.pages[own]?.members.find(x => x.i === i)?.role;
     body.innerHTML = headHtml(`<code>${esc(short(d.n))}</code>`, KIND_NAMES[d.k] ?? d.k) +
       `<div class="subtitle">${md(D.modules[d.m]?.title || d.m, { inline: true })}</div>` +
+      (own ? `<p class="algo-of">Algorithm: ${algLink(own)}${role ? ` (${esc(role)})` : ''}</p>` : '') +
       (d.stmt ? '<div class="label">Statement</div>' + statementHtml(null, i) : '');
     body.append(declSection(i, { first: true }));
     body.append(graphSection(def ? ['d:' + d.n, 'i:' + i] : [null, 'i:' + i], def ? ['nodes', 'decls'] : ['decls']));
@@ -1308,6 +1352,7 @@
     const inMod = decls.map((d, i) => [d, i]).filter(([d]) => d.m === name);
     const item = ([d, i]) => `<li><a href="${declRoute(i)}"><code>${esc(short(d.n))}</code></a>` +
       `${d.r.length ? ` <em>${md(resultTitle(d.r[0]), { inline: true })}</em>` : ''}${wip(d)}` +
+      (algOfDecl(i) ? ` <span class="algo-tag">Algorithm: ${algLink(algOfDecl(i))}</span>` : '') +
       (d.fs ? `<span class="desc">${descHtml(i)}</span>` : '') + '</li>';
     const results = inMod.filter(([d]) => d.r.length);
     const defs = inMod.filter(([d]) => !d.r.length && isDef(d) && !isSupport(d));
@@ -1321,6 +1366,159 @@
       (mod.imports.length ? `<div class="label">Imports from the library</div><ul class="declist">${mod.imports.map(m =>
         D.modules[m] ? `<li><a href="#m/${encodeURIComponent(m)}">${md(D.modules[m].title, { inline: true })}</a> <code>${esc(m)}</code></li>` : '').join('')}</ul>` : '');
     openPanel(crumbs(name));
+  }
+
+  // ------------------------------------------------------------------ algorithm pages
+
+  // under a result's title: the algorithm it is placed on and the others its statements involve
+  function algorithmOfResult(rid) {
+    const own = ALG.placed[rid];
+    const also = (alsoOf.get(rid) || []).filter(a => a !== own);
+    if (!own && !also.length) return '';
+    return '<p class="algo-of">' + [own && `Algorithm: ${algLink(own)}`,
+      also.length && `Also involves: ${also.map(algLink).join(', ')}`].filter(Boolean).join(' · ') + '</p>';
+  }
+
+  const resultItem = (rid, extra = '') => {
+    const r = D.results[rid];
+    if (!r) return '';
+    return `<li><a class="entry-title" href="#r/${encodeURIComponent(rid)}">${md(r.title, { inline: true })}</a>${extra}` +
+      `<span class="desc">${descHtml(overviewOf(r))}</span></li>`;
+  };
+  const resultList = (rids, extra) => rids.length ? `<ul class="entries">${rids.map(rid => resultItem(rid, extra?.(rid))).join('')}</ul>` : '';
+  const ROLE_NAMES = { specification: 'specification', definition: 'definition', program: 'program', 'run model': 'run model' };
+
+  // `#a/<id>`: an algorithm page, in the panel (docs/design/algorithm-pages.md §3); `?s=` scrolls
+  // to a section. A section with nothing in it is left out, except the status ladder.
+  function showAlgorithm(id, sec) {
+    const canon = ALG.aliases?.[id] ?? id;
+    const p = ALG.pages[canon];
+    if (!p) return showMissing();
+    if (canon !== id) history.replaceState(null, '', location.pathname + location.search + algRoute(canon, sec));
+    const fam = ALG.families.find(f => f.id === p.family);
+    const S = p.sections;
+    const part = (key, title, html) => html ? `<section class="algo-section" id="alg-${key}"><div class="label">${title}</div>${html}</section>` : '';
+    let html = headHtml(md(p.title, { inline: true }), 'Algorithm') +
+      `<div class="subtitle"><code>${esc(canon)}</code>${fam ? ' · ' + esc(fam.title) : ''}` +
+      `${p.aliases.length ? ' · also known as ' + p.aliases.map(esc).join(', ') : ''}</div>`;
+    if (decls[p.first]?.fs) html += `<div class="statement"><p>${descHtml(p.first)}</p></div>`;
+    const rel = [p.variant_of && `Variant of ${algLink(p.variant_of)}`,
+      p.variants.length && `Variants: ${p.variants.map(algLink).join(', ')}`,
+      p.shelves.length && `Shelves: ${p.shelves.map(x => `${esc(x[3])}, ${shelfLink(x)}`).join('; ')}`].filter(Boolean);
+    if (rel.length) html += `<p class="algo-rel">${rel.join(' · ')}</p>`;
+
+    // 2. definition: every tagged declaration, whole, with its role
+    html += part('definition', 'Definition', p.members.map(({ i, role }) => {
+      const d = decls[i];
+      return `<div class="algo-member"><h3 class="formname"><a href="${declRoute(i)}"><code>${esc(short(d.n))}</code></a>` +
+        ` <span class="kind">${esc(ROLE_NAMES[role] || role)}</span></h3>` +
+        (d.stmt ? statementHtml(null, i) : '') + `<pre class="lean">${leanHtml(d.st || d.sig || '', i)}</pre></div>`;
+    }).join('') + (S.relating.length ? '<p class="algo-sub">Relating the definitions</p>' + resultList(S.relating) : ''));
+
+    // 3. pseudo-code: deferred (maintainer, 2026-10-29); a listing with its generated provenance
+    // line goes here once the library has a convention for it
+
+    // 4. status: the ladder, every rung, plain counts
+    const sectionOf = { definition: 'definition', program: 'definition', cost: 'cost', exact: 'exact',
+      'finite-precision': 'finite-precision', sharpness: 'sharpness' };
+    html += part('status', 'Status', '<table class="stmt-table algo-ladder"><thead><tr><th scope="col">Rung</th><th scope="col">Present</th></tr></thead><tbody>' +
+      ALG.rungs.map(([k, title]) => {
+        const n = p.ladder[k] || 0;
+        return `<tr><th scope="row">${esc(title)}</th><td>${n ? `<a href="${algRoute(canon, sectionOf[k])}">${n}</a>` : '–'}</td></tr>`;
+      }).join('') + '</tbody></table>');
+
+    // 5. cost: one row per registered target about a program of the algorithm
+    html += part('cost', 'Cost', p.cost.map(c => {
+      const t = c.target;
+      const meta = [c.count !== null && c.count !== undefined ? `Count: <a href="${declRoute(c.count)}"><code>${esc(short(decls[c.count].n))}</code></a>${decls[c.count].fs ? ', ' + descHtml(c.count) : ''}` : '',
+        `Precomputed inputs: ${c.precomputed.length ? c.precomputed.map(x => `<code>${esc(x)}</code>`).join(', ') : 'none'}`,
+        c.trees.length ? `Trees: ${c.trees.map(x => byName.has(x) ? `<a href="${declRoute(byName.get(x))}"><code>${esc(short(x))}</code></a>` : `<code>${esc(short(x))}</code>`).join(', ')}` : '',
+        c.reviewed ? `Registered target, reviewed ${esc(c.reviewed)}` : '',
+        c.proof !== null && c.proof !== undefined ? `Proof: ${c.result ? `<a href="${rowRoute(c.result, c.proof)}">${md(resultTitle(c.result), { inline: true })}</a>` : `<a href="${declRoute(c.proof)}"><code>${esc(short(decls[c.proof].n))}</code></a>`}` : 'Not yet proved'].filter(Boolean);
+      return `<div class="algo-cost"><h3 class="formname">${esc(capital(c.model))} · ` +
+        (t !== null && t !== undefined ? `<a href="${declRoute(t)}"><code>${esc(short(c.name))}</code></a>` : `<code>${esc(short(c.name))}</code>`) + '</h3>' +
+        (t !== null && t !== undefined && decls[t].stmt ? statementHtml(null, t) : '') +
+        `<ul class="notes">${meta.map(x => `<li>${x}</li>`).join('')}</ul></div>`;
+    }).join(''));
+
+    // 6. guarantees in exact arithmetic: the Rates rows of its facet, then its other results
+    const rows = p.facet ? RATES.entries.filter(e => e.c?.algorithm === p.facet && !upperOf(e)) : [];
+    const rateLink = e => `${BASE}rates/#rate/${encodeURIComponent(e.status === 'pending' ? e.theorem : e.id)}`;
+    const rateTitle = e => (RATES.guarantees.find(g => g.id === e.group) || RATES.groups.find(g => g.id === e.group))?.title || '';
+    const ratesHtml = rows.length ? `<p class="algo-sub">Rates rows (<a href="${BASE}rates/?algorithm=${encodeURIComponent(p.facet)}">on the Rates page</a>)</p>` +
+      '<div class="stmt-scroll"><table class="stmt-table algo-rates"><thead><tr><th scope="col">Guarantee</th><th scope="col">Statistic</th><th scope="col">Resources</th><th scope="col">Source</th></tr></thead><tbody>' +
+      rows.map(e => `<tr><td><a href="${rateLink(e)}">${md(rateTitle(e), { inline: true })}</a></td><td>${e.c?.stat ? md(e.c.stat, { inline: true }) : ''}</td>` +
+        `<td>${e.status === 'pending' ? '<span class="pending-tag">pending review</span>' : rateResourcesHtml(e)}</td><td>${rateSourceHtml(e)}</td></tr>`).join('') +
+      '</tbody></table></div>' : '';
+    const byMeasure = new Map();
+    for (const rid of S.exact) {
+      const m = decls[overviewOf(D.results[rid])].fc?.measure;
+      const label = ALG.measures?.[m] || '';
+      if (!byMeasure.has(label)) byMeasure.set(label, []);
+      byMeasure.get(label).push(rid);
+    }
+    const grouped = [...byMeasure].sort(([a], [b]) => (a === '') - (b === '')).map(([label, rids]) =>
+      (byMeasure.size > 1 ? `<p class="algo-sub">${esc(label || 'Other results')}</p>` : '') + resultList(rids)).join('');
+    html += part('exact', 'Guarantees in exact arithmetic', ratesHtml + (ratesHtml && grouped ? '<p class="algo-sub">Results</p>' : '') + grouped);
+    // 7. finite precision, with the model of each
+    html += part('finite-precision', 'Guarantees in finite precision',
+      resultList(S['finite-precision'], rid => ` <span class="algo-model">${md(p.fp[rid] || '', { inline: true })}</span>`));
+    // 8. lower bounds and sharpness
+    html += part('sharpness', 'Lower bounds and sharpness', resultList(S.sharpness));
+    // 9. results placed elsewhere whose statements involve this algorithm
+    html += part('also', 'Results that also involve this algorithm', resultList(p.also, rid =>
+      ALG.placed[rid] ? ` <span class="kind">${esc(algTitle(ALG.placed[rid]))}</span>` : ''));
+    // 10. uses / used by
+    html += part('uses', 'Uses and used by', [p.uses.length && `Uses: ${p.uses.map(algLink).join(', ')}`,
+      p.used_by.length && `Used by: ${p.used_by.map(algLink).join(', ')}`].filter(Boolean).map(x => `<p>${x}</p>`).join(''));
+    // 11. Lean: every tagged declaration with its source, and the module pages
+    const mods = [...new Set(p.members.map(x => decls[x.i].m))];
+    html += part('lean', 'Lean', '<ul class="declist">' + p.members.map(({ i }) => `<li><a href="${declRoute(i)}"><code>${esc(short(decls[i].n))}</code></a>` +
+      ` · <a href="${sourceUrl(i)}" target="_blank" rel="noopener">source ↗</a></li>`).join('') + '</ul>' +
+      `<p>Files: ${mods.map(m => `<a href="#m/${encodeURIComponent(m)}">${md(D.modules[m]?.title || m, { inline: true })}</a>`).join(', ')}</p>`);
+    $('#panelbody').innerHTML = html;
+    openPanel(`<a href="${BASE}algorithms/">Algorithms</a>${fam ? ' › ' + esc(fam.title) : ''}`);
+    if (sec) document.getElementById('alg-' + sec)?.scrollIntoView();
+  }
+
+  // `algorithms/`: one table per family, a column per rung of the ladder; `?rung=` keeps only the
+  // algorithms that have something at that rung
+  function renderAlgorithms() {
+    document.title = 'NLA-lib Algorithms';
+    $('h1').textContent = 'NLA-lib Algorithms';
+    $('#searchbar').hidden = true;
+    $('#intro').hidden = false;
+    $('#intro').textContent = 'The algorithms of the library: for each, its definitions and programs, its cost ' +
+      'targets and the results about it. The columns count what the library has at each rung.';
+    $('#byline').innerHTML = `From NLAlib at ${commit}${D.date ? ', ' + esc(D.date.slice(0, 10)) : ''}.`;
+    const draw = () => {
+      const want = new URLSearchParams(location.search).get('rung') || '';
+      const select = `<p class="algo-filter"><label>Show <select id="rung-filter" aria-label="Filter by rung"><option value="">every algorithm</option>` +
+        ALG.rungs.map(([k, t]) => `<option value="${esc(k)}"${want === k ? ' selected' : ''}>with ${esc(t.toLowerCase())}</option>`).join('') + '</select></label></p>';
+      const sectionOf = { definition: 'definition', program: 'definition', cost: 'cost', exact: 'exact', 'finite-precision': 'finite-precision', sharpness: 'sharpness' };
+      const tables = ALG.families.map(f => {
+        const ids = f.algorithms.filter(a => !want || ALG.pages[a].ladder[want]);
+        if (!ids.length) return '';
+        return `<section class="algo-family" id="algo-family-${esc(f.id)}"><h2>${esc(f.title)}</h2>` +
+          (f.description ? `<p class="topic-blurb">${md(f.description, { inline: true })}</p>` : '') +
+          '<div class="rate-scroll"><table class="stmt-table algo-index"><thead><tr><th scope="col">Algorithm</th>' +
+          ALG.rungs.map(([, t]) => `<th scope="col">${esc(t)}</th>`).join('') + '<th scope="col">Shelf</th></tr></thead><tbody>' +
+          ids.map(a => {
+            const p = ALG.pages[a];
+            return `<tr><td>${algLink(a)}${p.variant_of ? ` <span class="kind">variant of ${esc(algTitle(p.variant_of))}</span>` : ''}</td>` +
+              ALG.rungs.map(([k]) => `<td>${p.ladder[k] ? `<a href="${algRoute(a, sectionOf[k])}">${p.ladder[k]}</a>` : '–'}</td>`).join('') +
+              `<td>${[...new Map(p.shelves.map(x => [x[0], x])).values()].map(x => esc(x[3])).join(', ')}</td></tr>`;
+          }).join('') + '</tbody></table></div></section>';
+      }).join('');
+      $('#content').innerHTML = select + (tables || '<p class="empty">No algorithm has anything at this rung yet.</p>');
+      $('#rung-filter').addEventListener('change', ev => {
+        const q = new URLSearchParams(location.search);
+        ev.target.value ? q.set('rung', ev.target.value) : q.delete('rung');
+        history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+        draw();
+      });
+    };
+    draw();
   }
 
   function showMissing() {
@@ -1365,7 +1563,17 @@
       book.open = true;
       book.scrollIntoView();
     }
-    const m = /^#([rdm])\/([^?]+)(?:\?(.*))?$/.exec(location.hash);
+    // `#open/<details id>` (from another page): open a shelf group on the main page
+    const opened = PAGE === 'main' && /^#open\/(.+)$/.exec(location.hash);
+    if (opened) {
+      const target = document.getElementById(decodeURIComponent(opened[1]));
+      for (let x = target; x; x = x.parentElement?.closest('details')) x.open = true;
+      target?.scrollIntoView();
+      $('#panel').hidden = true;
+      document.body.classList.remove('panel-open');
+      return;
+    }
+    const m = /^#([rdma])\/([^?]+)(?:\?(.*))?$/.exec(location.hash);
     if (!m) {
       $('#panel').hidden = true;
       document.body.classList.remove('panel-open');
@@ -1375,6 +1583,7 @@
     // `#r/<id>?s=<declaration>`: the result with that statement selected
     const picked = new URLSearchParams(m[3] || '').get('s');
     if (m[1] === 'r') showResult(arg, picked !== null ? byName.get(picked) : undefined);
+    else if (m[1] === 'a') showAlgorithm(arg, picked);
     else if (m[1] === 'd') showDecl(arg);
     else showModule(arg);
   }

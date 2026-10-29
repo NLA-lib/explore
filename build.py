@@ -17,8 +17,13 @@ Inputs:
                           keyed by declaration name, and short names of citation keys
   synonyms.toml           search synonyms, mathematical words to library names
   books.toml              key books: chapters, sections and numbered results, for the Books page
+  algorithms.toml         algorithm pages: titles, families, variants, Rates facets, result-id
+                          prefixes and curated exceptions (algorithms.py; the members are the
+                          library's `Algorithm:` tags)
 
-Output: <out>/index.html, <out>/data.json and the static assets in web/.
+Output: <out>/index.html, <out>/data.json, the static assets in web/, the Books, Rates and
+Algorithms pages one directory down, and <out>/algorithms/ladder.json (the status ladder of every
+algorithm, a work queue) and attachment.json (which rule placed each result).
 
 Everything that can be read from the library is read from it; the three TOML files only add
 what the Lean source does not say, and the build works with all three empty.
@@ -37,6 +42,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 import facets  # noqa: E402  (the module beside this script)
+import algorithms  # noqa: E402
 REPO = 'https://github.com/NLA-lib/NLAlib'
 
 DEF_KINDS = {'def', 'abbrev', 'opaque', 'structure', 'class', 'inductive'}
@@ -73,6 +79,10 @@ RETIRED = [(re.compile(r'\baverage\b', re.I), '"average" (say "expected")'),
 def vocabulary_issues(title):
     """What a result title says that the approved vocabulary retires."""
     return [why for rx, why in RETIRED if rx.search(title or '')]
+
+
+def short_name(name):
+    return name[7:] if name.startswith('NLAlib.') else name
 
 
 def humanize_id(rid):
@@ -144,7 +154,7 @@ def is_source(text):
 
 
 def strip_result_line(doc):
-    return ASYMPTOTIC_LINE.sub('', RESULT_LINE.sub('', doc)).rstrip() if doc else doc
+    return algorithms.strip_tag(ASYMPTOTIC_LINE.sub('', RESULT_LINE.sub('', doc))).rstrip() if doc else doc
 
 
 DISPLAY = re.compile(r'\$\$(.+?)\$\$((?:\s*[.,;:])*)', re.S)
@@ -588,7 +598,8 @@ def slug(text):
     return re.sub(r'[^a-z0-9]+', '-', text.lower()).strip('-')
 
 
-def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=None, source_names=None):
+def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=None, source_names=None,
+               precision=None, algorithm_titles=None):
     """The Rates page: one row per asymptotic pair of the library (and per exact row), generated
     from its facets; `[[rates]]` entries are the reviewed overlay, keyed by `theorem` and
     `statement_hash`.
@@ -596,6 +607,7 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
     `facets_for(i)` gives a declaration's facet record (or None), `results` the built results
     (for the bounds without a rate form), `cites(i)` a declaration's citations."""
     facets_for = facets_for or (lambda i: None)
+    precision = precision or (lambda i: algorithms.EXACT)
     results = results or {}
     cites = cites or (lambda i: [])
     families = cfg.get('families', [])
@@ -654,6 +666,11 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
     names = cfg.get('algorithm_names', {})
     if not isinstance(names, dict) or any(not isinstance(v, str) or not v.strip() for v in names.values()):
         raise ValueError('rates.toml: algorithm_names must map facet values to names')
+    # an algorithm with a page names its facet value by the page's title (algorithms.toml `facet`)
+    clash = sorted(set(names) & set(algorithm_titles or {}))
+    if clash:
+        raise ValueError('rates.toml algorithm_names: ' + ', '.join(clash) + ' named by algorithms.toml')
+    names = {**names, **(algorithm_titles or {})}
     law_classes = cfg.get('law_classes', {})
     if not isinstance(law_classes, dict) or any(
             not isinstance(v, list) or any(not isinstance(x, str) or not x for x in v) for v in law_classes.values()):
@@ -719,6 +736,7 @@ def rates_page(cfg, decls, index, targets, facets_for=None, results=None, cites=
              'detail': label or '; '.join(f.get('details') or []) or None,
              'source': ', '.join(short[:2]) or None, 'sources': long or None,
              'resources': list(dict.fromkeys(r['kind'] for r in resources if r.get('kind'))) or None,
+             'precision': precision(j) if j is not None else None,
              'form': exact or 'rate'}
         if c['law']:
             c['law_class'] = class_of.get(c['law'], LAW_CLASS_DEFAULT)
@@ -973,7 +991,9 @@ def collections_page(cfg, results, decls, index, modules, aliases):
     return out
 
 
-def build(data, bib, out):
+def build(data, bib, out, registry=None, ladder=False):
+    """`registry`: NLAlib's docs/targets.toml, parsed (from `--src`), for the cost targets of the
+    algorithm pages; without it they have no Cost section."""
     topics_cfg = load_toml('topics.toml')
     results_cfg = load_toml('results.toml')
     synonyms = load_toml('synonyms.toml').get('synonyms', {})
@@ -1159,6 +1179,10 @@ def build(data, bib, out):
               + ', '.join(n.split('.')[-1] for n in unclassified[:8]) + (' …' if len(unclassified) > 8 else ''),
               file=sys.stderr)
 
+    # the precision a statement assumes (facets.toml [precision]: model constant -> value)
+    statement_reach = algorithms.statement_reach(decls, index)
+    precision = algorithms.precision_of_factory(decls, index, facets_cfg.get('precision', {}), statement_reach)
+
     doc_parts = {}
 
     def parts_of(i):
@@ -1312,6 +1336,8 @@ def build(data, bib, out):
             out_decls[-1]['nb'] = sorted(member_down[i])
         if i in facet_of:
             out_decls[-1]['fc'] = facet_of[i]
+        if d['kind'] == 'theorem' and (i in facet_of or precision(i) != algorithms.EXACT):
+            out_decls[-1].setdefault('fc', {})['precision'] = precision(i)
 
     nodes = {n: {'u': sorted(uses.get(n, ())), 'b': sorted(used_by.get(n, ()))}
              for n in set(uses) | set(used_by)}
@@ -1334,6 +1360,38 @@ def build(data, bib, out):
     missing = [s for s in shelves if not any(t['id'] == s for t in topics)]
     if missing or len(set(shelves)) != len(shelves):
         raise ValueError(f'topics.toml shelves: unknown or repeated topics {", ".join(missing) or shelves}')
+    algorithms_cfg = load_toml('algorithms.toml')
+    _, overlay, _ = algorithms.parse_overlay(algorithms_cfg)
+    rates = rates_page(load_toml('rates.toml'), decls, index, targets, rate_facets, out_results,
+                       lambda i: parts_of(i)['cites'], source_names, precision,
+                       {e['facet']: e.get('title') or e['facet'] for e in overlay.values() if 'facet' in e})
+    alg = algorithms.build_algorithms(
+        algorithms_cfg, decls, index, out_results, facet_of=rate_facets, precision=precision,
+        registry=registry, rate_rows=rates['entries'],
+        lower_theorems=[e['overview'] for e in rates['entries'] if e.get('kind') == 'lower'],
+        collections=collections, result_alias=alias, reach=statement_reach)
+    errors = [p for p in alg['problems'] if not p.startswith('note:')]
+    for p in alg['problems']:
+        if p.startswith('note:'):
+            print(p, file=sys.stderr)
+    if errors:
+        raise ValueError('algorithms.toml and Algorithm tags:\n  ' + '\n  '.join(errors))
+    for aid, page in alg['algorithms'].items():
+        if not page['title']:
+            first = decls[page['first']]
+            page['title'] = parts_of(page['first'])['name'] or short_name(first['name'])
+    rates['algorithmPages'] = {p['facet']: aid for aid, p in alg['algorithms'].items() if p['facet']}
+    # definitions that look like algorithms (a Rates facet reads them) and carry no tag yet
+    untagged = [n for n in facets.ALGORITHM_DEFS if n in index and index[n] not in alg['decl']]
+    if untagged:
+        print('note: algorithm definitions without an Algorithm tag: ' +
+              ', '.join(short_name(n) for n in untagged), file=sys.stderr)
+    rep_ = alg['report']
+    n_also = sum(len(v) for v in rep_['also'].values())
+    print(f"algorithms: {len(alg['algorithms'])} pages, {len(rep_['placed'])} results placed "
+          f"({', '.join(f'{k} {v}' for k, v in sorted(Counter(x[1] for x in rep_['placed'].values()).items()))}), "
+          f"{n_also} also-involve entries, {len(rep_['unplaced'])} results reaching an algorithm unplaced",
+          file=sys.stderr)
     site = {
         'commit': data.get('commit'), 'date': data.get('date'), 'repo': REPO,
         'ref': data.get('commit') or topics_cfg.get('ref', 'scaffold'),
@@ -1341,9 +1399,12 @@ def build(data, bib, out):
         'resultAlias': alias, 'aliasFocus': merged_focus,
         'nodes': nodes, 'bib': {k: v for k, v in bib.items() if k in cited},
         'synonyms': synonyms,
-        'rates': rates_page(load_toml('rates.toml'), decls, index, targets, rate_facets, out_results,
-                            lambda i: parts_of(i)['cites'], source_names),
+        'rates': rates,
         'collections': collections,
+        'algorithms': {'pages': alg['algorithms'], 'families': alg['families'], 'decl': alg['decl'],
+                       'aliases': alg['aliases'], 'placed': alg['placed'],
+                       'rungs': [[k, t, sec] for k, t, sec in algorithms.RUNGS],
+                       'measures': {key: label for _, key, label, _ in facets.MEASURES}},
         'books': books_page(load_toml('books.toml'), bib, out_decls),
     }
 
@@ -1360,10 +1421,22 @@ def build(data, bib, out):
     page = page.replace('<body ', '<body data-page="books" data-base="../" ', 1)
     (out / 'books').mkdir()
     (out / 'books' / 'index.html').write_text(page)
-    rates_html = page.replace('data-page="books"', 'data-page="rates"')
+    rates_html = page.replace('<body data-page="books"', '<body data-page="rates"', 1)
     rates_html = re.sub(r'<title>.*?</title>', '<title>Rates · NLAlib explorer</title>', rates_html, flags=re.S)
     (out / 'rates').mkdir()
     (out / 'rates' / 'index.html').write_text(rates_html)
+    algorithms_html = page.replace('<body data-page="books"', '<body data-page="algorithms"', 1)
+    algorithms_html = re.sub(r'<title>.*?</title>', '<title>Algorithms · NLAlib explorer</title>', algorithms_html, flags=re.S)
+    (out / 'algorithms').mkdir()
+    (out / 'algorithms' / 'index.html').write_text(algorithms_html)
+    # the status ladder as a work queue (the harness reads it), and which rule placed each result
+    (out / 'algorithms' / 'ladder.json').write_text(json.dumps(
+        {'commit': data.get('commit'), 'rungs': [k for k, _, _ in algorithms.RUNGS],
+         'algorithms': {aid: {'title': alg['algorithms'][aid]['title'], 'rungs': r}
+                        for aid, r in alg['ladder'].items()}}, ensure_ascii=False, indent=1) + '\n')
+    (out / 'algorithms' / 'attachment.json').write_text(json.dumps(alg['report'], ensure_ascii=False, indent=1) + '\n')
+    if ladder:
+        print(algorithms.ladder_table(alg, {a: p['title'] for a, p in alg['algorithms'].items()}))
     n_def = sum(1 for d in decls if d['kind'] in DEF_KINDS)
     print(f'{len(modules)} modules, {len(decls)} declarations, {len(out_results)} results, '
           f'{n_def} definitions -> {out}/ ({(out / "data.json").stat().st_size // 1024} KB data)')
@@ -1435,14 +1508,19 @@ def main():
     ap.add_argument('--bib', default=None, help="NLAlib's docs/references.bib")
     ap.add_argument('--out', default=ROOT / 'site')
     ap.add_argument('--src', default=None,
-                    help="an NLAlib checkout at the data's commit, for the bodies of definitions")
+                    help="an NLAlib checkout at the data's commit, for the bodies of definitions "
+                         "and the target registry docs/targets.toml")
+    ap.add_argument('--ladder', action='store_true', help='print the status ladder of every algorithm')
     a = ap.parse_args()
     data = json.loads(Path(a.data).read_text())
     if data.get('schema') != 1:
         raise SystemExit(f"unsupported data schema {data.get('schema')!r}")
+    registry = None
     if a.src and validate_sources(data, a.src):
         print(f"{whole_definitions(data['decls'], a.src)} definitions given whole from {a.src}")
-    build(data, parse_bib(a.bib), a.out)
+        reg = Path(a.src) / 'docs' / 'targets.toml'
+        registry = tomllib.loads(reg.read_text()) if reg.exists() else None
+    build(data, parse_bib(a.bib), a.out, registry, a.ladder)
 
 
 if __name__ == '__main__':

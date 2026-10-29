@@ -235,7 +235,7 @@ class ConfigTests(unittest.TestCase):
 
     def test_facets_toml(self):
         cfg = tomllib.loads((ROOT / 'facets.toml').read_text())
-        self.assertLessEqual(set(cfg), {'sources', 'overrides'})
+        self.assertLessEqual(set(cfg), {'sources', 'overrides', 'precision'})
         for name, entry in cfg.get('overrides', {}).items():
             with self.subTest(name=name):
                 facets.apply_override(facets.infer(name), entry)

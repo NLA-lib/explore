@@ -15,16 +15,15 @@
 # (docs/rates-design.md, "Rates from facets"). A family holds the generated rows whose
 # algorithm facet it lists in `algorithms`; a reviewed row's family is its guarantee's.
 
-# names of algorithm facet values (facets.py), for the Algorithm filter
+# filter labels of algorithm facet values; an algorithm with a page (algorithms.toml `facet`) is
+# named by its page's title instead
 [algorithm_names]
-RSVD = 'Randomized SVD (RSVD)'
 GN = 'Generalized Nyström (GN)'
 'Nyström' = 'PSD Nyström'
 RBKI = 'Randomized block Krylov (RBKI)'
 RSI = 'Randomized subspace iteration (RSI)'
 NysBKI = 'Block Krylov Nyström (NysBKI)'
 NysSI = 'Nyström subspace iteration (NysSI)'
-'sketch-and-solve' = 'Sketch-and-solve'
 
 # the sketch classes of the Law filter, as on the Sketching browse page; other laws are "Other"
 [law_classes]

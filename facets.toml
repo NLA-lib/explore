@@ -19,10 +19,23 @@
 #   label = "any optimal projector"         # the row's Detail cell (or Statement, outside the grammar)
 #
 # An override for a declaration that no longer exists fails the build, like stale Rates rows.
+#
+# [precision] maps a precision-model constant to the precision of every statement that reaches it
+# (through its statement, never its proof; algorithm pages, AP6 of docs/design/algorithm-pages.md).
+# A statement that reaches none is in exact arithmetic. The value is the facet `fc.precision`, the
+# Precision filter and column of Rates (shown when the value varies) and the finite-precision
+# section of algorithm pages. A constant that no longer exists fails the build.
 
 [sources]
 
 # Early truncation through any optimal projector: the names spell `sub_mul`, not the algorithm.
+
+[precision]
+'NLAlib.Computation.IsRelErrSem' = 'standard model, unit roundoff $u$'
+'NLAlib.Computation.MatrixFreeRounded' = 'standard model, unit roundoff $u$'
+'NLAlib.Computation.IsMatvecErr' = 'standard model, unit roundoff $u$'
+'NLAlib.LanczosRun' = 'local-error model, $\varepsilon$'
+
 [overrides."NLAlib.HasSubspaceInjection.measureReal_frobNorm_sub_mul_sq_gt_le"]
 algorithm = "RSVD"
 output = "early"

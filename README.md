@@ -105,7 +105,7 @@ next to the (pending) Hutch++ sample sizes.
   another family the build fails. The hand facet fields of earlier versions (`algorithm`,
   `variant`, `sketch`, `sketch_category`, `norm`, `mode`, `gap`, `probe…`) are gone: the names say
   them.
-- `[algorithm_names]` (filter labels such as "Randomized SVD (RSVD)"), `[law_classes]` (the
+- `[algorithm_names]` (filter labels such as "Generalized Nyström (GN)"; an algorithm with a page is named by its `algorithms.toml` title), `[law_classes]` (the
   sketch classes; other laws are "Other") and `[generate] exclude_words` (words of a Result id or
   module that keep a pair off the page; today the linear-system solvers).
 
@@ -157,6 +157,52 @@ round event delimiters at rendering time, preserving event contents, conditional
 and delimiter sizing. Plain matrix `P`, prose/code, and unrecognized or malformed notation are
 left unchanged. Raw extracted documentation and Lean source remain untouched. The library's
 CONTRIBUTING §6 records the convention for future docstrings.
+
+## Algorithm pages
+
+An algorithm page (`#a/<id>`, in the panel of every page of the app) gathers what the library has
+about one algorithm; the [index](https://nla-lib.org/explore/algorithms/) (`algorithms/`) has one
+table per family. Design and decisions: [docs/design/algorithm-pages.md](docs/design/algorithm-pages.md).
+
+- **Members** are the library's: a docstring line `Algorithm: <id>`, optionally
+  `Algorithm: <id> (specification)` or `(run model)`, on a definition or program (NLAlib
+  CONTRIBUTING §6 item 4b, checked by its `scripts/check_refs.py`). A constant whose type is a
+  `Computation.Prog` or `Computation.Builder` is shown as a *program*. `algorithms.toml` adds titles,
+  aliases, families, variants (`variants` / `variant_of`, both directions), the Rates `facet`
+  (whose filter label becomes the page's title), `result_prefixes`, curated `results` /
+  `not_results`, `sharpness`, bootstrap `definitions` and `aliases_of`.
+- **Results attach** by the first rule that applies: curated; result-id prefix (the longest
+  wins); the Rates facet of its declarations; the statements (`typeDeps`, and the bodies of
+  Prop-valued definitions such as targets, never proofs) reaching tagged declarations of exactly
+  one algorithm. A result whose facet names an algorithm without a page, or whose id has one of the
+  `[unpaged] prefixes` (algorithms not tagged yet: MINRES, Lanczos-FA, RSI, GN, …), is placed on no
+  page. Every other algorithm a result's statements reach lists it under *Results that also involve
+  this algorithm*. Nothing leaves a shelf. `site/algorithms/attachment.json` records the rule that
+  placed each result.
+- **Sections**: definition (each member whole, with its role; results relating a specification to
+  its recurrence), status, cost (one entry per registered target of `docs/targets.toml` about a
+  program of the algorithm, read from `--src`: access model, the target's statement, its count
+  definition, precomputed inputs, trees, review date and proof), guarantees in exact arithmetic
+  (the Rates rows of its facet, then its results by error measure), in finite precision (with the
+  model), lower bounds and sharpness (`kind = 'lower'` Rates rows, `NLAlib.LowerBounds`, ids ending
+  in `-sharp` or `-lower-bound`), results that also involve it, uses and used by (through the
+  definitions its members are built from), and the Lean. Pseudo-code is deferred.
+- **The status ladder** has six rungs, each computed: definition, program, cost and output (a
+  registered target with a proof), exact guarantees, finite precision, sharpness. Pages show it
+  as a table, the index as columns (`algorithms/?rung=cost` keeps the algorithms with that rung),
+  and `site/algorithms/ladder.json` lists every rung's declarations and results per algorithm, a
+  work queue; `build.py --ladder` prints it. Only NLAlib is extracted, so the scaffold counts for
+  nothing.
+- **Precision** (`facets.toml [precision]`, a model constant to a value) is the facet
+  `fc.precision` of every theorem whose statement reaches one of the constants, else exact
+  arithmetic. Rates has a Precision filter and column, hidden while every row is exact.
+- **Links back**: a result page names the algorithm it is placed on and those it also involves; a
+  definition page and a file page name the algorithm of a tagged declaration; a shelf group whose
+  definitions include tagged ones names their algorithms; a Rates family lists its algorithm pages,
+  and the ▸ view of a row links its page. Search finds algorithms by title and aliases.
+- The build fails on a malformed tag or a tag on a theorem, an unknown id, a family listing an id
+  twice or two families listing one, a variant without its reverse entry, a facet that no Rates
+  row has, an unknown result or declaration, and a bootstrap definition that is tagged.
 
 ## Result pages: the statements table
 
@@ -266,6 +312,8 @@ rejects them.
 | `rates.toml` | Rates families, guarantees and the reviewed overlay (summaries keyed by theorem and statement hash) |
 | `collections.toml` | the shelves: result and definition groups independent of source modules, and the `sources` prefixes that place new results |
 | `books.toml` | key books for the Books page: chapters, sections, numbered results (numbers and short names only) |
+| `algorithms.toml` | algorithm pages: families, titles, aliases, variants, Rates facets, result-id prefixes, curated exceptions |
+| `algorithms.py` | algorithm pages: members, attachment of results, cost targets, the ladder |
 
 ## Local build
 

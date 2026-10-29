@@ -11,7 +11,7 @@ shelves = ["LinearSystems", "LowRank", "Sketching", "Estimation", "MatrixFunctio
            "Eigenvalues", "Concentration", "LowerBounds", "Matrix"]
 
 # source folders, in import-layer order
-order = ["Matrix", "Polynomial", "Krylov", "Probability", "RandomMatrix", "Sketching",
+order = ["Matrix", "Polynomial", "Computation", "Krylov", "Probability", "RandomMatrix", "Sketching",
          "Regression", "Solvers", "LowRank", "Estimation", "LowerBounds", "ForMathlib"]
 
 [Matrix]
@@ -61,11 +61,39 @@ MatrixConditionalExpectation = "MatrixValued"
 [Krylov]
 title = "Krylov methods"
 blurb = "Krylov spaces, the Lanczos and Arnoldi processes, CG, MINRES and GMRES with their preconditioned variants, and Lanczos for matrix functions."
-order = ["Basic", "Processes", "LinearSystems", "Functions"]
+order = ["Basic", "Processes", "LinearSystems", "Functions", "Eigenvalues", "FinitePrecision"]
 Basic.title = "Krylov spaces"
 Processes.title = "Lanczos and Arnoldi processes"
 LinearSystems.title = "Linear systems: CG, MINRES and GMRES"
 Functions.title = "Matrix functions: Lanczos-FA"
+FinitePrecision.title = "Finite precision"
+FinitePrecision.blurb = "The Lanczos process in finite precision: runs with bounded local errors, Paige's loss of orthogonality and Ritz values, Greenbaum's backward model."
+
+[Computation]
+title = "Computation model"
+blurb = "Programs over memory buffers with a cost and memory semantics, the BLAS kernels written in them, the access models in which cost results are stated, and rounding-error contracts. The programs of the library's algorithms are read on their algorithm pages."
+order = ["Syntax", "BLAS", "Models", "Rounding"]
+Syntax.title = "Syntax and semantics"
+BLAS.title = "BLAS kernels"
+Models.title = "Access models and targets"
+Rounding.title = "Rounding and error contracts"
+
+[Computation.assign]
+Syntax = "Syntax"
+Subst = "Syntax"
+Compile = "Syntax"
+FirstOrder = "Syntax"
+Exec = "Syntax"
+Store = "Syntax"
+Exact = "Syntax"
+BLAS = "BLAS"
+Model = "Models"
+Dense = "Models"
+Sparse = "Models"
+RunsWithin = "Models"
+Contract = "Rounding"
+Grid = "Rounding"
+Rounding = "Rounding"
 
 [RandomMatrix]
 title = "Random matrices"

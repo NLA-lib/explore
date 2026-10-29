@@ -280,6 +280,12 @@ definitions = ["NLAlib.lanczosState", "NLAlib.lanczosMatrix", "NLAlib.lanczosTri
 results = ["lanczos-tridiagonal", "lanczos-recurrence", "lanczos-breakdown", "preconditioned-lanczos-recurrence", "lanczos-jacobi-matrix", "lanczos-orthogonal-polynomials"]
 
 [[collections.groups]]
+id = "lanczos-finite-precision"
+title = "Lanczos in finite precision"
+definitions = ["NLAlib.LanczosRun", "NLAlib.LanczosData"]
+results = ["lanczos-local-errors", "lanczos-local-orthogonality", "lanczos-gram-commutator", "paige-loss-of-orthogonality", "lanczos-ritz-residual", "paige-ritz-containment", "paige-stabilized-ritz-values", "lanczos-dilated-recurrence", "greenbaum-backward-model", "lanczos-spectral-measure-wasserstein"]
+
+[[collections.groups]]
 id = "arnoldi"
 title = "Arnoldi"
 definitions = ["NLAlib.arnoldiMatrix", "NLAlib.IsGradedKrylovBasis", "NLAlib.arnoldiState", "NLAlib.arnoldiStep", "NLAlib.mgsArnoldiMatrix", "NLAlib.mgsArnoldiHessenberg"]
