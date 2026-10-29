@@ -1,0 +1,99 @@
+# Algorithm pages (docs/design/algorithm-pages.md): how the algorithms of NLAlib are shown.
+#
+# Which declarations make up an algorithm is the library's: a docstring line `Algorithm: <id>`
+# (optionally `Algorithm: <id> (specification)` or `(run model)`) on a definition or program
+# (NLAlib CONTRIBUTING §6 item 4b). This file only adds what the Lean does not say, keyed by the id;
+# every key is optional, and an id with no entry gets a page titled after its first definition.
+#
+# [[families]]   id, title, description, algorithms: a group of the index page, in this order
+# [<id>]         title, aliases (other names, searched), variants / variant_of (a variant is a
+#                separate algorithm with a different definition; both directions are given),
+#                facet (the algorithm value of its Rates rows; the Rates filter label becomes the
+#                title), result_prefixes (default [id]; a result id equal to one or starting with
+#                one followed by `-` is placed here, the longest prefix winning), results and
+#                not_results (curated exceptions to the attachment rules), sharpness (results
+#                shown as sharpness that the rules do not recognise), definitions (bootstrap only:
+#                declarations not yet tagged in the library; a tagged one fails the build),
+#                aliases_of (old ids of a renamed algorithm, so their links keep working)
+# [unpaged]      prefixes: result-id prefixes of algorithms that have no page yet. Their results
+#                are not placed on a page they merely mention (minres-lanczos is MINRES's, not
+#                Lanczos's); they are listed under "Results that also involve this algorithm".
+#                Remove a prefix when its algorithm is tagged.
+#
+# The build fails on an unknown id, a family listing an id twice or two families listing one, a
+# variant without its reverse entry, a facet no Rates row has, an unknown result or declaration,
+# and a bootstrap definition that is tagged.
+
+[[families]]
+id = 'krylov-linear-systems'
+title = 'Krylov solvers for Ax = b'
+description = 'Iterative solvers built on Krylov spaces of the matrix and the initial residual.'
+algorithms = ['cg', 'pcg']
+
+[[families]]
+id = 'krylov-processes'
+title = 'Krylov processes'
+description = 'Recurrences that build an orthonormal basis of a Krylov space and the compression of the matrix to it.'
+algorithms = ['lanczos']
+
+[[families]]
+id = 'randomized-low-rank'
+title = 'Randomized low-rank approximation'
+description = 'Low-rank approximations from random sketches of the range of a matrix.'
+algorithms = ['randomized-svd']
+
+[[families]]
+id = 'trace-estimation'
+title = 'Trace estimation'
+description = 'Estimates of the trace of a matrix accessed through products with vectors.'
+algorithms = ['hutchpp']
+
+[[families]]
+id = 'sketched-least-squares'
+title = 'Sketched least squares'
+description = 'Least-squares solvers that work with a random sketch of the problem.'
+algorithms = ['sketch-and-solve']
+
+[[families]]
+id = 'orthogonalization'
+title = 'Orthogonalization'
+description = 'Orthonormal bases of the columns of a matrix.'
+algorithms = ['gram-schmidt']
+
+[cg]
+title = 'Conjugate gradient (CG)'
+aliases = ['Hestenes–Stiefel', 'HSCG', 'conjugate gradients']
+variants = ['pcg']
+
+[pcg]
+title = 'Preconditioned conjugate gradient (PCG)'
+aliases = ['preconditioned CG']
+variant_of = 'cg'
+
+[lanczos]
+title = 'Lanczos process'
+aliases = ['Lanczos recurrence', 'Lanczos tridiagonalization']
+
+[randomized-svd]
+title = 'Randomized SVD (RSVD)'
+aliases = ['randomized range finder', 'RSVD', 'early-truncated RSVD']
+facet = 'RSVD'
+result_prefixes = ['randomized-svd', 'rsvd', 'etrsvd']
+
+[hutchpp]
+title = 'Hutch++'
+aliases = ['Hutch plus plus', 'trace estimation']
+facet = 'Hutch++'
+
+[sketch-and-solve]
+title = 'Sketch-and-solve'
+aliases = ['sketched least squares']
+facet = 'sketch-and-solve'
+
+[gram-schmidt]
+title = 'Gram–Schmidt'
+aliases = ['Gram-Schmidt', 'modified Gram–Schmidt', 'MGS', 'QR factorization']
+
+[unpaged]
+prefixes = ['cgls', 'minres', 'pminres', 'gmres', 'lanczos-fa', 'rsi', 'rbki', 'gn', 'etgn', 'tgn',
+            'generalized-nystrom', 'nystrom', 'sketch-and-precondition', 'girard-hutchinson']

@@ -1067,3 +1067,18 @@ details.topic, details.sub { scroll-margin-top: 4rem; }
 .result-statement .formname {
     margin: 0.2em 0 0.45em;
 }
+
+/* algorithm pages (#a/<id>) and the index (algorithms/) */
+.algo-of, .algo-rel { font-size: 85%; margin: 0.3em 0 0.8em; }
+.algo-tag { font-size: 75%; font-weight: 400; color: var(--faint); letter-spacing: 0; text-transform: none; margin-left: 0.4em; }
+.algo-tag a { color: inherit; }
+.algo-sub { font-size: 80%; font-weight: 600; margin: 1em 0 0.3em; }
+.algo-member, .algo-cost { margin-bottom: 1.2em; }
+.algo-member .formname .kind, .algo-cost .formname .kind { font-weight: 400; }
+.algo-ladder { width: auto; min-width: 16em; }
+.algo-ladder th[scope="row"] { position: static; font-weight: 400; color: var(--ink); }
+.algo-index td, .algo-index th { white-space: nowrap; }
+.algo-index td:first-child { white-space: normal; }
+.algo-filter select { font: inherit; color: inherit; background: #fff; }
+body[data-page="algorithms"] #contentContainer { max-width: 1120px; }
+.algo-model { font-size: 75%; color: var(--faint); margin-left: 0.4em; }

@@ -151,10 +151,12 @@ class BuildTests(unittest.TestCase):
             main = (out / 'index.html').read_text()
             self.assertIn(f'src="app.js?v={app_v}"', main)
             self.assertIn(f'<body data-version="{data_v}">', main)
-            for sub in ('books', 'rates'):
+            for sub in ('books', 'rates', 'algorithms'):
                 page = (out / sub / 'index.html').read_text()
                 self.assertIn(f'src="../app.js?v={app_v}"', page)
                 self.assertIn(f'<body data-page="{sub}" data-base="../" data-version="{data_v}">', page)
+                # the menu marks this page only: no other link takes its data-page
+                self.assertEqual(page.count(f'data-page="{sub}"'), 2)
 
 
 if __name__ == '__main__':
